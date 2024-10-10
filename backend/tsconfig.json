@@ -11,7 +11,8 @@
     "baseUrl": "./",
     "paths": {
       "*": ["node_modules/*", "src/types/*"]
-    }
+    },
+    "types": ["jest", "supertest"]
   },
   "include": ["src/**/*.ts", "src/app.ts", "src/util/asyncHandler.js", "src/util/asyncHandler.js"],
   "exclude": ["node_modules", "**/*.spec.ts"]
