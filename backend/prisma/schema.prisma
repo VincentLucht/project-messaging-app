@@ -10,11 +10,67 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL_GLOBAL")
+  url      = env("DATABASE_URL_LOCAL")
 }
 
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+  id    String  @id @default(uuid())
+  name  String
+  password String
+  user_description String @db.VarChar(30) @default("Hi!")
+  created_at DateTime @default(now())
+
+  Messages Message[]
+  UserChats UserChats[]
+  ChatAdmin ChatAdmin[]
+
+  @@unique([name])
+}
+
+model Chat {
+  id String @id @default(uuid())
+  name String @db.VarChar(100)
+  is_password_protected Boolean @default(false)
+  password String? 
+  time_created DateTime @default(now())
+  is_group_chat Boolean @default(false)
+  chat_description String? @db.VarChar(200)
+  updated_at DateTime @updatedAt
+  
+  Messages Message[]
+  UserChats UserChats[]
+  ChatAdmins ChatAdmin[]
+}
+
+model Message {
+  id String @id @default(uuid())
+  content String @db.VarChar(10000)
+  time_created DateTime @default(now())
+  status String @default("sent")
+
+  user         User     @relation(fields: [user_id], references: [id])
+  user_id       String
+  chat         Chat     @relation(fields: [chat_id], references: [id])
+  chat_id       String
+}
+
+model UserChats {
+  id String @id @default(uuid())
+  user User @relation(fields: [user_id], references: [id])
+  user_id String
+  chat Chat @relation(fields: [chat_id], references: [id])
+  chat_id String
+
+  @@unique([user_id, chat_id])
+  @@index([user_id, chat_id])
+}
+
+model ChatAdmin {
+  id      String @id @default(uuid())
+  user    User   @relation(fields: [user_id], references: [id])
+  user_id  String
+  chat    Chat   @relation(fields: [chat_id], references: [id])
+  chat_id  String
+  @@unique([user_id, chat_id])
+  @@index([user_id, chat_id])
 }
