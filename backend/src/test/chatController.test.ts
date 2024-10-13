@@ -3,86 +3,85 @@ import express from 'express';
 import router from '../routes/router';
 import db from '../db/db';
 
+import jwt from 'jsonwebtoken';
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 const app = express();
 app.use(express.json());
 app.use('', router);
 
 // Mock the database methods
-jest.mock('../db/db', () => ({
-  getUserById: jest.fn(),
-  createUser: jest.fn(),
-  createChat: jest.fn(),
-}));
+jest.mock('../db/db');
 
-const aliceId = 'e436f5fe-980a-4ae5-9e23-a6731bdc3d6c';
-const token =
-  'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjUxNmM0NWExLTE4YjctNGIyYy1iYmI4LTY3ZmM4MzA4M2U5MyIsIm5hbWUiOiJ0ZXN0IHRlc3QiLCJpYXQiOjE3Mjg0NzA3OTgsImV4cCI6MTcyOTY4MDM5OH0.F06xAVF4BRqL4UfO7RC5XG6qAZJ76Gk9nbIUCC0CkmA';
+// Utility function to generate VALID token using the secret key
+const generateToken = (userId: string, name: string) => {
+  const { SECRET_KEY } = process.env;
+  if (!SECRET_KEY) {
+    throw new Error('JWT_SECRET is not defined in the environment variables');
+  }
+
+  return jwt.sign({ id: userId, name }, SECRET_KEY, { expiresIn: '5m' });
+};
 
 // prettier-ignore
-describe('POST /chat/create', () => {
+describe('POST /chat', () => {
+  const mockUser = { id: '123', name: 'Test User' };
+  let token: string;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    token = `Bearer ${generateToken(mockUser.id, mockUser.name)}`;
+    (db.getUserById as jest.Mock).mockResolvedValue(mockUser);
+    (db.createChat as jest.Mock).mockResolvedValue({ id: 'chat-123' });
+    (db.makeUserAdminById as jest.Mock).mockResolvedValue(undefined);
   });
 
-  it('should create a chat successfully', async () => {
-    const mockUser = { id: '123', name: 'Test User' };
-    (db.getUserById as jest.Mock).mockResolvedValue(mockUser);
-    (db.createChat as jest.Mock).mockResolvedValue(undefined);
-
-    const response = await request(app)
-      .post('/chat/create')
+  const sendRequest = (body: object) => {
+    return request(app)
+      .post('/chat')
       .set('Authorization', token)
-      .send({
-        userId: aliceId,
-        name: 'Test Chat',
-        is_group_chat: false,
-        chat_description: 'A test chat',
-        is_password_protected: false,
-      });
+      .send(body);
+  };
+
+  it('should create a chat successfully', async () => {
+    const response = await sendRequest({
+      userId: mockUser.id,
+      name: 'Test Chat',
+      is_group_chat: false,
+      chat_description: 'A test chat',
+      is_password_protected: false,
+    });
 
     expect(response.status).toBe(201);
     expect(response.body).toEqual({ message: 'Successfully created chat' });
-  });
-
-  it('should return 404 if user is not found', async () => {
-    (db.getUserById as jest.Mock).mockResolvedValue(null);
-
-    const response = await request(app)
-      .post('/chat/create')
-      .set('Authorization', token)
-      .send({
-        userId: 'non-existent-id',
-        name: 'Test Chat',
-        is_group_chat: false,
-        chat_description: 'A test chat',
-        is_password_protected: false,
-      });
-
-    expect(response.status).toBe(404);
-    expect(response.body).toEqual({ message: 'Invalid user ID' });
+    // Verify the chat data
+    expect(db.createChat).toHaveBeenCalledWith(
+      mockUser.id,
+      'Test Chat',
+      false,
+      'A test chat',
+      false,
+      undefined,
+    );
+    expect(db.makeUserAdminById).toHaveBeenCalledWith('chat-123', mockUser.id);
   });
 
   it('should create a password-protected chat successfully', async () => {
-    const mockUser = { id: '123', name: 'Test User' };
-    (db.getUserById as jest.Mock).mockResolvedValue(mockUser);
-    (db.createChat as jest.Mock).mockResolvedValue(undefined);
-
-    const response = await request(app)
-      .post('/chat/create')
-      .set('Authorization', token)
-      .send({
-        userId: aliceId,
-        name: 'Protected Chat',
-        is_group_chat: true,
-        chat_description: 'A protected group chat',
-        is_password_protected: true,
-        password: 'securePassword123',
-      });
+    const response = await sendRequest({
+      userId: mockUser.id,
+      name: 'Protected Chat',
+      is_group_chat: true,
+      chat_description: 'A protected group chat',
+      is_password_protected: true,
+      password: 'securePassword123',
+    });
 
     expect(response.status).toBe(201);
     expect(response.body).toEqual({ message: 'Successfully created chat' });
+    // Verify that the chat has a password and is password protected
     expect(db.createChat).toHaveBeenCalledWith(
-      aliceId,
+      mockUser.id,
       'Protected Chat',
       true,
       'A protected group chat',
@@ -91,21 +90,31 @@ describe('POST /chat/create', () => {
     );
   });
 
+  it('should return 404 if user is not found', async () => {
+    (db.getUserById as jest.Mock).mockResolvedValue(null);
+
+    const response = await sendRequest({
+      userId: 'non-existent-id',
+      name: 'Test Chat',
+      is_group_chat: false,
+      chat_description: 'A test chat',
+      is_password_protected: false,
+    });
+
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({ message: 'User ID not found' });
+  });
+
   it('should return 500 if database operation fails', async () => {
-    const mockUser = { id: '123', name: 'Test User' };
-    (db.getUserById as jest.Mock).mockResolvedValue(mockUser);
     (db.createChat as jest.Mock).mockRejectedValue(new Error('Database error'));
 
-    const response = await request(app)
-      .post('/chat/create')
-      .set('Authorization', token)
-      .send({
-        userId: aliceId,
-        name: 'Test Chat',
-        is_group_chat: false,
-        chat_description: 'A test chat',
-        is_password_protected: false,
-      });
+    const response = await sendRequest({
+      userId: mockUser.id,
+      name: 'Test Chat',
+      is_group_chat: false,
+      chat_description: 'A test chat',
+      is_password_protected: false,
+    });
 
     expect(response.status).toBe(500);
     expect(response.body).toEqual({
@@ -114,35 +123,173 @@ describe('POST /chat/create', () => {
     });
   });
 
-  it('should handle missing required fields', async () => {
-    const response = await request(app)
-      .post('/chat/create')
-      .set('Authorization', token)
-      .send({
-        userId: aliceId,
-        // Missing 'name' field
-        is_group_chat: false,
-        chat_description: 'A test chat',
-        is_password_protected: false,
-      });
+  it('should handle invalid token', async () => {
+    token = 'Bearer invalid_token';
 
-    // 400 for missing fields
+    const response = await sendRequest({
+      userId: mockUser.id,
+      name: 'Test Chat',
+      is_group_chat: false,
+      chat_description: 'A test chat',
+      is_password_protected: false,
+    });
+
+    expect(response.status).toBe(401);
+  });
+});
+
+// prettier-ignore
+describe('POST /chat/message', () => {
+  const mockUser = { id: '123', name: 'Test User' };
+  const mockChat = { id: '123', name: 'Test Chat', updated_at: 'now' };
+  let token: string;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    token = `Bearer ${generateToken(mockUser.id, mockUser.name)}`;
+    (db.getUserById as jest.Mock).mockResolvedValue(mockUser);
+  });
+
+  const sendRequest = (body: object) => {
+    return request(app)
+      .post('/chat/message')
+      .set('Authorization', token)
+      .send(body);
+  };
+
+  it('should create a message successfully', async () => {
+    (db.createMessage as jest.Mock).mockResolvedValue(undefined);
+    (db.getChatById as jest.Mock).mockResolvedValue(mockChat); // ? mock chat
+
+    const response = await sendRequest({
+      user_id: mockUser.id,
+      chat_id: 'unique chat id :)',
+      content: 'Test message',
+    });
+
+    expect(response.status).toBe(201);
+    expect(response.body).toEqual({ message: 'Successfully created message' });
+  });
+
+  it('should handle missing required fields', async() => {
+    (db.getUserById as jest.Mock).mockResolvedValue(null); // ? Mock user not found
+
+    const response = await sendRequest({
+      // missing user id
+      chat_id: 'valid chat_id',
+      content: 'Test message',
+    });
+
     expect(response.status).toBe(400);
+    expect(response.body.message).toEqual('Invalid user ID');
+  });
+
+  // ! TODO: it('should update updated_at from chat ');
+});
+
+// prettier-ignore
+describe('POST /chat/admin', () => {
+  const mockUser = { id: '123', name: 'Test User' };
+  const mockOtherUser = { id: '456', name: 'Other User' };
+  const mockChatId = 'chat123';
+  let token: string;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    token = `Bearer ${generateToken(mockUser.id, mockUser.name)}`;
+    (db.getUserById as jest.Mock).mockResolvedValue(mockUser);
+    (db.getUserByUsername as jest.Mock).mockResolvedValue(mockOtherUser);
+  });
+
+  const sendRequest = (body: object) => {
+    return request(app)
+      .post('/chat/user/admin')
+      .set('Authorization', token)
+      .send(body);
+  };
+
+  it('should make a user admin successfully', async () => {
+    (db.isChatAdminById as jest.Mock).mockResolvedValue(true);
+    (db.isChatAdminByUsername as jest.Mock).mockResolvedValue(false);
+    (db.makeUserAdminByUsername as jest.Mock).mockResolvedValue(undefined);
+
+    const response = await sendRequest({
+      user_id: mockUser.id,
+      other_username: mockOtherUser.name,
+      chat_id: mockChatId,
+    });
+
+    expect(response.status).toBe(201);
+    expect(response.body).toEqual({ message: `Successfully made user ${mockOtherUser.name} an admin` });
+  });
+
+  it('should return 404 if other user is not found', async () => {
+    (db.getUserByUsername as jest.Mock).mockResolvedValue(null);
+
+    const response = await sendRequest({
+      user_id: mockUser.id,
+      other_username: 'nonexistent_user',
+      chat_id: mockChatId,
+    });
+
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({ message: 'Username nonexistent_user not found' });
+  });
+
+  it('should return 403 if user is not an admin', async () => {
+    (db.isChatAdminById as jest.Mock).mockResolvedValue(false);
+
+    const response = await sendRequest({
+      user_id: mockUser.id,
+      other_username: mockOtherUser.name,
+      chat_id: mockChatId,
+    });
+
+    expect(response.status).toBe(403);
+    expect(response.body).toEqual({ message: 'You are not an admin' });
+  });
+
+  it('should return 409 if other user is already an admin', async () => {
+    (db.isChatAdminById as jest.Mock).mockResolvedValue(true);
+    (db.isChatAdminByUsername as jest.Mock).mockResolvedValue(true);
+
+    const response = await sendRequest({
+      user_id: mockUser.id,
+      other_username: mockOtherUser.name,
+      chat_id: mockChatId,
+    });
+
+    expect(response.status).toBe(409);
+    expect(response.body).toEqual({ message: `User ${mockOtherUser.name} already is an admin` });
+  });
+
+  it('should return 500 if database operation fails', async () => {
+    (db.isChatAdminById as jest.Mock).mockResolvedValue(true);
+    (db.isChatAdminByUsername as jest.Mock).mockResolvedValue(false);
+    (db.makeUserAdminByUsername as jest.Mock).mockRejectedValue(new Error('Database error'));
+
+    const response = await sendRequest({
+      user_id: mockUser.id,
+      other_username: mockOtherUser.name,
+      chat_id: mockChatId,
+    });
+
+    expect(response.status).toBe(500);
+    expect(response.body).toEqual({
+      message: 'Failed to make user admin',
+      error: 'Database error',
+    });
   });
 
   it('should handle invalid token', async () => {
-    const response = await request(app)
-      .post('/chat/create')
-      .set('Authorization', 'Bearer invalid_token')
-      .send({
-        userId: aliceId,
-        name: 'Test Chat',
-        is_group_chat: false,
-        chat_description: 'A test chat',
-        is_password_protected: false,
-      });
+    token = 'Bearer invalid_token';
 
-    // 401 for invalid tokens
+    const response = await sendRequest({
+      user_id: mockUser.id,
+      other_username: mockOtherUser.name,
+      chat_id: mockChatId,
+    });
+
     expect(response.status).toBe(401);
   });
 });
