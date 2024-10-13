@@ -14,51 +14,47 @@ datasource db {
 }
 
 model User {
-  id    String  @id @default(uuid())
-  name  String
-  password String
-  user_description String @db.VarChar(30) @default("Hi!")
-  created_at DateTime @default(now())
-
-  Messages Message[]
-  UserChats UserChats[]
-  ChatAdmin ChatAdmin[]
-
-  @@unique([name])
+  id               String      @id @default(uuid())
+  name             String      @db.VarChar(30)
+  username         String      @unique @db.VarChar(30)
+  password         String
+  user_description String      @default("Hi!") @db.VarChar(30)
+  created_at       DateTime    @default(now())
+  Messages         Message[]
+  UserChats        UserChats[]
+  ChatAdmin        ChatAdmin[]
 }
 
 model Chat {
-  id String @id @default(uuid())
-  name String @db.VarChar(100)
-  is_password_protected Boolean @default(false)
-  password String? 
-  time_created DateTime @default(now())
-  is_group_chat Boolean @default(false)
-  chat_description String? @db.VarChar(200)
-  updated_at DateTime @updatedAt
-  
-  Messages Message[]
-  UserChats UserChats[]
-  ChatAdmins ChatAdmin[]
+  id                    String      @id @default(uuid())
+  name                  String      @db.VarChar(100)
+  is_password_protected Boolean     @default(false)
+  password              String?
+  time_created          DateTime    @default(now())
+  is_group_chat         Boolean     @default(false)
+  chat_description      String?     @db.VarChar(200)
+  updated_at            DateTime    @updatedAt
+  Messages              Message[]
+  UserChats             UserChats[]
+  ChatAdmins            ChatAdmin[]
 }
 
 model Message {
-  id String @id @default(uuid())
-  content String @db.VarChar(10000)
+  id           String   @id @default(uuid())
+  content      String   @db.VarChar(10000)
   time_created DateTime @default(now())
-  status String @default("sent")
-
-  user         User     @relation(fields: [user_id], references: [id])
-  user_id       String
-  chat         Chat     @relation(fields: [chat_id], references: [id])
-  chat_id       String
+  status       String   @default("sent")
+  user         User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id      String
+  chat         Chat     @relation(fields: [chat_id], references: [id], onDelete: Cascade)
+  chat_id      String
 }
 
 model UserChats {
-  id String @id @default(uuid())
-  user User @relation(fields: [user_id], references: [id])
+  id      String @id @default(uuid())
+  user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
   user_id String
-  chat Chat @relation(fields: [chat_id], references: [id])
+  chat    Chat   @relation(fields: [chat_id], references: [id], onDelete: Cascade)
   chat_id String
 
   @@unique([user_id, chat_id])
@@ -67,10 +63,11 @@ model UserChats {
 
 model ChatAdmin {
   id      String @id @default(uuid())
-  user    User   @relation(fields: [user_id], references: [id])
-  user_id  String
-  chat    Chat   @relation(fields: [chat_id], references: [id])
-  chat_id  String
+  user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id String
+  chat    Chat   @relation(fields: [chat_id], references: [id], onDelete: Cascade)
+  chat_id String
+
   @@unique([user_id, chat_id])
   @@index([user_id, chat_id])
 }
