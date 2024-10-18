@@ -4,13 +4,17 @@ import { body } from 'express-validator';
 class Validator {
   createChatRules() {
     return [
-      body('userId').trim()
+      body('user_id').trim()
         .isLength({ min: 1 })
         .withMessage('User ID is required'),
 
       body('name').trim()
         .isLength({ min: 1 })
         .withMessage('Chat name is required'),
+
+      body('name').trim()
+        .isLength({ max: 100 })
+        .withMessage('Chat name must be under 100 characters'),
 
       body('is_group_chat').isBoolean()
         .withMessage('is_group_chat must be a boolean'),
@@ -41,6 +45,18 @@ class Validator {
       body('chat_id').trim()
         .notEmpty()
         .withMessage('Chat ID is required'),
+    ];
+  }
+
+  getAllChatMessagesRules() {
+    return [
+      body('user_id').trim()
+        .notEmpty()
+        .withMessage('User ID is required'),
+
+      body('chat_id').trim()
+        .notEmpty()
+        .withMessage('Chat ID Is required'),
     ];
   }
 
@@ -110,10 +126,6 @@ class Validator {
 
   loginRules() {
     return [
-      body('name').trim()
-        .notEmpty()
-        .withMessage('Name is required'),
-
       body('username').trim()
         .notEmpty()
         .withMessage('Username is required'),
