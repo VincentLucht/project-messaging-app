@@ -10,9 +10,11 @@ import userController from '../controller/userController';
 const router = express.Router();
 
 // ! Chats
-// router.get('/chat', token.extract, token.verify, )
+// create chat
 router.post('/chat', token.extract, token.verify, validator.createChatRules(), chatController.createChat);
+// add user to chat
 router.post('/chat/user', token.extract, token.verify, validator.addUserToChatRules(), chatController.addUserToChat);
+// make user admin
 router.post(
   '/chat/user/admin',
   token.extract,
@@ -22,15 +24,17 @@ router.post(
 );
 
 // ! Messages
-router.post(
+// get all messages
+router.get(
   '/chat/message',
   token.extract,
   token.verify,
-  authController.verifyUser,
-  authController.verifyChat,
-  validator.createMessageRules(),
-  chatController.createMessage,
+  validator.getAllChatMessagesRules(),
+  chatController.getAllChatMessages,
 );
+
+// create a message
+router.post('/chat/message', token.extract, token.verify, validator.createMessageRules(), chatController.createMessage);
 
 // ! Authentication
 router.post('/sign-up', validator.signUpRules(), userController.createUser);
