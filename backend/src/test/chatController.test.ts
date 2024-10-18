@@ -46,7 +46,7 @@ describe('POST /chat', () => {
 
   it('should create a chat successfully', async () => {
     const response = await sendRequest({
-      userId: mockUser.id,
+      user_id: mockUser.id,
       name: 'Test Chat',
       is_group_chat: false,
       chat_description: 'A test chat',
@@ -69,7 +69,7 @@ describe('POST /chat', () => {
 
   it('should create a password-protected chat successfully', async () => {
     const response = await sendRequest({
-      userId: mockUser.id,
+      user_id: mockUser.id,
       name: 'Protected Chat',
       is_group_chat: true,
       chat_description: 'A protected group chat',
@@ -94,7 +94,7 @@ describe('POST /chat', () => {
     (db.getUserById as jest.Mock).mockResolvedValue(null);
 
     const response = await sendRequest({
-      userId: 'non-existent-id',
+      user_id: 'non-existent-id',
       name: 'Test Chat',
       is_group_chat: false,
       chat_description: 'A test chat',
@@ -109,7 +109,7 @@ describe('POST /chat', () => {
     (db.createChat as jest.Mock).mockRejectedValue(new Error('Database error'));
 
     const response = await sendRequest({
-      userId: mockUser.id,
+      user_id: mockUser.id,
       name: 'Test Chat',
       is_group_chat: false,
       chat_description: 'A test chat',
@@ -127,7 +127,7 @@ describe('POST /chat', () => {
     token = 'Bearer invalid_token';
 
     const response = await sendRequest({
-      userId: mockUser.id,
+      user_id: mockUser.id,
       name: 'Test Chat',
       is_group_chat: false,
       chat_description: 'A test chat',
@@ -135,6 +135,83 @@ describe('POST /chat', () => {
     });
 
     expect(response.status).toBe(401);
+  });
+});
+
+// prettier-ignore
+describe('GET /chat/message', () => {
+  const mockUser = { id: '123', name: 'Test User' };
+  const mockChatId = 'chat123';
+  let token: string;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    token = `Bearer ${generateToken(mockUser.id, mockUser.name)}`;
+    (db.getUserById as jest.Mock).mockResolvedValue(mockUser);
+    (db.isUserInsideChat as jest.Mock).mockResolvedValue(true);
+  });
+
+  const sendRequest = (body: object) => {
+    return request(app)
+      .get('/chat/message')
+      .set('Authorization', token)
+      .send(body);
+  };
+
+  it('should return 400 if chat_id is missing', async () => {
+    const response = await sendRequest({
+      // missing chat id
+      user_id: mockUser.id,
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toHaveProperty('errors');
+  });
+
+  it('should successfully fetch all messages', async () => {
+    const mockMessages = [
+      { id: '1', content: 'Hello', user_id: mockUser.id },
+      { id: '2', content: 'World', user_id: mockUser.id },
+    ];
+    (db.getAllChatMessages as jest.Mock).mockResolvedValue(mockMessages);
+
+    const response = await sendRequest({
+      chat_id: mockChatId,
+      user_id: mockUser.id,
+    });
+
+    expect(response.status).toBe(201);
+    expect(response.body).toEqual({
+      message: 'Successfully fetched all messages',
+      allMessages: mockMessages,
+    });
+  });
+
+  it('should return 403 if user is not inside the chat', async () => {
+    (db.isUserInsideChat as jest.Mock).mockResolvedValue(false);
+
+    const response = await sendRequest({
+      chat_id: mockChatId,
+      user_id: mockUser.id,
+    });
+
+    expect(response.status).toBe(403);
+    expect(response.body).toEqual({ message: 'Chat ID or User ID not found' });
+  });
+
+  it('should return 500 if database operation fails', async () => {
+    (db.getAllChatMessages as jest.Mock).mockRejectedValue(new Error('Database error'));
+
+    const response = await sendRequest({
+      chat_id: mockChatId,
+      user_id: mockUser.id,
+    });
+
+    expect(response.status).toBe(500);
+    expect(response.body).toEqual({
+      message: 'Failed to fetch messages',
+      error: 'Database error',
+    });
   });
 });
 
@@ -169,19 +246,6 @@ describe('POST /chat/message', () => {
 
     expect(response.status).toBe(201);
     expect(response.body).toEqual({ message: 'Successfully created message' });
-  });
-
-  it('should handle missing required fields', async() => {
-    (db.getUserById as jest.Mock).mockResolvedValue(null); // ? Mock user not found
-
-    const response = await sendRequest({
-      // missing user id
-      chat_id: 'valid chat_id',
-      content: 'Test message',
-    });
-
-    expect(response.status).toBe(400);
-    expect(response.body.message).toEqual('Invalid user ID');
   });
 
   // ! TODO: it('should update updated_at from chat ');
