@@ -1,11 +1,12 @@
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
 class DB {
-  // Chats
+  // ! Chats
   async createChat(
-    userId: string,
+    user_id: string,
     name: string,
     is_group_chat: boolean,
     chat_description: string,
@@ -18,14 +19,14 @@ class DB {
           create: [
             {
               user: {
-                connect: { id: userId },
+                connect: { id: user_id },
               },
             },
           ],
         },
         name,
         is_password_protected,
-        password,
+        password: is_password_protected && password ? await bcrypt.hash(password, 10) : null,
         is_group_chat,
         chat_description,
       },
@@ -144,7 +145,19 @@ class DB {
     return chatAdmin ? true : false;
   }
 
-  // Messages
+  // ! Messages
+  async getAllChatMessages(chatId: string) {
+    const allChatMessages = await prisma.message.findMany({
+      where: {
+        chat_id: chatId,
+      },
+      orderBy: {
+        time_created: 'desc',
+      },
+    });
+    return allChatMessages;
+  }
+
   async createMessage(userId: string, chatId: string, content: string) {
     await prisma.message.create({
       data: {
@@ -155,7 +168,7 @@ class DB {
     });
   }
 
-  // Users
+  // ! Users
   async createUser(name: string, username: string, hashedPassword: string) {
     const user = await prisma.user.create({
       data: {
@@ -188,6 +201,7 @@ class DB {
     return user;
   }
 
+  // ! UserChats
   async getAllChatsFromUser(userId: string) {
     const userChats = await prisma.userChats.findMany({
       where: {
@@ -196,6 +210,19 @@ class DB {
     });
 
     return userChats;
+  }
+
+  async isUserInsideChat(chatId: string, userId: string) {
+    const result = await prisma.userChats.findUnique({
+      where: {
+        user_id_chat_id: {
+          chat_id: chatId,
+          user_id: userId,
+        },
+      },
+    });
+
+    return result;
   }
 }
 
