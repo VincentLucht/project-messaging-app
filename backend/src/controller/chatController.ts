@@ -8,17 +8,17 @@ class ChatController {
   createChat = asyncHandler(async (req: Request, res: Response) => {
     if (checkValidationError(req, res)) return;
 
-    const { userId, name, is_group_chat, chat_description, is_password_protected } = req.body;
+    const { user_id, name, is_group_chat, chat_description, is_password_protected } = req.body;
     const { password = undefined } = is_password_protected ? req.body : {};
 
     try {
-      const user = await db.getUserById(userId);
+      const user = await db.getUserById(user_id);
       if (!user) {
         return res.status(404).json({ message: 'User ID not found' });
       }
 
-      const chat = await db.createChat(userId, name, is_group_chat, chat_description, is_password_protected, password);
-      await db.makeUserAdminById(chat.id, userId);
+      const chat = await db.createChat(user_id, name, is_group_chat, chat_description, is_password_protected, password);
+      await db.makeUserAdminById(chat.id, user_id);
 
       return res.status(201).json({ message: 'Successfully created chat' });
     } catch (error) {
@@ -63,7 +63,7 @@ class ChatController {
         return res.status(403).json({ message: 'You are not an admin' });
       }
 
-      // ! TODO: Disallow adding users if it is not a group chat
+      // ! TODO: Disallow adding/joining users if it is not a group chat
 
       await db.addUserToChat(otherUser.id, chat_id);
       return res.status(201).json({ message: 'Successfully added user to chat' });
@@ -112,6 +112,25 @@ class ChatController {
       return res.status(201).json({ message: 'Successfully created message' });
     } catch (error) {
       return res.status(500).json({ message: 'Failed to create message', error: (error as Error).message });
+    }
+  });
+
+  getAllChatMessages = asyncHandler(async (req: Request, res: Response) => {
+    if (checkValidationError(req, res)) return;
+
+    const { chat_id, user_id } = req.body;
+
+    try {
+      // check if user exists and is inside of chat
+      if (!(await db.isUserInsideChat(chat_id, user_id))) {
+        return res.status(403).json({ message: 'Chat ID or User ID not found' });
+      }
+
+      const allMessages = await db.getAllChatMessages(chat_id);
+
+      return res.status(201).json({ message: 'Successfully fetched all messages', allMessages });
+    } catch (error) {
+      return res.status(500).json({ message: 'Failed to fetch messages', error: (error as Error).message });
     }
   });
 }
