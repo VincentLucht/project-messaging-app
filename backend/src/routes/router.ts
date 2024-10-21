@@ -10,10 +10,31 @@ import userController from '../controller/userController';
 const router = express.Router();
 
 // ! Chats
+// get all chats from an user
+router.get(
+  '/chat',
+  token.extract,
+  token.verify,
+  validator.getAllUserChatsRules(),
+  chatController.getAllUserChats,
+);
+
 // create chat
-router.post('/chat', token.extract, token.verify, validator.createChatRules(), chatController.createChat);
+router.post(
+  '/chat',
+  token.extract,
+  token.verify,
+  validator.createChatRules(),
+  chatController.createChat,
+);
 // add user to chat
-router.post('/chat/user', token.extract, token.verify, validator.addUserToChatRules(), chatController.addUserToChat);
+router.post(
+  '/chat/user',
+  token.extract,
+  token.verify,
+  validator.addUserToChatRules(),
+  chatController.addUserToChat,
+);
 // make user admin
 router.post(
   '/chat/user/admin',
@@ -24,7 +45,7 @@ router.post(
 );
 
 // ! Messages
-// get all messages
+// get all messages from a single chat
 router.get(
   '/chat/message',
   token.extract,
@@ -34,7 +55,13 @@ router.get(
 );
 
 // create a message
-router.post('/chat/message', token.extract, token.verify, validator.createMessageRules(), chatController.createMessage);
+router.post(
+  '/chat/message',
+  token.extract,
+  token.verify,
+  validator.createMessageRules(),
+  chatController.createMessage,
+);
 
 // ! Authentication
 router.post('/sign-up', validator.signUpRules(), userController.createUser);
