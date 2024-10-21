@@ -14,14 +14,19 @@ class UserController {
     try {
       const doesUserExist = await db.getUserByUsername(username);
       if (doesUserExist) {
-        return res.status(409).json({ message: `Username ${username} already exists` });
+        return res
+          .status(409)
+          .json({ message: `Username ${username} already exists` });
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
       await db.createUser(name, username, hashedPassword);
       return res.status(201).json({ message: 'Successfully created user' });
     } catch (error) {
-      return res.status(500).json({ message: 'Failed to create User', error: (error as Error).message });
+      return res.status(500).json({
+        message: 'Failed to create User',
+        error: (error as Error).message,
+      });
     }
   });
 }
