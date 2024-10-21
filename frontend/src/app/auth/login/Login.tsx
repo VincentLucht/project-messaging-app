@@ -1,14 +1,14 @@
 import { FormEvent, useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/util/useAuth';
+import { useAuth } from '../context/hooks/useAuth';
 
 import { LoginInput } from './components/LoginInput';
-import handleLogin from './util/handleLogin';
-import ShowValidationErrors from '../../main/components/ShowValidationErrors';
-import convertExpressErrors from '../../main/components/ts/convertExpressErrors';
+import handleLogin from './api/handleLogin';
+import ShowValidationErrors from '../../components/ShowValidationError';
+import convertExpressErrors from '../../components/ts/convertExpressErrors';
 
 import { toast } from 'react-toastify';
-import toastUpdateOptions from '../../main/components/ts/toastUpdateObject';
+import toastUpdateOptions from '../../components/ts/toastUpdateObject';
 
 export interface ValidationError {
   type?: string;
@@ -59,7 +59,8 @@ function Login() {
         const validationError = error as { errors: ValidationError[] };
         if (loginError.message === 'Load failed') {
           setErrors({
-            message: 'There was a connection error, please try again at a later time',
+            message:
+              'There was a connection error, please try again at a later time',
           });
           return;
         }
@@ -70,8 +71,6 @@ function Login() {
     }
   };
 
-  console.log(errors);
-
   return (
     <div className="pb-14 df calc-h-vw-2">
       <div className="flex-col rounded-xl border px-10 pb-12 pt-6 df">
@@ -81,8 +80,8 @@ function Login() {
           {/* Name or pw are wrong */}
           {errors.message && (
             <div
-              className={`flex items-center gap-4 rounded bg-red-500 px-5 py-2 text-white transition-opacity
-              duration-300 ease-in-out clamp-sm
+              className={`flex items-center gap-4 rounded bg-red-500 px-5 py-2 text-white
+              transition-opacity duration-300 ease-in-out clamp-sm
               ${showErrors.message ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'}`}
             >
               <img src="alert.svg" alt="alert icon" className="w-8" />
