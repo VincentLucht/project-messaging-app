@@ -1,55 +1,40 @@
-import { useState, useEffect } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { useEffect } from 'react';
+import { Route, Routes, useNavigate } from 'react-router-dom';
+
+import Login from './app/auth/login/Login';
+import { useAuth } from './app/auth/context/hooks/useAuth';
+
+import Home from './app/middle/Home/Home';
+import Chat from './app/right/ActiveChat/Chat';
+
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+export const API_URL = 'http://localhost:3005';
 
 export default function App() {
-  const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState<string[]>([]);
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const navigate = useNavigate();
+  const { isLoggedIn } = useAuth();
 
   useEffect(() => {
-    // connect socket to backend
-    const socket = io('ws://localhost:3000');
-
-    // Listen for incoming messages from the server
-    socket.on('message', (data: string) => {
-      setMessages((prevMessages) => [...prevMessages, data]);
-    });
-
-    setSocket(socket); // Store the WebSocket instance in state
-
-    // ? Cleanup WebSocket on component unmount
-    return () => {
-      socket.close();
-    };
-  }, []);
-
-  const sendMessage = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (message !== '' && socket) {
-      socket.emit('message', message);
-      setMessage('');
+    if (!isLoggedIn) {
+      navigate('/login');
     }
-  };
+  }, [isLoggedIn, navigate]);
 
   return (
     <div>
-      <form onSubmit={(e) => sendMessage(e)}>
-        <input
-          type="text"
-          placeholder="Type your message..."
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-        />
-        <button>Send message</button>
-      </form>
+      <main>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/test" element={<Chat />} />
+        </Routes>
+      </main>
 
-      <ul>
-        {messages.map((message, index) => (
-          <li key={index} className="mb-1">
-            {message}
-          </li>
-        ))}
-      </ul>
+      <footer></footer>
+
+      <ToastContainer theme="dark" position="top-center" />
     </div>
   );
 }
