@@ -1,4 +1,4 @@
-import { body } from 'express-validator';
+import { body, query } from 'express-validator';
 // prettier-ignore
 
 class Validator {
@@ -45,6 +45,14 @@ class Validator {
       body('chat_id').trim()
         .notEmpty()
         .withMessage('Chat ID is required'),
+    ];
+  }
+
+  getAllUserChatsRules() {
+    return [
+      query('user_id').trim()
+        .notEmpty()
+        .withMessage('User ID is required'),
     ];
   }
 
