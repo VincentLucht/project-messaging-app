@@ -25,6 +25,62 @@ const generateToken = (userId: string, name: string) => {
 };
 
 // prettier-ignore
+describe('GET /chat', () => {
+  const mockUser = { id: '123', name: 'Test User' };
+  let token: string;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    token = `Bearer ${generateToken(mockUser.id, mockUser.name)}`;
+    (db.getUserById as jest.Mock).mockResolvedValue(mockUser);
+  });
+
+  const sendRequest = (userId: string) => {
+    return request(app)
+      .get(`/chat?user_id=${userId}`)
+      .set('Authorization', token);
+  };
+
+  it('should successfully fetch user chats', async () => {
+    const mockChats = [
+      { id: 'chat1', name: 'Chat 1' },
+      { id: 'chat2', name: 'Chat 2' },
+    ];
+    (db.getAllUserChats as jest.Mock).mockResolvedValue(mockChats);
+
+    const response = await sendRequest(mockUser.id);
+
+    expect(response.status).toBe(201);
+    expect(response.body).toEqual({
+      message: 'Successfully fetched all user chats',
+      allChats: mockChats,
+    });
+    expect(db.getAllUserChats).toHaveBeenCalledWith(mockUser.id);
+  });
+
+  it('should handle invalid user id', async () => {
+    (db.getUserById as jest.Mock).mockResolvedValue(null);
+
+    const response = await sendRequest('invalid-id');
+
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({ message: 'User not found' });
+  });
+
+  it('should handle failed to get chats (status 500)', async () => {
+    (db.getAllUserChats as jest.Mock).mockRejectedValue(new Error('Database error'));
+
+    const response = await sendRequest(mockUser.id);
+
+    expect(response.status).toBe(500);
+    expect(response.body).toEqual({
+      message: 'Failed to get chats',
+      error: 'Database error',
+    });
+  });
+});
+
+// prettier-ignore
 describe('POST /chat', () => {
   const mockUser = { id: '123', name: 'Test User' };
   let token: string;
