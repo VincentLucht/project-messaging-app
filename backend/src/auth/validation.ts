@@ -36,7 +36,7 @@ class Validator {
     return [
       body('username').trim()
         .isLength({ min: 1 })
-        .withMessage('Username is require'),
+        .withMessage('Username is required'),
 
       body('other_username').trim()
         .isLength({ min: 1 })
