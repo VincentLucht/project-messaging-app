@@ -26,7 +26,10 @@ class DB {
         },
         name,
         is_password_protected,
-        password: is_password_protected && password ? await bcrypt.hash(password, 10) : null,
+        password:
+          is_password_protected && password
+            ? await bcrypt.hash(password, 10)
+            : null,
         is_group_chat,
         chat_description,
       },
@@ -84,7 +87,10 @@ class DB {
         },
       });
     } catch (error: any) {
-      if (error.code === 'P2002' && error.meta?.target.includes('chatAdmin_chat_id_user_id_key')) {
+      if (
+        error.code === 'P2002' &&
+        error.meta?.target.includes('chatAdmin_chat_id_user_id_key')
+      ) {
         console.log('User is already an admin in this chat.');
       } else {
         throw error;
@@ -106,7 +112,10 @@ class DB {
         },
       });
     } catch (error: any) {
-      if (error.code === 'P2002' && error.meta?.target.includes('chatAdmin_chat_id_user_id_key')) {
+      if (
+        error.code === 'P2002' &&
+        error.meta?.target.includes('chatAdmin_chat_id_user_id_key')
+      ) {
         console.log('User is already an admin in this chat.');
       } else {
         throw error;
@@ -202,14 +211,27 @@ class DB {
   }
 
   // ! UserChats
-  async getAllChatsFromUser(userId: string) {
+  async getAllUserChats(userId: string) {
     const userChats = await prisma.userChats.findMany({
       where: {
         user_id: userId,
       },
+      include: {
+        chat: {
+          select: {
+            id: true,
+            name: true,
+            is_password_protected: true,
+            time_created: true,
+            is_group_chat: true,
+            chat_description: true,
+            updated_at: true,
+          },
+        },
+      },
     });
 
-    return userChats;
+    return userChats.map((userChat) => userChat.chat);
   }
 
   async isUserInsideChat(chatId: string, userId: string) {
