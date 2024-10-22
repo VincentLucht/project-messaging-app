@@ -68,7 +68,7 @@ export default {
           width: 'clamp(400px, 40vw, 800px)',
         },
         '.calc-h-vw': {
-          height: 'calc(100vh - 64px)',
+          height: '100vh',
         },
         '.calc-h-vw-1': {
           height: 'calc(100vh - 110px)',
