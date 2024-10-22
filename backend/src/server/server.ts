@@ -1,4 +1,5 @@
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
+import db from '../db/db';
 
 export function setupSocketIO(httpServer: any) {
   const io = new Server(httpServer, {
@@ -7,25 +8,49 @@ export function setupSocketIO(httpServer: any) {
     },
   });
 
-  io.on('connection', (socket) => {
-    // ? send only to user (io.emit = everyone, socket.emit = user only)
-    // ? syntax => socket.on(CUSTOM_EVENT, (PARAMS) => {...})
+  io.on('connection', (socket: Socket) => {
+    console.log('User connected!');
 
-    // listen for message event
-    socket.on('message', (data) => {
-      io.emit('message', `${socket.id}: ${data}`);
+    socket.on('join-chat', async (chatId: string) => {
+      try {
+        socket.join(chatId);
+        socket.emit('chat-joined', chatId);
+        socket.to(chatId).emit('user-joined', socket.id);
+        console.log(`User ${socket.id} joined chat ${chatId}`);
+      } catch (error) {
+        console.error('Error joining chat:', error);
+        socket.emit('error', 'Failed to join chat');
+      }
     });
 
-    socket.on('typing', (data) => {
-      socket.broadcast.emit('typing', data.user);
+    socket.on(
+      'send-message',
+      async (data: { chatId: string; userId: string; content: string }) => {
+        try {
+          const { chatId, userId, content } = data;
+
+          await db.createMessage(userId, chatId, content);
+
+          // send to other user
+          io.to(chatId).emit('new-message', { userId, content });
+          console.log(`Message sent in chat ${chatId}: ${content}`);
+        } catch (error) {
+          console.error('Error sending message:', error);
+          socket.emit('error', 'Failed to send message');
+        }
+      },
+    );
+
+    socket.on('typing', (data: { chatId: string; userId: string }) => {
+      socket.to(data.chatId).emit('user-typing', data.userId);
     });
 
-    socket.on('stopped-typing', (data) => {
-      socket.broadcast.emit('stopped-typing', data.user);
+    socket.on('stopped-typing', (data: { chatId: string; userId: string }) => {
+      socket.to(data.chatId).emit('user-stopped-typing', data.userId);
     });
 
     socket.on('disconnect', () => {
-      socket.broadcast.emit(`${socket.id} disconnected`);
+      console.log('User disconnected:');
     });
   });
 
