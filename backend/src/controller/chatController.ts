@@ -183,7 +183,8 @@ class ChatController {
   getAllChatMessages = asyncHandler(async (req: Request, res: Response) => {
     if (checkValidationError(req, res)) return;
 
-    const { chat_id, user_id } = req.body;
+    const chat_id = req.query.chat_id as string;
+    const user_id = req.query.user_id as string;
 
     try {
       // check if user exists and is inside of chat
