@@ -1,34 +1,34 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../../auth/context/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/app/auth/context/hooks/useAuth';
 
-import { DBChat } from '../../interfaces/databaseSchema';
+import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
 
-import ChatCard from './components/ChatCard';
-import ActiveChat from '../../right/ActiveChat/ActiveChat';
+import ChatCard from '@/app/middle/AllChatsList/components/ChatCard';
 
-import { API_URL } from '../../../App';
-import fetchAllUserChats from './api/fetchAllUserChats';
+import { API_URL } from '@/App';
+import fetchAllUserChats from '@/app/middle/AllChatsList/api/fetchAllUserChats';
 
-import { toast } from 'react-toastify';
 import { io, Socket } from 'socket.io-client';
 
 interface AllChatsListProps {
+  setActiveChat: React.Dispatch<React.SetStateAction<DBChatWithMembers | null>>;
   refreshTrigger: number;
 }
 
-export default function AllChatsList({ refreshTrigger }: AllChatsListProps) {
-  const [chats, setChats] = useState<DBChat[] | null>(null);
-  const [activeChat, setActiveChat] = useState<DBChat | null>(null);
+export default function AllChatsList({
+  setActiveChat,
+  refreshTrigger,
+}: AllChatsListProps) {
+  const [chats, setChats] = useState<DBChatWithMembers[] | null>(null);
 
   const [socket, setSocket] = useState<Socket | null>(null);
-  const { user, token } = useAuth();
-  const navigate = useNavigate();
+  const { user, token, logout } = useAuth();
 
+  // re-fetch data every time a chat is created
   useEffect(() => {
     function fetchData() {
       if (!user || !token) {
-        navigate('/login');
+        logout();
         return;
       }
 
@@ -42,8 +42,9 @@ export default function AllChatsList({ refreshTrigger }: AllChatsListProps) {
     }
 
     fetchData();
-  }, [user, token, navigate, refreshTrigger]);
+  }, [user, token, logout, refreshTrigger]);
 
+  // connect to socket
   useEffect(() => {
     const newSocket = io(API_URL);
     setSocket(newSocket);
@@ -57,14 +58,9 @@ export default function AllChatsList({ refreshTrigger }: AllChatsListProps) {
     return <div>Not logged in</div>;
   }
 
-  // remove invalid token from local storage
   if (chats === undefined) {
-    localStorage.removeItem('token');
-    toast.info('You need to login!');
-    navigate('/login');
+    logout();
   }
-
-  console.log(user);
 
   return (
     <div>
@@ -74,16 +70,6 @@ export default function AllChatsList({ refreshTrigger }: AllChatsListProps) {
             <ChatCard chat={chat} key={chat.id} />
           </div>
         ))}
-      </div>
-
-      <div>
-        {activeChat && (
-          <ActiveChat
-            chatId={activeChat.id}
-            chatName={activeChat.name}
-            userId={user.id}
-          />
-        )}
       </div>
     </div>
   );
