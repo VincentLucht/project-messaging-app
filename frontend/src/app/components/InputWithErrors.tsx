@@ -6,30 +6,42 @@ interface LoginInputProps {
   type?: string;
   imgPath?: string;
   setValue: Dispatch<SetStateAction<string>>;
-  errors: {
+  errors?: {
     [key: string]: string | undefined;
   };
+  otherFunc?: (value: string) => void; // ? additional function f.e. for sending activity
+  containerClassName?: string;
+  className?: string;
 }
 
-export function LoginInput({
+export function InputWithErrors({
   value,
   placeholder,
   imgPath,
   type = 'text',
   setValue,
   errors,
+  otherFunc,
+  containerClassName,
+  className,
 }: LoginInputProps) {
   const fieldName = placeholder.toLowerCase();
-  const hasError = errors[fieldName] !== undefined;
+  let hasError;
+  if (errors) {
+    hasError = errors[fieldName] !== undefined;
+  }
 
   return (
-    <div className="relative">
+    <div className={`relative ${containerClassName ? containerClassName : ''}`}>
       <input
         type={type}
         value={value}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={(e) => {
+          setValue(e.target.value);
+          otherFunc ? otherFunc(e.target.value) : null;
+        }}
         placeholder={placeholder}
-        className={`rounded-3xl border-2 px-5 py-3 pr-11 clamp-sm ${
+        className={`${className ? className : 'rounded-3xl border-2 px-5 py-3 pr-11 clamp-sm'} ${
           hasError
             ? 'border-red-500'
             : 'border-transparent hover:border-white focus:border-transparent'

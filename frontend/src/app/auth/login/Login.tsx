@@ -2,7 +2,7 @@ import { FormEvent, useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/hooks/useAuth';
 
-import { LoginInput } from './components/LoginInput';
+import { InputWithErrors } from '../../components/InputWithErrors';
 import handleLogin from './api/handleLogin';
 import ShowValidationErrors from '../../components/ShowValidationError';
 import convertExpressErrors from '../../components/ts/convertExpressErrors';
@@ -90,7 +90,7 @@ function Login() {
           )}
 
           {/* Name */}
-          <LoginInput
+          <InputWithErrors
             value={username}
             placeholder="Username"
             imgPath="user"
@@ -100,7 +100,7 @@ function Login() {
           <ShowValidationErrors error={errors.username} />
 
           {/* Password */}
-          <LoginInput
+          <InputWithErrors
             value={password}
             placeholder="Password"
             imgPath="lock"
