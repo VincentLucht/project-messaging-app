@@ -1,11 +1,8 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { checkValidationError } from '../util/checkValidationError';
-
-import db from '../db/db';
-import { asyncHandler } from '../util/asyncHandler';
 
 const prisma = new PrismaClient();
 
