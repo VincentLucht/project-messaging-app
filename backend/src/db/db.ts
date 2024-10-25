@@ -163,18 +163,35 @@ class DB {
       orderBy: {
         time_created: 'desc',
       },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+          },
+        },
+      },
     });
+
     return allChatMessages;
   }
 
   async createMessage(userId: string, chatId: string, content: string) {
-    await prisma.message.create({
-      data: {
-        user: { connect: { id: userId } },
-        chat: { connect: { id: chatId } },
-        content,
-      },
-    });
+    const message = await prisma.$transaction([
+      prisma.message.create({
+        data: {
+          user: { connect: { id: userId } },
+          chat: { connect: { id: chatId } },
+          content,
+        },
+      }),
+      prisma.chat.update({
+        where: { id: chatId },
+        data: { updated_at: new Date() },
+      }),
+    ]);
+
+    return message;
   }
 
   // ! Users
@@ -216,6 +233,11 @@ class DB {
       where: {
         user_id: userId,
       },
+      orderBy: {
+        chat: {
+          updated_at: 'desc',
+        },
+      },
       include: {
         chat: {
           select: {
@@ -226,6 +248,16 @@ class DB {
             is_group_chat: true,
             chat_description: true,
             updated_at: true,
+            UserChats: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    username: true,
+                  },
+                },
+              },
+            },
           },
         },
       },
