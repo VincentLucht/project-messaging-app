@@ -1,20 +1,39 @@
 import { useState, useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
 
+import fetchChatMessages from '@/app/right/ActiveChat/api/fetchChatMessages';
+import generateTempId from '@/app/right/ActiveChat/util/generateTempId';
+
+import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
+import { DBMessageWithUser } from '@/app/interfaces/databaseSchema';
+
+import ChatMessage from '@/app/right/ActiveChat/components/ChatMessage';
+import TextareaAutosize from 'react-textarea-autosize';
+
+import { toast } from 'react-toastify';
+import toastUpdateOptions from '@/app/components/ts/toastUpdateObject';
+
 interface ActiveChatProps {
-  chatId: string;
-  chatName: string;
+  chat: DBChatWithMembers;
   userId: string;
+  username: string;
+  token: string;
+  isMobile: boolean;
 }
 
+/**
+ * Active Chat Component on the right side
+ *
+ * Allows real time messaging and activity detection
+ */
 export default function ActiveChat({
-  chatId,
-  chatName,
+  chat,
   userId,
+  username,
+  token,
+  isMobile,
 }: ActiveChatProps) {
-  const [messages, setMessages] = useState<
-    { userId: string; content: string }[]
-  >([]);
+  const [messages, setMessages] = useState<DBMessageWithUser[]>([]);
   const [message, setMessage] = useState('');
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isTyping, setIsTyping] = useState(false);
@@ -24,18 +43,29 @@ export default function ActiveChat({
     const newSocket = io('ws://localhost:3005');
 
     newSocket.on('connect', () => {
-      // ? do something on connection??
+      // Join the room on connection
+      newSocket.emit('join-chat', chat.id);
     });
 
     newSocket.on('chat-joined', () => {
-      console.log(`Joined room: ${chatId}`);
+      // ? do smt on chat joined?
     });
 
     newSocket.on('new-message', (data: { userId: string; content: string }) => {
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { userId: data.userId, content: data.content },
-      ]);
+      const newMessage: DBMessageWithUser = {
+        id: generateTempId(),
+        content: data.content,
+        time_created: new Date().toISOString(),
+        status: 'sent',
+        user_id: userId,
+        chat_id: chat.id,
+        user: {
+          id: userId,
+          username,
+        },
+      };
+
+      setMessages((prevMessages) => [newMessage, ...prevMessages]);
     });
 
     newSocket.on('user-typing', (typingUserId: string) => {
@@ -59,66 +89,103 @@ export default function ActiveChat({
     return () => {
       newSocket.close();
     };
-  }, [chatId, userId]);
+  }, [chat.id, userId, username]);
 
-  const joinRoom = () => {
-    if (chatId && socket) {
-      socket.emit('join-chat', chatId);
-    }
-  };
+  useEffect(() => {
+    const toastId = toast.loading('Loading messages...');
+
+    fetchChatMessages(userId, token, chat.id)
+      .then((response) => {
+        setMessages(response.allMessages);
+
+        toast.update(
+          toastId,
+          toastUpdateOptions('Successfully fetched messages', 'success'),
+        );
+      })
+      .catch(() => {
+        toast.update(
+          toastId,
+          toastUpdateOptions('Failed to load messages', 'error'),
+        );
+      });
+  }, [chat.id, token, userId]);
 
   const sendActivity = (currentMessage: string) => {
-    if (currentMessage !== '' && !isTyping && socket && chatId) {
-      socket.emit('typing', { chatId, userId });
+    if (currentMessage !== '' && !isTyping && socket && chat.id) {
+      socket.emit('typing', { chatId: chat.id, userId });
       setIsTyping(true);
-    } else if (currentMessage === '' && isTyping && socket && chatId) {
-      socket.emit('stopped-typing', { chatId, userId });
+    } else if (currentMessage === '' && isTyping && socket && chat.id) {
+      socket.emit('stopped-typing', { chatId: chat.id, userId });
       setIsTyping(false);
     }
   };
 
-  const sendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (message !== '' && socket && chatName) {
-      socket.emit('send-message', { chatId, userId, content: message });
+  const sendMessage = (e: React.FormEvent | string) => {
+    if (typeof e !== 'string') {
+      e.preventDefault();
+    }
+
+    if (message !== '' && socket && chat.name) {
+      socket.emit('send-message', {
+        chatId: chat.id,
+        userId,
+        content: message,
+      });
+
       setMessage('');
+
       if (isTyping) {
-        socket.emit('stopped-typing', { chatId, userId });
+        socket.emit('stopped-typing', { chatId: chat.id, userId });
         setIsTyping(false);
       }
     }
   };
 
-  joinRoom();
+  console.log(messages);
 
   return (
-    <div>
-      <>
-        <h2>Room: {chatName}</h2>
-        <form onSubmit={sendMessage}>
-          <input
-            type="text"
-            placeholder="Type your message..."
+    <div className={'grid h-[100dvh] w-full grid-rows-[auto_1fr_auto] border'}>
+      <div>
+        <h2 className="text-2xl font-bold">{chat.name}</h2>
+
+        {isOtherUserTyping && <div>Someone is typing...</div>}
+      </div>
+
+      <div className="flex flex-col-reverse overflow-y-auto p-4">
+        {messages.map((message, index) => (
+          <ChatMessage
+            message={message}
+            isCurrentUser={username === message.user.username}
+            key={index}
+          />
+        ))}
+      </div>
+
+      <div>
+        <form className="flex gap-4 p-4" onSubmit={sendMessage}>
+          <TextareaAutosize
             value={message}
             onChange={(e) => {
-              sendActivity(e.target.value);
               setMessage(e.target.value);
+              sendActivity(e.target.value);
             }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (message.trim()) {
+                  sendMessage(message);
+                }
+              }
+            }}
+            className="flex-1 resize-none rounded-3xl border-2 px-6 py-3"
+            placeholder="Enter your message"
+            maxRows={6}
           />
+
           <button type="submit">Send message</button>
         </form>
-        <ul>
-          {messages.map((msg, index) => (
-            <li
-              key={index}
-              className={msg.userId === userId ? 'sent' : 'received'}
-            >
-              {msg.userId === userId ? 'You' : 'Other'}: {msg.content}
-            </li>
-          ))}
-        </ul>
-        {isOtherUserTyping && <div>Someone is typing...</div>}
-      </>
+      </div>
     </div>
   );
 }
