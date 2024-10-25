@@ -1,4 +1,10 @@
-import { createContext, useState, useEffect, useCallback, useMemo } from 'react';
+import {
+  createContext,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+} from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { jwtDecode, JwtPayload } from 'jwt-decode';
@@ -13,7 +19,9 @@ interface AuthContextValues {
   user: User | null;
 }
 
-export const AuthContext = createContext<AuthContextValues | undefined>(undefined);
+export const AuthContext = createContext<AuthContextValues | undefined>(
+  undefined,
+);
 
 export interface User extends JwtPayload {
   id: string;
@@ -99,5 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [login, logout, isLoggedIn, token, user],
   );
 
-  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
+  );
 }
