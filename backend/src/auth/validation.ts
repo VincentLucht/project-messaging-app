@@ -58,11 +58,11 @@ class Validator {
 
   getAllChatMessagesRules() {
     return [
-      body('user_id').trim()
+      query('user_id').trim()
         .notEmpty()
         .withMessage('User ID is required'),
 
-      body('chat_id').trim()
+      query('chat_id').trim()
         .notEmpty()
         .withMessage('Chat ID Is required'),
     ];
