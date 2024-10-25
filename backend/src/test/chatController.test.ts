@@ -207,16 +207,16 @@ describe('GET /chat/message', () => {
     (db.isUserInsideChat as jest.Mock).mockResolvedValue(true);
   });
 
-  const sendRequest = (body: object) => {
+  const sendRequest = (queryParams: object) => {
     return request(app)
       .get('/chat/message')
-      .set('Authorization', token)
-      .send(body);
+      .query(queryParams)
+      .set('Authorization', token);
   };
 
   it('should return 400 if chat_id is missing', async () => {
     const response = await sendRequest({
-      // missing chat id
+      // missing chat_id
       user_id: mockUser.id,
     });
 
