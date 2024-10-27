@@ -21,13 +21,13 @@ export default function App() {
   }, [isLoggedIn, logout]);
 
   return (
-    <div>
+    <div className="cursor-default select-none">
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/*" element={<Home />} />
       </Routes>
 
-      <ToastContainer theme="dark" position="top-center" />
+      <ToastContainer theme="dark" position="top-right" />
     </div>
   );
 }
