@@ -19,14 +19,40 @@ async function main() {
   await prisma.chatAdmin.deleteMany();
   console.log('All existing records deleted.');
 
-  // Create test user
-  await prisma.user.create({
+  // Create test user 1
+  const alice = await prisma.user.create({
     data: {
       name: 'Alice',
       username: 'Alice',
       password: await hashPassword('pass123'),
-      user_description: 'Im a test user',
+      user_description: "I'm a test user",
     },
+  });
+
+  // Create test user 2
+  const john = await prisma.user.create({
+    data: {
+      name: 'John',
+      username: 'John',
+      password: await hashPassword('pass123'),
+      user_description: "I'm John Doe",
+    },
+  });
+
+  // Create a room
+  const chat = await prisma.chat.create({
+    data: {
+      name: 'Test Chat',
+      chat_description: 'IDK what to write here',
+    },
+  });
+
+  // Connect each user to the chat individually
+  await prisma.userChats.createMany({
+    data: [
+      { user_id: alice.id, chat_id: chat.id },
+      { user_id: john.id, chat_id: chat.id },
+    ],
   });
 
   console.log('Script complete');
