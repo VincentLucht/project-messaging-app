@@ -1,9 +1,9 @@
 import { API_URL } from '@/App';
-import { DBMessage } from '@/app/interfaces/databaseSchema';
+import { DBMessageWithUser } from '@/app/interfaces/databaseSchema';
 
 interface ChatMessagesResponse {
   message: string;
-  allMessages: DBMessage[];
+  allMessages: DBMessageWithUser[];
 }
 
 export default async function fetchChatMessages(
