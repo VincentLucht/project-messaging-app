@@ -34,20 +34,23 @@ model Chat {
   is_group_chat         Boolean     @default(false)
   chat_description      String?     @db.VarChar(200)
   updated_at            DateTime    @updatedAt
-  Messages              Message[]
+  last_message_id       String?     @unique
+  last_message          Message?    @relation("LastMessage", fields: [last_message_id], references: [id], onDelete: SetNull)
+  Messages              Message[]   @relation("ChatMessages")
   UserChats             UserChats[]
   ChatAdmins            ChatAdmin[]
 }
 
 model Message {
-  id           String   @id @default(uuid())
-  content      String   @db.VarChar(10000)
+  id String @id @default(uuid())
+  content String @db.VarChar(10000)
   time_created DateTime @default(now())
-  status       String   @default("sent")
-  user         User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  user_id      String
-  chat         Chat     @relation(fields: [chat_id], references: [id], onDelete: Cascade)
-  chat_id      String
+  status String @default("sent")
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id String
+  chat Chat @relation("ChatMessages", fields: [chat_id], references: [id], onDelete: Cascade)
+  chat_id String
+  last_message_chat Chat? @relation("LastMessage")
 }
 
 model UserChats {
