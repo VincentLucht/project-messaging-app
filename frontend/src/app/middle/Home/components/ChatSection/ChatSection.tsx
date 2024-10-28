@@ -1,19 +1,23 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, Dispatch, SetStateAction } from 'react';
 import NewChat from '@/app/middle/NewChat/NewChat';
 import AllChatsList from '@/app/middle/AllChatsList/AllChatsList';
 
 import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
 
 interface ChatSectionProps {
-  setActiveChat: React.Dispatch<React.SetStateAction<DBChatWithMembers | null>>;
-  refreshTrigger: number;
-  setRefreshTrigger: React.Dispatch<React.SetStateAction<number>>;
+  chats: DBChatWithMembers[] | null;
+  activeChat: DBChatWithMembers | null;
+  setActiveChat: Dispatch<SetStateAction<DBChatWithMembers | null>>;
+  setRefreshTrigger: Dispatch<SetStateAction<number>>;
+  isMobile: boolean;
 }
 
 export default function ChatSection({
+  chats,
+  activeChat,
   setActiveChat,
-  refreshTrigger,
   setRefreshTrigger,
+  isMobile,
 }: ChatSectionProps) {
   const [showCreateChat, setShowCreateChat] = useState(false);
 
@@ -50,8 +54,10 @@ export default function ChatSection({
       </div>
 
       <AllChatsList
+        chats={chats}
         setActiveChat={setActiveChat}
-        refreshTrigger={refreshTrigger}
+        isMobile={isMobile}
+        activeChat={activeChat}
       />
     </div>
   );
