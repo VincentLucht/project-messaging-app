@@ -1,75 +1,44 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/app/auth/context/hooks/useAuth';
-
+import { Dispatch, SetStateAction } from 'react';
 import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
 
 import ChatCard from '@/app/middle/AllChatsList/components/ChatCard';
 
-import { API_URL } from '@/App';
-import fetchAllUserChats from '@/app/middle/AllChatsList/api/fetchAllUserChats';
-
-import { io, Socket } from 'socket.io-client';
-
 interface AllChatsListProps {
-  setActiveChat: React.Dispatch<React.SetStateAction<DBChatWithMembers | null>>;
-  refreshTrigger: number;
+  chats: DBChatWithMembers[] | null;
+  activeChat: DBChatWithMembers | null;
+  setActiveChat: Dispatch<SetStateAction<DBChatWithMembers | null>>;
+  isMobile: boolean;
 }
 
 export default function AllChatsList({
+  chats,
+  activeChat,
   setActiveChat,
-  refreshTrigger,
+  isMobile,
 }: AllChatsListProps) {
-  const [chats, setChats] = useState<DBChatWithMembers[] | null>(null);
-
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const { user, token, logout } = useAuth();
-
-  // re-fetch data every time a chat is created
-  useEffect(() => {
-    function fetchData() {
-      if (!user || !token) {
-        logout();
-        return;
-      }
-
-      fetchAllUserChats(user?.id, token)
-        .then((fetchedChats) => {
-          setChats(fetchedChats.allChats);
-        })
-        .catch((error) => {
-          console.error(`${error}`);
-        });
-    }
-
-    fetchData();
-  }, [user, token, logout, refreshTrigger]);
-
-  // connect to socket
-  useEffect(() => {
-    const newSocket = io(API_URL);
-    setSocket(newSocket);
-
-    return () => {
-      newSocket.close();
-    };
-  }, []);
-
-  if (!user) {
-    return <div>Not logged in</div>;
-  }
-
-  if (chats === undefined) {
-    logout();
+  if (chats && chats.length === 0) {
+    return <div>You don&apos;t have any Chats...</div>;
   }
 
   return (
     <div>
       <div>
         {chats?.map((chat) => (
-          <div onClick={() => setActiveChat(chat)} key={chat.id}>
-            <ChatCard chat={chat} key={chat.id} />
+          <div
+            className="bg-blue-900/20"
+            onClick={() => setActiveChat(chat)}
+            key={chat.id}
+          >
+            <hr />
+            <ChatCard
+              chat={chat}
+              key={chat.id}
+              isMobile={isMobile}
+              activeChat={activeChat}
+            />
           </div>
         ))}
+        <hr />
       </div>
     </div>
   );
