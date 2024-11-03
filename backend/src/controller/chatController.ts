@@ -71,7 +71,7 @@ class ChatController {
       }
 
       // other User is already in the chat
-      const chatMembers = await db.getChatMembers(chat_id);
+      const chatMembers = await db.getAllChatMembers(chat_id);
       const memberSet = new Set(chatMembers?.map((user) => user.username));
       if (memberSet.has(other_username)) {
         return res
@@ -180,6 +180,7 @@ class ChatController {
     }
   });
 
+  // ! Messages
   getAllChatMessages = asyncHandler(async (req: Request, res: Response) => {
     if (checkValidationError(req, res)) return;
 
@@ -202,6 +203,44 @@ class ChatController {
     } catch (error) {
       return res.status(500).json({
         message: 'Failed to fetch messages',
+        error: (error as Error).message,
+      });
+    }
+  });
+
+  // mark message as read
+  readMessage = asyncHandler(async (req: Request, res: Response) => {
+    if (checkValidationError(req, res)) return;
+
+    const { message_id, user_id } = req.body;
+
+    try {
+      await db.createMessageRead(message_id, user_id);
+      return res.status(201).json({
+        message: `Successfully marked message (${message_id}) as read`,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        message: 'Failed to mark message as read',
+        error: (error as Error).message,
+      });
+    }
+  });
+
+  // mark all chat messages read from user
+  readAllMessages = asyncHandler(async (req: Request, res: Response) => {
+    if (checkValidationError(req, res)) return;
+
+    const { chat_id, user_id } = req.body;
+
+    try {
+      await db.userReadAllMessages(chat_id, user_id);
+      return res.status(201).json({
+        message: 'Successfully marked all messages as read',
+      });
+    } catch (error) {
+      return res.status(500).json({
+        message: 'Failed to mark all messages as read',
         error: (error as Error).message,
       });
     }
