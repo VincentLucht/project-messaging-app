@@ -55,7 +55,7 @@ class DB {
     return chat;
   }
 
-  async getChatMembers(chatId: string) {
+  async getAllChatMembers(chatId: string) {
     const chat = await prisma.chat.findUnique({
       where: {
         id: chatId,
@@ -170,6 +170,7 @@ class DB {
             username: true,
           },
         },
+        MessageRead: true,
       },
     });
 
@@ -177,21 +178,118 @@ class DB {
   }
 
   async createMessage(userId: string, chatId: string, content: string) {
-    const message = await prisma.$transaction([
-      prisma.message.create({
+    const message = await prisma.$transaction(async (transaction) => {
+      // Create the message
+      const newMessage = await transaction.message.create({
         data: {
           user: { connect: { id: userId } },
           chat: { connect: { id: chatId } },
           content,
         },
-      }),
-      prisma.chat.update({
+      });
+
+      // Update both last_message_id and updated_at
+      await transaction.chat.update({
         where: { id: chatId },
-        data: { updated_at: new Date() },
-      }),
-    ]);
+        data: {
+          last_message_id: newMessage.id,
+          updated_at: new Date(),
+        },
+      });
+
+      return newMessage;
+    });
 
     return message;
+  }
+
+  async getUnreadMessagesCount(chatIds: string[], userId: string) {
+    try {
+      if (!chatIds || !Array.isArray(chatIds) || chatIds.length === 0) {
+        return [];
+      }
+
+      if (!userId) {
+        throw new Error('User ID is required');
+      }
+
+      const unreadMessagesCount = await prisma.$queryRaw`
+      SELECT m.chat_id, COUNT(*) as unread_count
+      FROM "Message" as m
+      WHERE m.chat_id = ANY(${chatIds}::text[])
+      AND NOT EXISTS (
+        SELECT 1
+        FROM "MessageRead" as mr
+        WHERE mr.user_id = ${userId}
+        AND mr.message_id = m.id
+      )
+      GROUP BY m.chat_id
+    `;
+
+      console.log({ chatIds, unreadMessagesCount });
+
+      return unreadMessagesCount;
+    } catch (error) {
+      throw new Error(`Failed to get all unread message: ${error}`);
+    }
+  }
+
+  async createMessageRead(messageId: string, userId: string) {
+    try {
+      // Check if it is unique
+      const existingRecord = await prisma.messageRead.findUnique({
+        where: {
+          message_id_user_id: {
+            message_id: messageId,
+            user_id: userId,
+          },
+        },
+      });
+
+      if (existingRecord) {
+        throw new Error('Message record already exists');
+      }
+
+      return await prisma.messageRead.create({
+        data: {
+          message_id: messageId,
+          user_id: userId,
+        },
+      });
+    } catch (error) {
+      throw new Error(`${error}`);
+    }
+  }
+
+  async userReadAllMessages(chatId: string, userId: string) {
+    try {
+      // Get all unread chat messages
+      const unreadChatMessagesRaw = await prisma.message.findMany({
+        where: {
+          chat_id: chatId,
+          MessageRead: {
+            none: {
+              user_id: userId,
+            },
+          },
+        },
+      });
+
+      // Create an arr of only the user_id and chat_id
+      const unreadChatMessages = unreadChatMessagesRaw.map(
+        (unreadChatMessage) => ({
+          user_id: userId,
+          message_id: unreadChatMessage.id,
+        }),
+      );
+
+      // Loop through every single one and create a MessageRead
+      await prisma.messageRead.createMany({
+        data: unreadChatMessages,
+      });
+    } catch (error) {
+      throw new Error(`${error}`);
+    }
   }
 
   // ! Users
@@ -248,6 +346,8 @@ class DB {
             is_group_chat: true,
             chat_description: true,
             updated_at: true,
+            last_message: true,
+            last_message_id: true,
             UserChats: {
               include: {
                 user: {
