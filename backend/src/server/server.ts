@@ -9,25 +9,47 @@ export function setupSocketIO(httpServer: any) {
   });
 
   io.on('connection', (socket: Socket) => {
-    console.log('User connected!');
-
     // join room room without fetching data
+    // refreshes the chat order, puts most recent chat on the top
     socket.on(
       'joinChatNotifications',
       (data: { chatId: string; userId: string }) => {
         const notificationRoom = `${data.chatId}:notifications`;
         socket.join(notificationRoom);
-        console.log(
-          `User ${data.userId} joined notification room ${data.chatId}`,
-        );
+      },
+    );
+
+    socket.on(
+      'leaveChatNotifications',
+      (data: { chatId: string; userId: string }) => {
+        const notificationRoom = `${data.chatId}:notifications`;
+        socket.leave(notificationRoom);
+      },
+    );
+
+    // get all unread messages from a user
+    socket.on(
+      'getUnreadMessages',
+      async (chatIds: string[], userId: string) => {
+        const unreadMessages = await db.getUnreadMessagesCount(chatIds, userId);
+        console.log(unreadMessages);
       },
     );
 
     socket.on('join-chat', async (chatId: string) => {
       try {
         socket.join(chatId);
-        socket.emit('chat-joined', chatId);
-        console.log(`User ${socket.id} joined chat ${chatId}`);
+        console.log(`User joined chat ${chatId}`);
+      } catch (error) {
+        console.error('Error joining chat:', error);
+        socket.emit('error', 'Failed to join chat');
+      }
+    });
+
+    socket.on('leave-chat', async (chatId: string) => {
+      try {
+        socket.leave(chatId);
+        console.log(`User left chat ${chatId}`);
       } catch (error) {
         console.error('Error joining chat:', error);
         socket.emit('error', 'Failed to join chat');
@@ -74,7 +96,7 @@ export function setupSocketIO(httpServer: any) {
     });
 
     socket.on('disconnect', () => {
-      console.log('User disconnected:');
+      console.log('User disconnected');
     });
   });
 
