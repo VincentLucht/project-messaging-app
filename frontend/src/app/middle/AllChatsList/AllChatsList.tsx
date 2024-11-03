@@ -24,11 +24,7 @@ export default function AllChatsList({
     <div>
       <div>
         {chats?.map((chat) => (
-          <div
-            className="bg-blue-900/20"
-            onClick={() => setActiveChat(chat)}
-            key={chat.id}
-          >
+          <div onClick={() => setActiveChat(chat)} key={chat.id}>
             <hr />
             <ChatCard
               chat={chat}
