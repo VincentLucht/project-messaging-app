@@ -65,8 +65,20 @@ function Login() {
           return;
         }
 
-        // user or password errors
-        setErrors(convertExpressErrors(validationError.errors));
+        if (validationError.errors) {
+          // user or password errors
+          setErrors(convertExpressErrors(validationError.errors));
+        } else {
+          // other errors
+          console.error(error);
+          toast.update(
+            toastId,
+            toastUpdateOptions(
+              'There was an error with the server, please try again at a later time',
+              'error',
+            ),
+          );
+        }
       }
     }
   };
