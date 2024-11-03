@@ -86,6 +86,30 @@ class Validator {
     ];
   }
 
+  readMessageRules() {
+    return [
+      body('message_id')
+        .notEmpty()
+        .withMessage('Message ID is required'),
+
+      body('user_id')
+        .notEmpty()
+        .withMessage('User ID is required'),
+    ];
+  }
+
+  readAllMessagesRules() {
+    return [
+      body('chat_id')
+        .notEmpty()
+        .withMessage('Chat ID is required'),
+
+      body('user_id')
+        .notEmpty()
+        .withMessage('User ID is required'),
+    ];
+  }
+
   makeUserAdminRules() {
     return [
       body('user_id').trim()
