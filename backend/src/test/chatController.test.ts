@@ -413,3 +413,172 @@ describe('POST /chat/admin', () => {
     expect(response.status).toBe(401);
   });
 });
+
+describe('POST /chat/message/status', () => {
+  const mockUser = { id: '123', name: 'Test User' };
+  let token: string;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    token = `Bearer ${generateToken(mockUser.id, mockUser.name)}`;
+    (db.getUserById as jest.Mock).mockResolvedValue(mockUser);
+  });
+
+  const sendRequest = (messageId: string, userId: string) => {
+    return request(app)
+      .post('/chat/message/status')
+      .set('Authorization', token)
+      .send({
+        message_id: messageId,
+        user_id: userId,
+      });
+  };
+
+  it('should successfully create message read record', async () => {
+    const messageId = 'msg123';
+    const userId = 'user123';
+
+    // Mock the database check for existing record to return null
+    (db.createMessageRead as jest.Mock).mockResolvedValue({
+      message_id: messageId,
+      user_id: userId,
+      created_at: new Date(),
+    });
+
+    const response = await sendRequest(messageId, userId);
+
+    expect(response.status).toBe(201);
+    expect(response.body).toEqual({
+      message: `Successfully marked message (${messageId}) as read`,
+    });
+    expect(db.createMessageRead).toHaveBeenCalledWith(messageId, userId);
+  });
+
+  it('should handle existing message read record', async () => {
+    const messageId = 'msg123';
+    const userId = 'user123';
+
+    // Mock the database to throw an error for existing record
+    (db.createMessageRead as jest.Mock).mockRejectedValue(
+      new Error('Message record already exists'),
+    );
+
+    const response = await sendRequest(messageId, userId);
+
+    expect(response.status).toBe(500);
+    expect(response.body).toEqual({
+      message: 'Failed to mark message as read',
+      error: 'Message record already exists',
+    });
+    expect(db.createMessageRead).toHaveBeenCalledWith(messageId, userId);
+  });
+
+  it('should handle database error', async () => {
+    const messageId = 'msg123';
+    const userId = 'user123';
+
+    // Mock the database to throw a general error
+    (db.createMessageRead as jest.Mock).mockRejectedValue(
+      new Error('Database connection failed'),
+    );
+
+    const response = await sendRequest(messageId, userId);
+
+    expect(response.status).toBe(500);
+    expect(response.body).toEqual({
+      message: 'Failed to mark message as read',
+      error: 'Database connection failed',
+    });
+    expect(db.createMessageRead).toHaveBeenCalledWith(messageId, userId);
+  });
+
+  it('should handle invalid input validation', async () => {
+    const response = await request(app)
+      .post('/chat/message/status')
+      .set('Authorization', token)
+      .send({
+        // Missing required fields
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toHaveProperty('errors');
+    expect(db.createMessageRead).not.toHaveBeenCalled();
+  });
+});
+
+describe('POST /chat/message/status/all', () => {
+  const mockUser = { id: '123', name: 'Test User' };
+  let token: string;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    token = `Bearer ${generateToken(mockUser.id, mockUser.name)}`;
+    (db.getUserById as jest.Mock).mockResolvedValue(mockUser);
+  });
+
+  const sendRequest = (chatId: string, userId: string) => {
+    return request(app)
+      .post('/chat/message/status/all')
+      .set('Authorization', token)
+      .send({
+        chat_id: chatId,
+        user_id: userId,
+      });
+  };
+
+  it('should successfully mark all messages as read in a normal chat', async () => {
+    const mockChatId = 'chat123';
+    (db.userReadAllMessages as jest.Mock).mockResolvedValue(undefined);
+
+    const response = await sendRequest(mockChatId, mockUser.id);
+
+    expect(response.status).toBe(201);
+    expect(response.body).toEqual({
+      message: 'Successfully marked all messages as read',
+    });
+    expect(db.userReadAllMessages).toHaveBeenCalledWith(
+      mockChatId,
+      mockUser.id,
+    );
+  });
+
+  it('should successfully mark all messages as read in a group chat', async () => {
+    const mockGroupChatId = 'groupChat123';
+    (db.userReadAllMessages as jest.Mock).mockResolvedValue(undefined);
+
+    const response = await sendRequest(mockGroupChatId, mockUser.id);
+
+    expect(response.status).toBe(201);
+    expect(response.body).toEqual({
+      message: 'Successfully marked all messages as read',
+    });
+    expect(db.userReadAllMessages).toHaveBeenCalledWith(
+      mockGroupChatId,
+      mockUser.id,
+    );
+  });
+
+  it('should handle missing validation', async () => {
+    const response = await request(app)
+      .post('/chat/message/status/all')
+      .set('Authorization', token)
+      .send({});
+
+    expect(response.status).toBe(400);
+    expect(response.body).toHaveProperty('errors');
+  });
+
+  it('should handle db connection error', async () => {
+    const mockChatId = 'chat123';
+    const dbError = new Error('Database connection error');
+    (db.userReadAllMessages as jest.Mock).mockRejectedValue(dbError);
+
+    const response = await sendRequest(mockChatId, mockUser.id);
+
+    expect(response.status).toBe(500);
+    expect(response.body).toEqual({
+      message: 'Failed to mark all messages as read',
+      error: 'Database connection error',
+    });
+  });
+});
