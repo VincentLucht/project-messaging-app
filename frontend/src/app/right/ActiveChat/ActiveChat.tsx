@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { useState, useEffect, Dispatch, SetStateAction } from 'react';
+import { Socket } from 'socket.io-client';
 
 import fetchChatMessages from '@/app/right/ActiveChat/api/fetchChatMessages';
 import generateTempId from '@/app/right/ActiveChat/util/generateTempId';
@@ -19,6 +19,8 @@ interface ActiveChatProps {
   username: string;
   token: string;
   isMobile: boolean;
+  setShouldRefreshChatOrder: Dispatch<SetStateAction<boolean>>;
+  socket: Socket | null;
 }
 
 /**
@@ -32,65 +34,71 @@ export default function ActiveChat({
   username,
   token,
   isMobile,
+  setShouldRefreshChatOrder,
+  socket,
 }: ActiveChatProps) {
   const [messages, setMessages] = useState<DBMessageWithUser[]>([]);
   const [message, setMessage] = useState('');
-  const [socket, setSocket] = useState<Socket | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
 
+  console.log(messages);
+
+  // socket events for active chat
   useEffect(() => {
-    const newSocket = io('ws://localhost:3005');
+    if (!socket) return;
 
-    newSocket.on('connect', () => {
-      // Join the room on connection
-      newSocket.emit('join-chat', chat.id);
-    });
+    // Join the chat room
+    socket.emit('join-chat', chat.id);
 
-    newSocket.on('chat-joined', () => {
-      // ? do smt on chat joined?
-    });
+    // Handle new messages
+    socket.on(
+      'new-message',
+      (data: { userId: string; content: string; username: string }) => {
+        const newMessage: DBMessageWithUser = {
+          id: generateTempId(),
+          content: data.content,
+          time_created: new Date().toISOString(),
+          user_id: data.userId,
+          chat_id: chat.id,
+          user: {
+            id: data.userId,
+            username: data.username,
+          },
+        };
 
-    newSocket.on('new-message', (data: { userId: string; content: string }) => {
-      const newMessage: DBMessageWithUser = {
-        id: generateTempId(),
-        content: data.content,
-        time_created: new Date().toISOString(),
-        status: 'sent',
-        user_id: userId,
-        chat_id: chat.id,
-        user: {
-          id: userId,
-          username,
-        },
-      };
+        setMessages((prevMessages) => [newMessage, ...prevMessages]);
+      },
+    );
 
-      setMessages((prevMessages) => [newMessage, ...prevMessages]);
-    });
-
-    newSocket.on('user-typing', (typingUserId: string) => {
+    // Handle typing indicators
+    socket.on('user-typing', (typingUserId: string) => {
       if (typingUserId !== userId) {
         setIsOtherUserTyping(true);
       }
     });
 
-    newSocket.on('user-stopped-typing', (typingUserId: string) => {
+    socket.on('user-stopped-typing', (typingUserId: string) => {
       if (typingUserId !== userId) {
         setIsOtherUserTyping(false);
       }
     });
 
-    newSocket.on('error', (error: string) => {
-      console.error('Server error:', error);
+    socket.on('error', (error: string) => {
+      toast.error(`Socket error: ${error}`);
     });
 
-    setSocket(newSocket);
-
+    // Cleanup: leave chat room and remove listeners
     return () => {
-      newSocket.close();
+      socket.emit('leave-chat', chat.id);
+      socket.off('new-message');
+      socket.off('user-typing');
+      socket.off('user-stopped-typing');
+      socket.off('error');
     };
-  }, [chat.id, userId, username]);
+  }, [socket, chat.id, userId]);
 
+  // Fetch chat messages
   useEffect(() => {
     const toastId = toast.loading('Loading messages...');
 
@@ -131,9 +139,11 @@ export default function ActiveChat({
         chatId: chat.id,
         userId,
         content: message,
+        username,
       });
 
       setMessage('');
+      setShouldRefreshChatOrder(true); // re-fetch chats to get new chat
 
       if (isTyping) {
         socket.emit('stopped-typing', { chatId: chat.id, userId });
@@ -142,17 +152,23 @@ export default function ActiveChat({
     }
   };
 
-  console.log(messages);
-
   return (
-    <div className={'grid h-[100dvh] w-full grid-rows-[auto_1fr_auto] border'}>
-      <div>
-        <h2 className="text-2xl font-bold">{chat.name}</h2>
+    <div className="grid h-[100dvh] grid-rows-[auto_1fr_auto] border">
+      <div className="overflow-hidden">
+        {/* chat name */}
+        <h2
+          className="overflow-hidden overflow-ellipsis whitespace-nowrap px-5 py-2 text-left text-2xl
+            font-bold"
+        >
+          {chat.name}
+        </h2>
 
+        {/* activity indicator */}
         {isOtherUserTyping && <div>Someone is typing...</div>}
       </div>
 
-      <div className="flex flex-col-reverse overflow-y-auto p-4">
+      {/* chat messages */}
+      <div className="flex flex-col-reverse gap-2 overflow-y-auto p-4">
         {messages.map((message, index) => (
           <ChatMessage
             message={message}
@@ -163,6 +179,7 @@ export default function ActiveChat({
       </div>
 
       <div>
+        {/* send message form */}
         <form className="flex gap-4 p-4" onSubmit={sendMessage}>
           <TextareaAutosize
             value={message}
