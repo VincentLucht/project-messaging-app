@@ -5,6 +5,7 @@ export interface DBUser {
   // password
   user_description: string;
   created_at: Date;
+  profile_picture_url?: string | null;
 }
 
 export interface DBChat {
@@ -24,9 +25,16 @@ export interface DBMessage {
   id: string;
   content: string;
   time_created: Date | string;
-  status: 'sent' | 'delivered' | 'read';
   user_id: string;
   chat_id: string;
+  MessageRead?: MessageRead[];
+}
+
+export interface MessageRead {
+  id: string;
+  message_id: string;
+  user_id: string;
+  read_at: string;
 }
 
 export interface DBUserChats {
