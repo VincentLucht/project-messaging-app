@@ -64,6 +64,9 @@ export default {
             borderColor: 'transparent',
           },
         },
+        '.secondary-gray': {
+          backgroundColor: 'rgba(37,37,37,255)'
+        },
         '.clamp-card': {
           width: 'clamp(400px, 40vw, 800px)',
         },
