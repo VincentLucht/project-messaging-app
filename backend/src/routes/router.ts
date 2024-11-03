@@ -63,6 +63,26 @@ router.post(
   chatController.createMessage,
 );
 
+// router.get('/chat/message/unread', token.extract,token.verify, )
+
+// mark a message as read
+router.post(
+  '/chat/message/status',
+  token.extract,
+  token.verify,
+  validator.readMessageRules(),
+  chatController.readMessage,
+);
+
+// mark ALL messages as read (from a user)
+router.post(
+  '/chat/message/status/all',
+  token.extract,
+  token.verify,
+  validator.readAllMessagesRules(),
+  chatController.readAllMessages,
+);
+
 // ! Authentication
 router.post('/sign-up', validator.signUpRules(), userController.createUser);
 router.post('/login', validator.loginRules(), authController.logIn);
