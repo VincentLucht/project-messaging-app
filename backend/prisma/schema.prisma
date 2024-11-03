@@ -14,15 +14,17 @@ datasource db {
 }
 
 model User {
-  id               String      @id @default(uuid())
-  name             String      @db.VarChar(30)
-  username         String      @unique @db.VarChar(30)
-  password         String
-  user_description String      @default("Hi!") @db.VarChar(30)
-  created_at       DateTime    @default(now())
-  Messages         Message[]
-  UserChats        UserChats[]
-  ChatAdmin        ChatAdmin[]
+  id                  String        @id @default(uuid())
+  name                String        @db.VarChar(30)
+  username            String        @unique @db.VarChar(30)
+  password            String
+  user_description    String        @default("Hi!") @db.VarChar(30)
+  created_at          DateTime      @default(now())
+  profile_picture_url String?
+  Messages            Message[]
+  UserChats           UserChats[]
+  ChatAdmin           ChatAdmin[]
+  MessageRead         MessageRead[]
 }
 
 model Chat {
@@ -42,15 +44,29 @@ model Chat {
 }
 
 model Message {
-  id String @id @default(uuid())
-  content String @db.VarChar(10000)
-  time_created DateTime @default(now())
-  status String @default("sent")
-  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  user_id String
-  chat Chat @relation("ChatMessages", fields: [chat_id], references: [id], onDelete: Cascade)
-  chat_id String
-  last_message_chat Chat? @relation("LastMessage")
+  id                String        @id @default(uuid())
+  content           String        @db.VarChar(10000)
+  time_created      DateTime      @default(now())
+  user              User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id           String
+  chat              Chat          @relation("ChatMessages", fields: [chat_id], references: [id], onDelete: Cascade)
+  chat_id           String
+  last_message_chat Chat?         @relation("LastMessage")
+  MessageRead       MessageRead[]
+
+  @@index([chat_id])
+}
+
+model MessageRead {
+  id         String   @id @default(uuid())
+  message    Message  @relation(fields: [message_id], references: [id], onDelete: Cascade)
+  message_id String
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id    String
+  read_at    DateTime @default(now())
+
+  @@unique([message_id, user_id])
+  @@index([user_id, message_id])
 }
 
 model UserChats {
