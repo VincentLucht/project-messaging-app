@@ -26,6 +26,7 @@ export const AuthContext = createContext<AuthContextValues | undefined>(
 export interface User extends JwtPayload {
   id: string;
   username: string;
+  profile_picture_url?: string | null;
   iat: number;
   exp: number;
 }
