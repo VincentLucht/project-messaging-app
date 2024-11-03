@@ -12,6 +12,7 @@ async function hashPassword(password: string): Promise<string> {
 
 async function main() {
   console.log('Deleting existing records...');
+  await prisma.messageRead.deleteMany();
   await prisma.user.deleteMany();
   await prisma.chat.deleteMany();
   await prisma.message.deleteMany();
@@ -26,6 +27,7 @@ async function main() {
       username: 'Alice',
       password: await hashPassword('pass123'),
       user_description: "I'm a test user",
+      profile_picture_url: 'https://avatar.iran.liara.run/public/55',
     },
   });
 
@@ -52,6 +54,22 @@ async function main() {
     data: [
       { user_id: alice.id, chat_id: chat.id },
       { user_id: john.id, chat_id: chat.id },
+    ],
+  });
+
+  // Create a second room
+  const chat2 = await prisma.chat.create({
+    data: {
+      name: 'Totally real chat',
+      chat_description: 'This is not a fake chat',
+    },
+  });
+
+  // Connect again
+  await prisma.userChats.createMany({
+    data: [
+      { user_id: alice.id, chat_id: chat2.id },
+      { user_id: john.id, chat_id: chat2.id },
     ],
   });
 
