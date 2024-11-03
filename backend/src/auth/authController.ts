@@ -40,7 +40,11 @@ class AuthController {
       });
 
       if (user && (await bcrypt.compare(req.body.password, user.password))) {
-        const payload = { id: user.id, username: user.username };
+        const payload = {
+          id: user.id,
+          username: user.username,
+          profile_picture_url: user.profile_picture_url,
+        };
         const token = jwt.sign(payload, this.secretKey, {
           expiresIn: '14 days',
         });
