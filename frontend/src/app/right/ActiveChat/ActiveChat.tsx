@@ -5,13 +5,17 @@ import fetchChatMessages from '@/app/right/ActiveChat/api/fetchChatMessages';
 import generateTempId from '@/app/right/ActiveChat/util/generateTempId';
 
 import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
-import { DBMessageWithUser } from '@/app/interfaces/databaseSchema';
+import {
+  DBMessageRead,
+  DBMessageWithUser,
+} from '@/app/interfaces/databaseSchema';
 
 import ChatMessage from '@/app/right/ActiveChat/components/ChatMessage';
 import TextareaAutosize from 'react-textarea-autosize';
 
 import { toast } from 'react-toastify';
 import toastUpdateOptions from '@/app/components/ts/toastUpdateObject';
+import createTempMessageRead from '@/app/right/ActiveChat/util/createTempMessageRead';
 
 interface ActiveChatProps {
   chat: DBChatWithMembers;
@@ -42,19 +46,67 @@ export default function ActiveChat({
   const [isTyping, setIsTyping] = useState(false);
   const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
 
-  console.log(messages);
-
   // socket events for active chat
   useEffect(() => {
     if (!socket) return;
 
     // Join the chat room
-    socket.emit('join-chat', chat.id);
+    socket.emit('join-chat', chat.id, username, userId);
+
+    // mark all messages as read from that user
+    socket.on(
+      'user-joined',
+      (data: {
+        username: string;
+        userId: string;
+        usersInChat: Map<string, { username: string; userId: string }>;
+      }) => {
+        const activeChatMembers = new Map(Object.entries(data.usersInChat));
+        activeChatMembers.delete(username);
+
+        // ! TODO: Put this into a func in util
+        setMessages((prevMessages) =>
+          prevMessages.map((message) => {
+            const messageRead = message.MessageRead;
+            if (messageRead === undefined) return message;
+
+            if (messageRead.length - 1 === activeChatMembers.size) {
+              // Skip if message was read by everyone
+              return message;
+            } else {
+              activeChatMembers.forEach(
+                (chatMember: { username: string; userId: string }) => {
+                  const hasRead = messageRead.some(
+                    (msgRead) => msgRead.user_id === chatMember.userId,
+                  );
+                  if (!hasRead) {
+                    messageRead.push({
+                      id: generateTempId(),
+                      message_id: message.id,
+                      read_at: new Date().toISOString(),
+                      user_id: chatMember.userId,
+                    });
+                  }
+                },
+              );
+
+              return message;
+            }
+          }),
+        );
+      },
+    );
 
     // Handle new messages
     socket.on(
       'new-message',
-      (data: { userId: string; content: string; username: string }) => {
+      (data: {
+        userId: string;
+        content: string;
+        username: string;
+        activeChatMembers: Map<string, { username: string; userId: string }>;
+      }) => {
+        // add temp Message
         const newMessage: DBMessageWithUser = {
           id: generateTempId(),
           content: data.content,
@@ -65,6 +117,10 @@ export default function ActiveChat({
             id: data.userId,
             username: data.username,
           },
+          MessageRead: createTempMessageRead(
+            data.username,
+            data.activeChatMembers,
+          ),
         };
 
         setMessages((prevMessages) => [newMessage, ...prevMessages]);
@@ -90,13 +146,13 @@ export default function ActiveChat({
 
     // Cleanup: leave chat room and remove listeners
     return () => {
-      socket.emit('leave-chat', chat.id);
+      socket.emit('leave-chat', chat.id, username);
       socket.off('new-message');
       socket.off('user-typing');
       socket.off('user-stopped-typing');
       socket.off('error');
     };
-  }, [socket, chat.id, userId]);
+  }, [socket, chat.id, userId, username]);
 
   // Fetch chat messages
   useEffect(() => {
@@ -153,7 +209,7 @@ export default function ActiveChat({
   };
 
   return (
-    <div className="grid h-[100dvh] grid-rows-[auto_1fr_auto] border">
+    <div className="grid h-[100dvh] grid-rows-[auto_1fr_auto] border-l">
       <div className="overflow-hidden">
         {/* chat name */}
         <h2
@@ -167,16 +223,23 @@ export default function ActiveChat({
         {isOtherUserTyping && <div>Someone is typing...</div>}
       </div>
 
+      {/* TODO: Actually style this! */}
+      <hr />
+
       {/* chat messages */}
       <div className="flex flex-col-reverse gap-2 overflow-y-auto p-4">
         {messages.map((message, index) => (
           <ChatMessage
+            chatMembersLength={chat.UserChats.length}
             message={message}
             isCurrentUser={username === message.user.username}
             key={index}
           />
         ))}
       </div>
+
+      {/* TODO: Actually style this */}
+      <hr />
 
       <div>
         {/* send message form */}
