@@ -88,11 +88,11 @@ class Validator {
 
   readMessageRules() {
     return [
-      body('message_id')
+      body('message_id').trim()
         .notEmpty()
         .withMessage('Message ID is required'),
 
-      body('user_id')
+      body('user_id').trim()
         .notEmpty()
         .withMessage('User ID is required'),
     ];
@@ -100,11 +100,11 @@ class Validator {
 
   readAllMessagesRules() {
     return [
-      body('chat_id')
+      body('chat_id').trim()
         .notEmpty()
         .withMessage('Chat ID is required'),
 
-      body('user_id')
+      body('user_id').trim()
         .notEmpty()
         .withMessage('User ID is required'),
     ];
