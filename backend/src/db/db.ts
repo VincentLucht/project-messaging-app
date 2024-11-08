@@ -203,32 +203,48 @@ class DB {
     return message;
   }
 
+  // gets the amount of unread messages inside of a chat (doesn't count messages from user)
   async getUnreadMessagesCount(chatIds: string[], userId: string) {
     try {
-      if (!chatIds || !Array.isArray(chatIds) || chatIds.length === 0) {
+      if (!Array.isArray(chatIds) || chatIds.length === 0) {
         return [];
       }
-
       if (!userId) {
         throw new Error('User ID is required');
       }
 
-      const unreadMessagesCount = await prisma.$queryRaw`
-      SELECT m.chat_id, COUNT(*) as unread_count
-      FROM "Message" as m
-      WHERE m.chat_id = ANY(${chatIds}::text[])
-      AND NOT EXISTS (
-        SELECT 1
-        FROM "MessageRead" as mr
-        WHERE mr.user_id = ${userId}
-        AND mr.message_id = m.id
-      )
-      GROUP BY m.chat_id
-    `;
+      const unreadCounts = await prisma.chat.findMany({
+        where: {
+          id: { in: chatIds },
+        },
+        orderBy: {
+          updated_at: 'desc',
+        },
+        select: {
+          id: true,
+          Messages: {
+            where: {
+              user_id: {
+                not: userId,
+              },
+              MessageRead: {
+                none: {
+                  user_id: userId,
+                },
+              },
+            },
+            take: 11,
+            select: {
+              id: true,
+            },
+          },
+        },
+      });
 
-      console.log({ chatIds, unreadMessagesCount });
-
-      return unreadMessagesCount;
+      return unreadCounts.map((chat) => ({
+        chatId: chat.id,
+        unreadCount: chat.Messages.length,
+      }));
     } catch (error) {
       throw new Error(`Failed to get all unread message: ${error}`);
     }
@@ -261,31 +277,37 @@ class DB {
     }
   }
 
-  async userReadAllMessages(chatId: string, userId: string) {
+  async userReadAllMessages(chatId: string, userIds: string[]) {
     try {
       // Get all unread chat messages
       const unreadChatMessagesRaw = await prisma.message.findMany({
         where: {
           chat_id: chatId,
+          user_id: {
+            notIn: userIds,
+          },
           MessageRead: {
             none: {
-              user_id: userId,
+              user_id: {
+                in: userIds,
+              },
             },
           },
         },
       });
 
       // Create an arr of only the user_id and chat_id
-      const unreadChatMessages = unreadChatMessagesRaw.map(
-        (unreadChatMessage) => ({
+      const unreadChatMessages = userIds.flatMap((userId) =>
+        unreadChatMessagesRaw.map((unreadChatMessage) => ({
           user_id: userId,
           message_id: unreadChatMessage.id,
-        }),
+        })),
       );
 
       // Loop through every single one and create a MessageRead
       await prisma.messageRead.createMany({
         data: unreadChatMessages,
+        skipDuplicates: true,
       });
     } catch (error) {
       throw new Error(`${error}`);
