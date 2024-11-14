@@ -1,0 +1,10 @@
+<svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-4 w-4"
+          fill="white"
+          viewBox="0 0 20 60"
+        >
+          <circle cx="10" cy="10" r="7" />
+          <circle cx="10" cy="30" r="7" />
+          <circle cx="10" cy="50" r="7" />
+        </svg>
