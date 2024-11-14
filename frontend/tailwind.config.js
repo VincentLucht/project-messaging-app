@@ -64,9 +64,6 @@ export default {
             borderColor: 'transparent',
           },
         },
-        '.secondary-gray': {
-          backgroundColor: 'rgba(37,37,37,255)'
-        },
         '.clamp-card': {
           width: 'clamp(400px, 40vw, 800px)',
         },
@@ -85,6 +82,18 @@ export default {
         },
         '.grid-auto-fit': {
           gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))',
+        },
+        '.secondary-gray': {
+          backgroundColor: 'rgba(37,37,37,255)'
+        },
+        '.bg-gray-strong': {
+          backgroundColor: 'rgb(241,245,249,0.07)'
+        },
+        '.bg-gray-light': {
+          backgroundColor: 'rgb(241,245,249,0.03)'
+        },
+        '.text-secondary-gray': {
+          color: 'rgb(156 163 175 / 0.9)'
         },
       };
 
