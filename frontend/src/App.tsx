@@ -27,7 +27,7 @@ export default function App() {
         <Route path="/*" element={<Home />} />
       </Routes>
 
-      <ToastContainer theme="dark" position="top-center" />
+      <ToastContainer theme="dark" position="top-right" />
     </div>
   );
 }
