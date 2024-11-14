@@ -1,57 +1,63 @@
 import express from 'express';
 
-import authController from '../auth/authController';
-
 import token from '../auth/token';
-import { validator } from '../auth/validation';
-import chatController from '../controller/chatController';
-import userController from '../controller/userController';
+import authController from '../auth/authController';
+import authValidator from '../auth/authValidator';
+
+// user
+import userController from '../controllers/userController';
+
+// chat
+import chatValidator from '@/auth/validation/chatValidator';
+import chatController from '@/controllers/chatController';
+
+// message
+import messageValidator from '@/auth/validation/messageValidator';
+import messageController from '@/controllers/messageController';
+
+// message read
+import messageReadValidator from '@/auth/validation/messageReadValidator';
+import messageReadController from '@/controllers/messageReadController';
+
+// user chats
+import userChatsValidator from '@/auth/validation/userChatsValidator';
+import userChatsController from '@/controllers/userChatsController';
+
+// chat admin
+import chatAdminValidator from '@/auth/validation/chatAdminValidator';
+import chatAdminController from '@/controllers/chatAdminController';
 
 const router = express.Router();
 
-// ! Chats
-// get all chats from an user
-router.get(
-  '/chat',
-  token.extract,
-  token.verify,
-  validator.getAllUserChatsRules(),
-  chatController.getAllUserChats,
-);
+// ? USER routes
 
+// ! CHAT
 // create chat
 router.post(
   '/chat',
   token.extract,
   token.verify,
-  validator.createChatRules(),
+  chatValidator.createChatRules(),
   chatController.createChat,
 );
-// add user to chat
-router.post(
-  '/chat/user',
+
+// change chat name
+router.put(
+  '/chat/name',
   token.extract,
   token.verify,
-  validator.addUserToChatRules(),
-  chatController.addUserToChat,
-);
-// make user admin
-router.post(
-  '/chat/user/admin',
-  token.extract,
-  token.verify,
-  validator.makeUserAdminRules(),
-  chatController.makeUserAdmin,
+  chatValidator.changeChatNameRules(),
+  chatController.changeChatName,
 );
 
-// ! Messages
+// ! MESSAGE
 // get all messages from a single chat
 router.get(
   '/chat/message',
   token.extract,
   token.verify,
-  validator.getAllChatMessagesRules(),
-  chatController.getAllChatMessages,
+  messageValidator.getAllChatMessagesRules(),
+  messageController.getAllChatMessages,
 );
 
 // create a message
@@ -59,19 +65,18 @@ router.post(
   '/chat/message',
   token.extract,
   token.verify,
-  validator.createMessageRules(),
-  chatController.createMessage,
+  messageValidator.createMessageRules(),
+  messageController.createMessage,
 );
 
-// router.get('/chat/message/unread', token.extract,token.verify, )
-
+// ! MESSAGE_READ
 // mark a message as read
 router.post(
   '/chat/message/status',
   token.extract,
   token.verify,
-  validator.readMessageRules(),
-  chatController.readMessage,
+  messageReadValidator.readMessageRules(),
+  messageReadController.readMessage,
 );
 
 // mark ALL messages as read (from a user)
@@ -79,15 +84,44 @@ router.post(
   '/chat/message/status/all',
   token.extract,
   token.verify,
-  validator.readAllMessagesRules(),
-  chatController.readAllMessages,
+  messageReadValidator.readAllMessagesRules(),
+  messageReadController.readAllMessages,
 );
 
-// ! Authentication
-router.post('/sign-up', validator.signUpRules(), userController.createUser);
-router.post('/login', validator.loginRules(), authController.logIn);
+// ! USER_CHATS
+// get all chats from an user
+router.get(
+  '/chat',
+  token.extract,
+  token.verify,
+  userChatsValidator.getAllUserChatsRules(),
+  userChatsController.getAllUserChats,
+);
 
-// ! Testing
+// add user to chat
+router.post(
+  '/chat/user',
+  token.extract,
+  token.verify,
+  chatValidator.addUserToChatRules(),
+  userChatsController.addUserToChat,
+);
+
+// ! CHAT_ADMIN
+// make user admin
+router.post(
+  '/chat/user/admin',
+  token.extract,
+  token.verify,
+  chatAdminValidator.makeUserAdminRules(),
+  chatAdminController.makeUserAdmin,
+);
+
+// ? Authentication
+router.post('/sign-up', authValidator.signUpRules(), userController.createUser);
+router.post('/login', authValidator.loginRules(), authController.logIn);
+
+// ? Testing
 router.get('/test', (req, res) => {
   return res.json({ title: 'test' });
 });
