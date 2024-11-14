@@ -22,7 +22,9 @@ class Token {
     this.algorithms = options.algorithms || ['HS256'];
 
     if (!this.secretKey) {
-      throw new Error('SECRET_KEY is not defined in environment variables or options');
+      throw new Error(
+        'SECRET_KEY is not defined in environment variables or options',
+      );
     }
 
     this.extract = this.extract.bind(this);
@@ -38,7 +40,9 @@ class Token {
 
     const parts = authHeader.split(' ');
     if (parts.length !== 2 || parts[0].toLowerCase() !== 'bearer') {
-      return res.status(401).json({ error: 'Invalid Authorization header format' });
+      return res
+        .status(401)
+        .json({ error: 'Invalid Authorization header format' });
     }
 
     const [, token] = parts;
@@ -53,20 +57,27 @@ class Token {
       return res.status(401).json({ error: 'No token provided' });
     }
 
-    jwt.verify(token, this.secretKey, { algorithms: this.algorithms }, (error, decoded) => {
-      if (error) {
-        if (error.name === 'TokenExpiredError') {
-          return res.status(401).json({ error: 'Token has expired' });
+    jwt.verify(
+      token,
+      this.secretKey,
+      { algorithms: this.algorithms },
+      (error, decoded) => {
+        if (error) {
+          if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({ error: 'Token has expired' });
+          }
+          if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ error: 'Invalid token' });
+          }
+          return res
+            .status(403)
+            .json({ error: 'Failed to authenticate token' });
         }
-        if (error.name === 'JsonWebTokenError') {
-          return res.status(401).json({ error: 'Invalid token' });
-        }
-        return res.status(403).json({ error: 'Failed to authenticate token' });
-      }
 
-      req.authData = decoded;
-      next();
-    });
+        req.authData = decoded;
+        next();
+      },
+    );
   }
 }
 
