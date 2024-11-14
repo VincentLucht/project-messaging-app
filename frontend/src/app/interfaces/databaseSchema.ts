@@ -19,6 +19,8 @@ export interface DBChat {
   updated_at: Date;
   last_message_id: string | null;
   last_message: DBMessage | null;
+  profile_picture_url?: string;
+  owner_id: string;
 }
 
 export interface DBMessage {
@@ -27,10 +29,10 @@ export interface DBMessage {
   time_created: Date | string;
   user_id: string;
   chat_id: string;
-  MessageRead?: MessageRead[];
+  MessageRead?: DBMessageRead[];
 }
 
-export interface MessageRead {
+export interface DBMessageRead {
   id: string;
   message_id: string;
   user_id: string;
@@ -54,5 +56,6 @@ export interface DBMessageWithUser extends DBMessage {
   user: {
     id: string;
     username: string;
+    profile_picture_url?: string;
   };
 }
