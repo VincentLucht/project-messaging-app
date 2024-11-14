@@ -1,5 +1,12 @@
 import { Server, Socket } from 'socket.io';
-import db from '../db/db';
+import db from '@/db/db';
+
+// track all rooms
+const chatRooms = new Map();
+
+function getActiveChatMembers(chatId: string) {
+  return chatRooms.get(chatId);
+}
 
 export function setupSocketIO(httpServer: any) {
   const io = new Server(httpServer, {
@@ -9,6 +16,9 @@ export function setupSocketIO(httpServer: any) {
   });
 
   io.on('connection', (socket: Socket) => {
+    // track user session for cleanup
+    const userSessions = new Map();
+
     // join room room without fetching data
     // refreshes the chat order, puts most recent chat on the top
     socket.on(
@@ -30,26 +40,67 @@ export function setupSocketIO(httpServer: any) {
     // get all unread messages from a user
     socket.on(
       'getUnreadMessages',
-      async (chatIds: string[], userId: string) => {
-        const unreadMessages = await db.getUnreadMessagesCount(chatIds, userId);
-        console.log(unreadMessages);
+      async (data: { chatIds: string[]; userId: string }) => {
+        const unreadMessages = await db.messageRead.getUnreadMessagesCount(
+          data.chatIds,
+          data.userId,
+        );
+
+        socket.emit('receiveUnreadMessages', unreadMessages); // emit to frontend
       },
     );
 
-    socket.on('join-chat', async (chatId: string) => {
-      try {
-        socket.join(chatId);
-        console.log(`User joined chat ${chatId}`);
-      } catch (error) {
-        console.error('Error joining chat:', error);
-        socket.emit('error', 'Failed to join chat');
-      }
-    });
+    // ! JOINING CHAT
+    socket.on(
+      'join-chat',
+      async (chatId: string, username: string, userId: string) => {
+        try {
+          // add socket and data for tracking data on disconnect
+          userSessions.set(socket.id, { chatId, username });
 
-    socket.on('leave-chat', async (chatId: string) => {
+          // create chatroom if there is not one
+          if (!chatRooms.has(chatId)) {
+            chatRooms.set(chatId, new Map());
+          }
+
+          // get users map from chat ID
+          const usersInChat = chatRooms.get(chatId);
+          // add user to userInChat map
+          usersInChat.set(username, {
+            username,
+            userId,
+          });
+
+          // emit signal that you joined
+          io.to(chatId).emit('user-joined', {
+            userId,
+            username,
+            usersInChat: Object.fromEntries(usersInChat),
+          });
+
+          // mark message as read
+          await db.messageRead.userReadAllMessages(chatId, [userId]);
+
+          socket.join(chatId);
+        } catch (error) {
+          console.error('Error joining chat:', error);
+          socket.emit('error', 'Failed to join chat');
+        }
+      },
+    );
+
+    // ! LEAVING CHAT
+    socket.on('leave-chat', async (chatId: string, username: string) => {
       try {
+        console.log(`${username} left the chat`);
+        // remove user from room
+        const room = chatRooms.get(chatId);
+        room.delete(username);
+        // delete if empty
+        if (room.size === 0) {
+          chatRooms.delete(chatId);
+        }
         socket.leave(chatId);
-        console.log(`User left chat ${chatId}`);
       } catch (error) {
         console.error('Error joining chat:', error);
         socket.emit('error', 'Failed to join chat');
@@ -67,14 +118,33 @@ export function setupSocketIO(httpServer: any) {
         try {
           const { chatId, userId, content, username } = data;
 
-          const newMessage = await db.createMessage(userId, chatId, content);
-          console.log(newMessage);
+          const newMessage = await db.message.createMessage(
+            userId,
+            chatId,
+            content,
+          );
+          // console.log(newMessage);
+          console.log(chatRooms);
+
+          const activeChatMembers = getActiveChatMembers(chatId);
+          console.log(activeChatMembers);
 
           // send to other user
-          io.to(chatId).emit('new-message', { userId, content, username });
-          console.log(
-            `User '${userId}' sent a message sent in chat ${chatId}: ${content}`,
+          io.to(chatId).emit('new-message', {
+            userId,
+            content,
+            username,
+            activeChatMembers: Object.fromEntries(activeChatMembers),
+          });
+
+          // create MessageRead for the DB
+          activeChatMembers.delete(data.username);
+          const activeChatMemberIds: string[] = [];
+          activeChatMembers.forEach(
+            (user: { username: string; userId: string }) =>
+              activeChatMemberIds.push(user.userId),
           );
+          await db.messageRead.userReadAllMessages(chatId, activeChatMemberIds);
 
           // send message as notification to other user
           io.to(`${chatId}:notifications`).emit('newMessageNotification', {
@@ -96,7 +166,21 @@ export function setupSocketIO(httpServer: any) {
     });
 
     socket.on('disconnect', () => {
-      console.log('User disconnected');
+      // Fetch user session info on disconnect
+      const session = userSessions.get(socket.id); // Get user's chat details by socket.id
+      if (session) {
+        const { chatId, username } = session;
+        const room = chatRooms.get(chatId);
+        if (room) {
+          room.delete(username);
+          if (room.size === 0) {
+            chatRooms.delete(chatId); // Clean up empty room
+          }
+        }
+        // Remove the user's session data after disconnect
+        userSessions.delete(socket.id);
+      }
+      console.log('User disconnected and removed from chatRooms:', chatRooms);
     });
   });
 
