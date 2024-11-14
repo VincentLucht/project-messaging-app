@@ -4,11 +4,11 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "dev": "npx ts-node-dev --respawn src/app.ts",
-    "db": "npx ts-node ./src/scripts/script.ts",
+    "dev": "npx ts-node-dev --respawn -r tsconfig-paths/register --max-old-space-size=1024 src/app.ts",
+    "db": "npx ts-node -r tsconfig-paths/register ./src/scripts/script.ts",
     "postinstall": "prisma generate",
-    "build": "tsc",
-    "start": "node dist/app.js"
+    "build": "tsc && tsc-alias",
+    "start": "node -r tsconfig-paths/register/dist dist/app.js"
   },
   "keywords": [],
   "author": "",
@@ -50,6 +50,8 @@
     "supertest": "^7.0.0",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
+    "tsc-alias": "^1.8.10",
+    "tsconfig-paths": "^4.2.0",
     "typescript-eslint": "^8.2.0"
   }
 }
