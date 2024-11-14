@@ -41,11 +41,27 @@ async function main() {
     },
   });
 
+  // Create test user 3
+  const jane = await prisma.user.create({
+    data: {
+      name: 'Jane',
+      username: 'Janeeeeeeeeeeeeeee',
+      password: await hashPassword('pass123'),
+      user_description: "I'm Jane, nice to meet you!",
+    },
+  });
+
   // Create a room
   const chat = await prisma.chat.create({
     data: {
-      name: 'Test Chat',
+      owner_id: alice.id,
+      name: 'Normal Chat',
       chat_description: 'IDK what to write here',
+      ChatAdmins: {
+        create: {
+          user_id: alice.id,
+        },
+      },
     },
   });
 
@@ -60,8 +76,17 @@ async function main() {
   // Create a second room
   const chat2 = await prisma.chat.create({
     data: {
-      name: 'Totally real chat',
-      chat_description: 'This is not a fake chat',
+      owner_id: alice.id,
+      name: 'Group Chat',
+      chat_description: 'This is a totally real group chat!',
+      is_group_chat: true,
+      profile_picture_url:
+        'https://haa.athuman.com/media/japanese/wp-content/uploads/sites/4/2020/05/main-1.jpeg',
+      ChatAdmins: {
+        create: {
+          user_id: alice.id,
+        },
+      },
     },
   });
 
@@ -70,6 +95,7 @@ async function main() {
     data: [
       { user_id: alice.id, chat_id: chat2.id },
       { user_id: john.id, chat_id: chat2.id },
+      { user_id: jane.id, chat_id: chat2.id },
     ],
   });
 
