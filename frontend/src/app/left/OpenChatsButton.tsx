@@ -6,7 +6,7 @@ export default function OpenChatsButton() {
   const url = useLocation();
 
   let imgPath;
-  if (url.pathname === '/chats') {
+  if (url.pathname === '/chats' || url.pathname === '/') {
     imgPath = './chatIcon.svg';
   } else {
     imgPath = './chatIconOutline.svg';
