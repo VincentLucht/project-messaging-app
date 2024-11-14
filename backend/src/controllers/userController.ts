@@ -12,7 +12,7 @@ class UserController {
     const { name, username, password } = req.body;
 
     try {
-      const doesUserExist = await db.getUserByUsername(username);
+      const doesUserExist = await db.user.getUserByUsername(username);
       if (doesUserExist) {
         return res
           .status(409)
@@ -20,7 +20,7 @@ class UserController {
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
-      await db.createUser(name, username, hashedPassword);
+      await db.user.createUser(name, username, hashedPassword);
       return res.status(201).json({ message: 'Successfully created user' });
     } catch (error) {
       return res.status(500).json({
