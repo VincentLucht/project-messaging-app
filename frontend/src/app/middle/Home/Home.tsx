@@ -4,10 +4,15 @@ import { useAuth } from '@/app/auth/context/hooks/useAuth';
 import useIsMobile from '@/app/components/hooks/useIsMobile';
 import { JwtPayload } from 'jwt-decode';
 
-import fetchAllUserChats, {
-  DBChatWithMembers,
-} from '@/app/middle/AllChatsList/api/fetchAllUserChats';
+import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
 import { Socket, io } from 'socket.io-client';
+import { TypingUsers } from '@/app/interfaces/TypingUsers';
+
+// useEffect function
+import handleNotifications from '@/app/middle/Home/services/handleNotifications';
+import fetchChats from '@/app/middle/Home/services/fetchChats/fetchChats';
+import handleTypingUsers from '@/app/middle/Home/services/handleTypingUsers';
+import handleUserAddedToChat from '@/app/middle/Home/services/handleUserAddedToChat';
 
 // Left Components
 import OpenChatsButton from '@/app/left/OpenChatsButton';
@@ -20,8 +25,6 @@ import UserProfile from '@/app/middle/UserProfile/UserProfile';
 
 // Right Components
 import ActiveChat from '@/app/right/ActiveChat/ActiveChat';
-import { toast } from 'react-toastify';
-import { DBMessage } from '@/app/interfaces/databaseSchema';
 
 export interface User extends JwtPayload {
   id: string;
@@ -33,13 +36,13 @@ export interface User extends JwtPayload {
 export default function Home() {
   const [chats, setChats] = useState<DBChatWithMembers[] | null>(null);
   const [activeChat, setActiveChat] = useState<DBChatWithMembers | null>(null);
+  const [typingUsers, setTypingUsers] = useState<TypingUsers>({});
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const socket = useRef<Socket | null>(null);
 
   const { user, token, isLoggedIn, logout } = useAuth();
   const isMobile = useIsMobile();
   const [shouldRefreshChatOrder, setShouldRefreshChatOrder] = useState(false);
-
   // ! TODO: Currently re-renders when creating new chat => make more efficient!
 
   // Establish connection with socket
@@ -65,7 +68,7 @@ export default function Home() {
       });
     });
 
-    // Cleanup func to avoid memory leaks on server
+    // Cleanup func
     return () => {
       chats.forEach((chat) => {
         socket.current?.emit('leaveChatNotifications', {
@@ -76,81 +79,53 @@ export default function Home() {
     };
   }, [chats, isLoggedIn, user, socket]);
 
+  // Handle typing users
+  useEffect(() => {
+    handleTypingUsers(socket, setTypingUsers, user?.username);
+
+    return () => {
+      socket.current?.off('typing-users');
+    };
+  }, [socket, user, typingUsers]);
+
   // handle notifications
   useEffect(() => {
-    if (!chats || !isLoggedIn || !socket) return;
-
-    socket.current?.on(
-      'newMessageNotification',
-      (data: { newMessage: DBMessage }) => {
-        const { newMessage } = data;
-
-        // update chat order
-        let updatedChat;
-        const filteredChat: DBChatWithMembers[] = [];
-        chats.forEach((chat) => {
-          if (chat.id === newMessage.chat_id) {
-            updatedChat = {
-              ...chat,
-              last_message: newMessage,
-              last_message_id: newMessage.id,
-              time_updated: new Date().toISOString(),
-            };
-          } else {
-            filteredChat.push(chat);
-          }
-        });
-
-        if (updatedChat) {
-          filteredChat.unshift(updatedChat);
-        }
-
-        setChats(filteredChat);
-      },
-    );
+    handleNotifications(chats, setChats, activeChat, user, socket?.current);
 
     return () => {
       socket.current?.off('newMessageNotification');
+      socket.current?.off('chat-name-changed');
     };
-  }, [chats, isLoggedIn, socket]);
+  }, [chats, isLoggedIn, socket, user, activeChat]);
+
+  // Handle users being add to a chat
+  useEffect(() => {
+    handleUserAddedToChat(socket?.current, chats, setChats, setActiveChat);
+
+    return () => {
+      socket.current?.off('new-user-added-to-chat');
+    };
+  }, [chats]);
 
   // fetch all user chats and unread messages
-  // re-fetches data every time refreshTrigger is triggered
+  // re-fetches chats every time refreshTrigger is triggered
   useEffect(() => {
-    function fetchData() {
-      if (isLoggedIn && user && token) {
-        fetchAllUserChats(user?.id, token)
-          .then((fetchedChats) => {
-            setChats(fetchedChats.allChats);
-            // get unread messages
-            socket.current?.emit('getUnreadMessages', {
-              chatIds: fetchedChats.allChats.map((chat) => chat.id),
-              userId: user.id,
-            });
-          })
-          .catch((error) => {
-            toast.error(`${error}`);
-          });
-      }
-    }
+    void fetchChats(isLoggedIn, user, token, socket.current, logout, setChats);
 
-    fetchData();
+    return () => {
+      socket.current?.off('receiveUnreadMessages');
+    };
   }, [isLoggedIn, user, token, logout, refreshTrigger]);
 
   if (!isLoggedIn || !user || !token) {
-    // ? navigate to login??
+    // ? TODO: navigate to login??
     return <div>You are not logged in</div>;
-  }
-
-  // TODO: log user out if chats === undefined???
-  if (chats === undefined) {
-    logout();
   }
 
   return (
     <div
       className={`grid min-h-[100dvh]
-        ${isMobile ? 'grid-cols-[30%_50%]' : 'grid-cols-[58px_3.5fr_6.5fr]'}`}
+        ${isMobile ? 'grid-cols-[30%_50%]' : 'grid-cols-[58px_4fr_6fr]'}`}
     >
       {/* LEFT SIDE */}
       <nav
@@ -159,10 +134,11 @@ export default function Home() {
       >
         <OpenChatsButton />
         <OpenUserProfileButton imgUrl={user?.profile_picture_url} />
+        <button onClick={() => console.log(chats)}>Log chats state</button>
       </nav>
 
       {/* MIDDLE */}
-      <main className="bg-blue-900/20">
+      <main className="min-w-0 bg-blue-900/20">
         <Routes>
           <Route path="/user" element={<UserProfile />} />
           <Route
@@ -170,9 +146,12 @@ export default function Home() {
             element={
               <ChatSection
                 chats={chats}
+                setChats={setChats}
                 activeChat={activeChat}
                 setActiveChat={setActiveChat}
                 setRefreshTrigger={setRefreshTrigger}
+                username={user.username}
+                typingUsers={typingUsers}
                 isMobile={isMobile}
               />
             }
