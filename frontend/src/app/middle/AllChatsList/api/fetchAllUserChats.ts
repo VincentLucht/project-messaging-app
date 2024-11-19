@@ -5,9 +5,14 @@ export interface DBChatWithMembers extends DBChat {
   UserChats: {
     user: {
       id: string;
+      name: string;
       username: string;
+      profile_picture_url?: string;
+      user_description: string;
     };
-  };
+  }[];
+  ChatAdmins: { user_id: string }[];
+  unreadCount: number;
 }
 
 export interface AllUserChatsResponse {
