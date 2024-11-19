@@ -5,13 +5,11 @@ import fetchChatMessages from '@/app/right/ActiveChat/api/fetchChatMessages';
 import generateTempId from '@/app/right/ActiveChat/util/generateTempId';
 
 import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
-import {
-  DBMessageRead,
-  DBMessageWithUser,
-} from '@/app/interfaces/databaseSchema';
+import { DBMessageWithUser } from '@/app/interfaces/databaseSchema';
 
 import ChatMessage from '@/app/right/ActiveChat/components/ChatMessage';
 import TextareaAutosize from 'react-textarea-autosize';
+import ChatSettings from '@/app/right/ActiveChat/components/ChatSettings/ChatSettings';
 
 import { toast } from 'react-toastify';
 import toastUpdateOptions from '@/app/components/ts/toastUpdateObject';
@@ -43,6 +41,8 @@ export default function ActiveChat({
 }: ActiveChatProps) {
   const [messages, setMessages] = useState<DBMessageWithUser[]>([]);
   const [message, setMessage] = useState('');
+  const [showChatSettings, setShowChatSettings] = useState(false);
+
   const [isTyping, setIsTyping] = useState(false);
   const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
 
@@ -128,14 +128,14 @@ export default function ActiveChat({
     );
 
     // Handle typing indicators
-    socket.on('user-typing', (typingUserId: string) => {
-      if (typingUserId !== userId) {
+    socket.on('user-typing', (typingUsername: string) => {
+      if (typingUsername !== username) {
         setIsOtherUserTyping(true);
       }
     });
 
-    socket.on('user-stopped-typing', (typingUserId: string) => {
-      if (typingUserId !== userId) {
+    socket.on('user-stopped-typing', (typingUsername: string) => {
+      if (typingUsername !== username) {
         setIsOtherUserTyping(false);
       }
     });
@@ -177,10 +177,10 @@ export default function ActiveChat({
 
   const sendActivity = (currentMessage: string) => {
     if (currentMessage !== '' && !isTyping && socket && chat.id) {
-      socket.emit('typing', { chatId: chat.id, userId });
+      socket.emit('typing', { chatId: chat.id, username });
       setIsTyping(true);
     } else if (currentMessage === '' && isTyping && socket && chat.id) {
-      socket.emit('stopped-typing', { chatId: chat.id, userId });
+      socket.emit('stopped-typing', { chatId: chat.id, username });
       setIsTyping(false);
     }
   };
@@ -202,70 +202,87 @@ export default function ActiveChat({
       setShouldRefreshChatOrder(true); // re-fetch chats to get new chat
 
       if (isTyping) {
-        socket.emit('stopped-typing', { chatId: chat.id, userId });
+        socket.emit('stopped-typing', { chatId: chat.id, username });
         setIsTyping(false);
       }
     }
   };
 
   return (
-    <div className="grid h-[100dvh] grid-rows-[auto_1fr_auto] border-l">
-      <div className="overflow-hidden">
-        {/* chat name */}
-        <h2
-          className="overflow-hidden overflow-ellipsis whitespace-nowrap px-5 py-2 text-left text-2xl
-            font-bold"
+    <div
+      className={`${showChatSettings ? 'grid grid-cols-[5.5fr_4.5fr] md:grid-cols-[0%_100%]' : ''}`}
+    >
+      <div className="grid h-[100dvh] grid-rows-[auto_1fr_auto] border-l">
+        <div
+          className="cursor-pointer overflow-hidden"
+          onClick={() => setShowChatSettings(!showChatSettings)}
         >
-          {chat.name}
-        </h2>
+          {/* chat name */}
+          <h2
+            className="overflow-hidden overflow-ellipsis whitespace-nowrap px-5 py-2 text-left text-2xl
+              font-bold"
+          >
+            {chat.name}
+          </h2>
 
-        {/* activity indicator */}
-        {isOtherUserTyping && <div>Someone is typing...</div>}
-      </div>
+          {/* activity indicator */}
+          {isOtherUserTyping && <div>Someone is typing...</div>}
+        </div>
 
-      {/* TODO: Actually style this! */}
-      <hr />
+        {/* TODO: Actually style this! */}
+        <hr />
 
-      {/* chat messages */}
-      <div className="flex flex-col-reverse gap-2 overflow-y-auto p-4">
-        {messages.map((message, index) => (
-          <ChatMessage
-            chatMembersLength={chat.UserChats.length}
-            message={message}
-            isCurrentUser={username === message.user.username}
-            key={index}
-          />
-        ))}
-      </div>
+        {/* chat messages */}
+        <div className="flex flex-col-reverse gap-2 overflow-y-auto p-4">
+          {messages.map((message, index) => (
+            <ChatMessage
+              chatMembersLength={chat.UserChats.length}
+              message={message}
+              isCurrentUser={username === message.user.username}
+              key={index}
+            />
+          ))}
+        </div>
 
-      {/* TODO: Actually style this */}
-      <hr />
+        {/* TODO: Actually style this */}
+        <hr />
 
-      <div>
-        {/* send message form */}
-        <form className="flex gap-4 p-4" onSubmit={sendMessage}>
-          <TextareaAutosize
-            value={message}
-            onChange={(e) => {
-              setMessage(e.target.value);
-              sendActivity(e.target.value);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                if (message.trim()) {
-                  sendMessage(message);
+        <div>
+          {/* send message form */}
+          <form className="flex gap-4 p-4" onSubmit={sendMessage}>
+            <TextareaAutosize
+              value={message}
+              onChange={(e) => {
+                setMessage(e.target.value);
+                sendActivity(e.target.value);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  if (message.trim()) {
+                    sendMessage(message);
+                  }
                 }
-              }
-            }}
-            className="flex-1 resize-none rounded-3xl border-2 px-6 py-3"
-            placeholder="Enter your message"
-            maxRows={6}
-          />
+              }}
+              className="flex-1 resize-none rounded-3xl border-2 px-6 py-3"
+              placeholder="Enter your message"
+              maxRows={6}
+            />
 
-          <button type="submit">Send message</button>
-        </form>
+            <button type="submit">Send message</button>
+          </form>
+        </div>
       </div>
+
+      <ChatSettings
+        setShowChatSettings={setShowChatSettings}
+        showChatSettings={showChatSettings}
+        chat={chat}
+        userId={userId}
+        username={username}
+        token={token}
+        socket={socket}
+      />
     </div>
   );
 }
