@@ -1,4 +1,4 @@
-interface ExpressError {
+export interface ExpressError {
   type?: string;
   value?: string;
   msg: string;
@@ -9,4 +9,5 @@ interface ExpressError {
 
 export interface ExpressErrors {
   errors: ExpressError[];
+  message?: string;
 }
