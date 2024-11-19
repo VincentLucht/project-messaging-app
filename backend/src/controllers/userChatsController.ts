@@ -81,9 +81,10 @@ class UserChatsController {
       }
 
       await db.userChats.addUserToChat(otherUser.id, chat_id);
-      return res
-        .status(201)
-        .json({ message: 'Successfully added user to chat' });
+      return res.status(201).json({
+        message: 'Successfully added user to chat',
+        newUser: otherUser,
+      });
     } catch (error) {
       return res.status(500).json({
         message: 'Failed to add user to chat',
