@@ -24,7 +24,7 @@ async function main() {
   const alice = await prisma.user.create({
     data: {
       name: 'Alice',
-      username: 'Alice',
+      username: 'AliceInWonderland',
       password: await hashPassword('pass123'),
       user_description: "I'm a test user",
       profile_picture_url: 'https://avatar.iran.liara.run/public/55',
@@ -35,7 +35,7 @@ async function main() {
   const john = await prisma.user.create({
     data: {
       name: 'John',
-      username: 'John',
+      username: 'JohnSmith23',
       password: await hashPassword('pass123'),
       user_description: "I'm John Doe",
     },
@@ -45,12 +45,40 @@ async function main() {
   const jane = await prisma.user.create({
     data: {
       name: 'Jane',
-      username: 'Janeeeeeeeeeeeeeee',
+      username: 'JaneDough',
       password: await hashPassword('pass123'),
       user_description: "I'm Jane, nice to meet you!",
     },
   });
 
+  // Create test user 4
+  const luke = await prisma.user.create({
+    data: {
+      name: 'Luke',
+      username: 'LukeSkywalker',
+      password: await hashPassword('pass123'),
+      user_description: 'Luke Skywalker here!',
+    },
+  });
+
+  const testUsers = [];
+  for (let i = 0; i <= 20; i++) {
+    testUsers.push({
+      name: `NotInChat${i}`,
+      username: `test${i}`,
+      description: `test${i}`,
+    });
+  }
+  for (const user of testUsers) {
+    await prisma.user.create({
+      data: {
+        name: user.name,
+        username: user.username,
+        password: await hashPassword('pass123'),
+        user_description: user.description,
+      },
+    });
+  }
   // Create a room
   const chat = await prisma.chat.create({
     data: {
@@ -83,9 +111,7 @@ async function main() {
       profile_picture_url:
         'https://haa.athuman.com/media/japanese/wp-content/uploads/sites/4/2020/05/main-1.jpeg',
       ChatAdmins: {
-        create: {
-          user_id: alice.id,
-        },
+        create: [{ user_id: alice.id }, { user_id: john.id }],
       },
     },
   });
@@ -96,6 +122,7 @@ async function main() {
       { user_id: alice.id, chat_id: chat2.id },
       { user_id: john.id, chat_id: chat2.id },
       { user_id: jane.id, chat_id: chat2.id },
+      { user_id: luke.id, chat_id: chat2.id },
     ],
   });
 
