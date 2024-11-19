@@ -97,7 +97,6 @@ describe('UserChats routes', () => {
       it('should successfully add a user to a chat', async () => {
         mockDB.user.getUserByUsername.mockResolvedValue(basicMockUser);
         mockDB.chat.getChatById.mockResolvedValue({ id: 1, is_group_chat: true });
-        mockDB.user.getUserByUsername.mockResolvedValueOnce(basicMockUser);
         mockDB.chatAdmin.isChatAdminById.mockResolvedValue(true);
         mockDB.userChats.addUserToChat.mockResolvedValue(true);
 
@@ -109,6 +108,7 @@ describe('UserChats routes', () => {
 
         expect(response.status).toBe(201);
         expect(response.body.message).toBe('Successfully added user to chat');
+        expect(response.body.newUser).toStrictEqual(basicMockUser);
       });
     });
 
