@@ -1,43 +1,83 @@
-import { DBChat } from '@/app/interfaces/databaseSchema';
+import LazyLoadImage from '@/app/components/LazyLoadImage';
+import { TypingUsersChat } from '@/app/interfaces/TypingUsers';
 import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
+import displayTypingUsers from '@/app/middle/AllChatsList/components/util/DisplayTypingUsers';
 import dayjs from 'dayjs';
 
 interface ChatCardProps {
-  chat: DBChat;
+  chat: DBChatWithMembers;
+  username: string;
   isMobile: boolean;
   activeChat: DBChatWithMembers | null;
+  typingUsers: TypingUsersChat;
 }
 
 export default function ChatCard({
   chat,
+  username,
   isMobile,
   activeChat,
+  typingUsers,
 }: ChatCardProps) {
   const formattedTime = chat.last_message?.time_created
     ? dayjs(chat.last_message?.time_created).format('HH:mm')
     : dayjs(chat.time_created).format('HH:mm'); // ? show creation date of chat
 
+  const getProfilePicture = () => {
+    let urlPath = '';
+
+    if (chat.is_group_chat) {
+      urlPath = chat.profile_picture_url ?? './placeholderGroupPFP.png';
+    } else {
+      const otherUser = chat.UserChats.find(
+        (member) => username !== member.user.username,
+      );
+      urlPath = otherUser?.user.profile_picture_url ?? './placeholderPFP.jpg';
+    }
+
+    return urlPath;
+  };
+
   return (
     <div
       className={`grid h-[86px] cursor-pointer grid-cols-[1.5fr_8fr_1fr] gap-4 transition-colors
         duration-150 ${isMobile ? 'p-2' : 'p-4'}
-        ${activeChat?.id === chat.id ? 'bg-[rgb(241,245,249,0.07)]' : 'hover:bg-[rgb(241,245,249,0.03)]'} `}
+        ${activeChat?.id === chat.id ? 'bg-gray-strong' : 'hover:bg-gray-light'} `}
     >
-      <div className="border">
-        {/* TODO: Add actual profile pictures / group chats */}
-        <img src="" alt="placeholder img" className="h-full w-full" />
+      {/* PFP */}
+      <div className="h-[50px] w-[50px]">
+        <LazyLoadImage
+          src={getProfilePicture()}
+          alt="group profile picture"
+          className="h-full w-full rounded-full object-cover"
+        />
       </div>
 
+      {/* Chat name */}
       <div className="overflow-hidden">
         <div className="overflow-hidden overflow-ellipsis whitespace-nowrap text-left text-lg font-bold">
           {chat.name}
         </div>
 
-        <div className="text-left">{chat.last_message?.content}</div>
+        {/* Typing Users / Last message */}
+        <div className="overflow-hidden overflow-ellipsis whitespace-nowrap text-left">
+          {displayTypingUsers(
+            typingUsers,
+            chat.last_message?.content,
+            'overview',
+          )}
+        </div>
       </div>
 
       <div>
+        {/* Time sent */}
         <div>{formattedTime}</div>
+        {/* Unread messages count */}
+        <div>
+          {chat.unreadCount !== 0 && (
+            <div>{chat.unreadCount > 10 ? '10+' : chat.unreadCount}</div>
+          )}
+        </div>
       </div>
     </div>
   );
