@@ -1,5 +1,5 @@
-import { API_URL } from '../../../../App';
-import { ExpressErrors } from '../../../interfaces/express-validator-errors';
+import { API_URL } from '@/App';
+import { ExpressErrors } from '@/app/interfaces/express-validator-errors';
 
 export default async function handleCreateChat(
   userId: string,
