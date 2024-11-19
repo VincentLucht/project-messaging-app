@@ -1,6 +1,12 @@
 import { Server, Socket } from 'socket.io';
 import db from '@/db/db';
 
+import typingUsers from '@/server/typingUsers/typingUsers';
+import { User } from '@prisma/client';
+
+// Service
+import addUserToChat from '@/server/service/addUserToChat';
+
 // track all rooms
 const chatRooms = new Map();
 
@@ -8,6 +14,11 @@ function getActiveChatMembers(chatId: string) {
   return chatRooms.get(chatId);
 }
 
+/**
+ * Allows real time communication via socket.io.
+ *
+ * Checks if a user joined a chat, left a chat, if they are typing or not
+ */
 export function setupSocketIO(httpServer: any) {
   const io = new Server(httpServer, {
     cors: {
@@ -16,10 +27,25 @@ export function setupSocketIO(httpServer: any) {
   });
 
   io.on('connection', (socket: Socket) => {
+    // Clean up event listeners on disconnect
+    const cleanupEventListeners = () => {
+      // ! TODO: add removeAllListeners to EVERYTHING
+      socket.removeAllListeners('joinChatNotifications');
+      socket.removeAllListeners('leaveChatNotifications');
+      socket.removeAllListeners('getUnreadMessages');
+      socket.removeAllListeners('join-chat');
+      socket.removeAllListeners('user-added-to-chat');
+      socket.removeAllListeners('change-chat-name');
+      socket.removeAllListeners('leave-chat');
+      socket.removeAllListeners('send-message');
+      socket.removeAllListeners('typing');
+      socket.removeAllListeners('stopped-typing');
+    };
+
     // track user session for cleanup
     const userSessions = new Map();
 
-    // join room room without fetching data
+    // join room without fetching data
     // refreshes the chat order, puts most recent chat on the top
     socket.on(
       'joinChatNotifications',
@@ -107,6 +133,30 @@ export function setupSocketIO(httpServer: any) {
       }
     });
 
+    // ! CHANGE CHAT NAME
+    socket.on(
+      'change-chat-name',
+      async (chatId: string, newChatName: string) => {
+        io.to(`${chatId}:notifications`).emit('chat-name-changed', {
+          chatId,
+          newChatName,
+        });
+      },
+    );
+
+    // ! USER WAS ADDED TO CHAT
+    socket.on(
+      'user-added-to-chat',
+      async (
+        chatId: string,
+        userId: string,
+        username: string,
+        newUser: User,
+      ) => {
+        addUserToChat(io, chatId, newUser);
+      },
+    );
+
     socket.on(
       'send-message',
       async (data: {
@@ -123,11 +173,8 @@ export function setupSocketIO(httpServer: any) {
             chatId,
             content,
           );
-          // console.log(newMessage);
-          console.log(chatRooms);
 
           const activeChatMembers = getActiveChatMembers(chatId);
-          console.log(activeChatMembers);
 
           // send to other user
           io.to(chatId).emit('new-message', {
@@ -150,6 +197,8 @@ export function setupSocketIO(httpServer: any) {
           io.to(`${chatId}:notifications`).emit('newMessageNotification', {
             newMessage,
           });
+
+          typingUsers.clearTypingStatus(chatId, username);
         } catch (error) {
           console.error('Error sending message:', error);
           socket.emit('error', 'Failed to send message');
@@ -157,13 +206,21 @@ export function setupSocketIO(httpServer: any) {
       },
     );
 
-    socket.on('typing', (data: { chatId: string; userId: string }) => {
-      socket.to(data.chatId).emit('user-typing', data.userId);
+    socket.on('typing', (data: { chatId: string; username: string }) => {
+      typingUsers.addUsername(data.chatId, data.username);
+      console.log(typingUsers);
+      typingUsers.emit(data.chatId, socket);
     });
 
-    socket.on('stopped-typing', (data: { chatId: string; userId: string }) => {
-      socket.to(data.chatId).emit('user-stopped-typing', data.userId);
-    });
+    socket.on(
+      'stopped-typing',
+      (data: { chatId: string; username: string }) => {
+        typingUsers.deleteUsername(data.chatId, data.username);
+        typingUsers.emit(data.chatId, socket);
+        typingUsers.clearTypingStatus(data.chatId, data.username);
+        console.log(typingUsers);
+      },
+    );
 
     socket.on('disconnect', () => {
       // Fetch user session info on disconnect
@@ -179,7 +236,14 @@ export function setupSocketIO(httpServer: any) {
         }
         // Remove the user's session data after disconnect
         userSessions.delete(socket.id);
+
+        // remove typing indicator on disconnect
+        typingUsers.deleteUsername(chatId, username);
+        typingUsers.emit(chatId, socket);
+        typingUsers.clearTypingStatus(chatId, username);
       }
+
+      cleanupEventListeners();
       console.log('User disconnected and removed from chatRooms:', chatRooms);
     });
   });
