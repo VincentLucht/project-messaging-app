@@ -3,20 +3,27 @@ import NewChat from '@/app/middle/NewChat/NewChat';
 import AllChatsList from '@/app/middle/AllChatsList/AllChatsList';
 
 import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
+import { TypingUsers } from '@/app/interfaces/TypingUsers';
 
 interface ChatSectionProps {
   chats: DBChatWithMembers[] | null;
+  setChats: Dispatch<SetStateAction<DBChatWithMembers[] | null>>;
   activeChat: DBChatWithMembers | null;
   setActiveChat: Dispatch<SetStateAction<DBChatWithMembers | null>>;
   setRefreshTrigger: Dispatch<SetStateAction<number>>;
+  username: string;
+  typingUsers: TypingUsers;
   isMobile: boolean;
 }
 
 export default function ChatSection({
   chats,
+  setChats,
   activeChat,
   setActiveChat,
   setRefreshTrigger,
+  username,
+  typingUsers,
   isMobile,
 }: ChatSectionProps) {
   const [showCreateChat, setShowCreateChat] = useState(false);
@@ -55,8 +62,11 @@ export default function ChatSection({
 
       <AllChatsList
         chats={chats}
+        setChats={setChats}
         setActiveChat={setActiveChat}
         isMobile={isMobile}
+        username={username}
+        typingUsers={typingUsers}
         activeChat={activeChat}
       />
     </div>
