@@ -2,17 +2,25 @@ import { DBMessageWithUser } from '@/app/interfaces/databaseSchema';
 import dayjs from 'dayjs';
 
 interface ChatMessageProps {
+  chatMembersLength: number;
   message: DBMessageWithUser;
   isCurrentUser: boolean;
 }
 
 export default function ChatMessage({
+  chatMembersLength,
   message,
   isCurrentUser,
 }: ChatMessageProps) {
   // Determine double tick path
   const tickPath = './doubleTickSent.svg';
   const altMessage = 'message sent';
+
+  const isMessageRead = () => {
+    if (message.MessageRead === undefined) return;
+    const isMessageRead = chatMembersLength - 1 - message.MessageRead.length;
+    return isMessageRead === 0 ? true : false;
+  };
 
   return (
     <div className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
@@ -44,6 +52,7 @@ export default function ChatMessage({
                 alt={altMessage}
                 className="translate-y-[2px]"
               />
+              <div>{`${isMessageRead()}`}</div>
             </div>
           )}
         </div>
