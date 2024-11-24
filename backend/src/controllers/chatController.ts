@@ -80,6 +80,44 @@ class ChatController {
       });
     }
   });
+
+  changeChatDescription = asyncHandler(async (req: Request, res: Response) => {
+    if (checkValidationError(req, res)) return;
+
+    const { chat_id, new_description_name, user_id } = req.body;
+
+    try {
+      // check if exceeds 200 char limit
+      if (new_description_name.length > 200) {
+        return res
+          .status(400)
+          .json({ message: 'New description exceeds the 200 character limit' });
+      }
+
+      // check if chat exists
+      const doesChatExist = await db.chat.getChatById(chat_id);
+      if (!doesChatExist) {
+        return res.status(404).json({ message: 'Chat does not exist' });
+      }
+
+      // check if is admin
+      const isUserAdmin = await db.chatAdmin.isChatAdminById(chat_id, user_id);
+      if (!isUserAdmin) {
+        return res.status(403).json({ message: 'You are not an admin' });
+      }
+
+      // change chat description
+      await db.chat.changeDescription(chat_id, new_description_name);
+      return res
+        .status(200)
+        .json({ message: 'Successfully changed chat description' });
+    } catch (error) {
+      return res.status(500).json({
+        message: 'Failed to change chat description',
+        error: (error as Error).message,
+      });
+    }
+  });
 }
 
 const chatController = new ChatController();
