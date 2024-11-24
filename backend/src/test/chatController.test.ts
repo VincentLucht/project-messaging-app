@@ -48,15 +48,15 @@ describe('Chat Routes', () => {
       });
     });
 
-    describe('Success cases', () => {
-      const token = generateToken(basicMockUser.id, basicMockUser.name);
-      const sendRequest = (body: any) => {
-        return request(app)
-          .post('/chat')
-          .set('Authorization', `Bearer ${token}`)
-          .send(body);
-      };
+    const token = generateToken(basicMockUser.id, basicMockUser.name);
+    const sendRequest = (body: any) => {
+      return request(app)
+        .post('/chat')
+        .set('Authorization', `Bearer ${token}`)
+        .send(body);
+    };
 
+    describe('Success cases', () => {
       it('should successfully create a chat with an admin', async () => {
         // Mock the chat manager's create method
         mockDB.chat.createChat.mockResolvedValueOnce(mockChat);
@@ -84,14 +84,6 @@ describe('Chat Routes', () => {
     });
 
     describe('Error cases', () => {
-      const token = generateToken(basicMockUser.id, basicMockUser.name);
-      const sendRequest = (body: any) => {
-        return request(app)
-          .post('/chat')
-          .set('Authorization', `Bearer ${token}`)
-          .send(body);
-      };
-
       it('should handle missing required input fields', async () => {
         const responseWithoutName = await sendRequest({
           // Test missing name
@@ -276,6 +268,115 @@ describe('Chat Routes', () => {
 
         expect(response.status).toBe(500);
         expect(response.body.message).toBe('Failed to change chat name');
+        expect(response.body.error).toBe('Database error');
+      });
+    });
+  });
+
+  describe('PUT /chat/description', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      jest.resetAllMocks();
+    });
+
+    const token = generateToken(basicMockUser.id, basicMockUser.name);
+    const sendRequest = (body: any) => {
+      return request(app)
+        .put('/chat/description')
+        .set('Authorization', `Bearer ${token}`)
+        .send(body);
+    };
+
+    describe('Success cases', () => {
+      it('should successfully handle a name change', async () => {
+        mockDB.chat.getChatById.mockResolvedValue(true);
+        mockDB.chatAdmin.isChatAdminById.mockResolvedValue(true);
+        mockDB.chat.changeDescription.mockResolvedValue(null);
+
+        const response = await sendRequest({
+          chat_id: mockChat.id,
+          user_id: basicMockUser.id,
+          new_description_name: 'test',
+        });
+
+        expect(response.status).toBe(200);
+        expect(response.body.message).toBe('Successfully changed chat description');
+      });
+
+      it('should accept an empty string for the new chat description', async () => {
+        mockDB.chat.getChatById.mockResolvedValue(true);
+        mockDB.chatAdmin.isChatAdminById.mockResolvedValue(true);
+        mockDB.chat.changeDescription.mockResolvedValue(null);
+
+        const response = await sendRequest({
+          chat_id: mockChat.id,
+          user_id: basicMockUser.id,
+          new_description_name: '',
+        });
+
+        expect(response.status).toBe(200);
+        expect(response.body.message).toBe('Successfully changed chat description');
+      });
+    });
+
+    describe('Error cases', () => {
+      it('should handle the 200 character limit', async () => {
+        const response = await sendRequest({
+          chat_id: mockChat.id,
+          user_id: basicMockUser.id,
+          new_description_name: 'aösldkjflöaksjdlfkjasldköjflaksdjfoipwqernougvnwqarponvpbownrefvpuoianbsfdiubnuwnerfpoiunasonuoarbnfgasujdbnfkasdnfasölkdjfaslkdjfasdnfpvuiwnrpounfw2eoinfosandlfönasdfnmwiqnevpouinwearpoiunfwaijeflakös',
+        });
+
+        expect(response.status).toBe(400);
+        expect(response.body.message).toBe('New description exceeds the 200 character limit');
+      });
+
+      it('should handle a chat not existing', async () => {
+        mockDB.chat.getChatById.mockResolvedValue(false);
+
+        const response = await sendRequest({
+          chat_id: mockChat.id,
+          user_id: basicMockUser.id,
+          new_description_name: 'test',
+        });
+
+        expect(response.status).toBe(404);
+        expect(response.body.message).toBe('Chat does not exist');
+      });
+
+      it('should handle an user not being an admin/existing', async () => {
+        mockDB.chat.getChatById.mockResolvedValue(true);
+        mockDB.chatAdmin.isChatAdminById.mockResolvedValue(false);
+
+        const response = await sendRequest({
+          chat_id: mockChat.id,
+          user_id: basicMockUser.id,
+          new_description_name: 'test',
+        });
+
+        expect(response.status).toBe(403);
+        expect(response.body.message).toBe('You are not an admin');
+      });
+
+      it('should handle missing input fields', async () => {
+        const response = await sendRequest({ });
+
+        expect(response.body.errors.length).toBe(2);
+      });
+
+      it('should handle db error', async () => {
+        mockDB.chat.getChatById.mockResolvedValue(true);
+        mockDB.chatAdmin.isChatAdminById.mockResolvedValue(true);
+
+        mockDB.chat.changeDescription.mockRejectedValueOnce(new Error('Database error'));
+
+        const response = await sendRequest({
+          chat_id: mockChat.id,
+          user_id: basicMockUser.id,
+          new_description_name: 'test',
+        });
+
+        expect(response.status).toBe(500);
         expect(response.body.error).toBe('Database error');
       });
     });
