@@ -5,15 +5,17 @@ export default class ChatManager {
   constructor(private prisma: PrismaClient) {}
 
   // ? READ
-  async getChatById(chatId: string) {
-    const chat = await this.prisma.chat.findUnique({
+  async getChatById(chatId: string, getAdmins = false) {
+    return this.prisma.chat.findUnique({
       where: { id: chatId },
+      include: {
+        owner: true,
+        ChatAdmins: getAdmins ? { select: { user_id: true } } : false,
+      },
     });
-
-    return chat;
   }
 
-  async getAllChatMembers(chatId: string) {
+  async getAllChatMembers(chatId: string, unedited = false) {
     const chat = await this.prisma.chat.findUnique({
       where: {
         id: chatId,
@@ -21,7 +23,16 @@ export default class ChatManager {
       include: {
         UserChats: {
           include: {
-            user: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                username: true,
+                profile_picture_url: true,
+                user_description: true,
+                created_at: true,
+              },
+            },
           },
         },
       },
@@ -31,9 +42,13 @@ export default class ChatManager {
       return null;
     }
 
-    // extract users from chat obj
-    const chatMembers = chat.UserChats.map((userChat) => userChat.user);
-    return chatMembers;
+    if (unedited) {
+      return chat;
+    } else {
+      // extract users from chat obj
+      const chatMembers = chat.UserChats.map((userChat) => userChat.user);
+      return chatMembers;
+    }
   }
 
   // ? CREATE
@@ -84,6 +99,17 @@ export default class ChatManager {
       },
       data: {
         name: newChatName,
+      },
+    });
+  }
+
+  async changeDescription(chatId: string, newDescriptionName: string) {
+    await this.prisma.chat.update({
+      where: {
+        id: chatId,
+      },
+      data: {
+        chat_description: newDescriptionName,
       },
     });
   }
