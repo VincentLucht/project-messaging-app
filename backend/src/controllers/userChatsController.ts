@@ -4,6 +4,15 @@ import db from '@/db/db';
 import { asyncHandler } from '@/util/asyncHandler';
 import { checkValidationError } from '@/util/checkValidationError';
 
+type UserType = {
+  id: string;
+  name: string;
+  username: string;
+  profile_picture_url: string | null;
+  user_description: string;
+  created_at: Date;
+};
+
 class UserChatsController {
   // ! READ
   getAllUserChats = asyncHandler(async (req: Request, res: Response) => {
@@ -66,7 +75,10 @@ class UserChatsController {
       }
 
       // other User is already in the chat
-      const chatMembers = await db.chat.getAllChatMembers(chat_id);
+      const chatMembers = (await db.chat.getAllChatMembers(
+        chat_id,
+        false,
+      )) as UserType[];
       const memberSet = new Set(chatMembers?.map((user) => user.username));
       if (memberSet.has(other_username)) {
         return res
