@@ -55,6 +55,7 @@ model Message {
   time_created      DateTime      @default(now())
   user              User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
   user_id           String
+  is_system_message Boolean       @default(false)
   chat              Chat          @relation("ChatMessages", fields: [chat_id], references: [id], onDelete: Cascade)
   chat_id           String
   last_message_chat Chat?         @relation("LastMessage")
@@ -77,11 +78,12 @@ model MessageRead {
 }
 
 model UserChats {
-  id      String @id @default(uuid())
-  user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  user_id String
-  chat    Chat   @relation(fields: [chat_id], references: [id], onDelete: Cascade)
-  chat_id String
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id   String
+  chat      Chat     @relation(fields: [chat_id], references: [id], onDelete: Cascade)
+  chat_id   String
+  joined_at DateTime @default(now())
 
   @@unique([user_id, chat_id])
 }
