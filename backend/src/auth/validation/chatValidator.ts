@@ -1,4 +1,4 @@
-import { body, query } from 'express-validator';
+import { body } from 'express-validator';
 // prettier-ignore
 
 class ChatValidator {
@@ -65,15 +65,21 @@ class ChatValidator {
     ];
   }
 
-  getAllChatMessagesRules() {
+  changeChatDescriptionRules() {
     return [
-      query('user_id').trim()
+      body('chat_id').trim()
+        .notEmpty()
+        .withMessage('Chat ID is required'),
+
+      body('new_description_name')
+        .default('') // Add a default empty string if not provided
+        .trim()
+        .isString()
+        .withMessage('New Chat Description name must be a string'),
+
+      body('user_id').trim()
         .notEmpty()
         .withMessage('User ID is required'),
-
-      query('chat_id').trim()
-        .notEmpty()
-        .withMessage('Chat ID Is required'),
     ];
   }
 }
