@@ -24,6 +24,13 @@ export default class UserManager {
       where: {
         id: userId,
       },
+      select: {
+        id: true,
+        name: true,
+        user_description: true,
+        username: true,
+        profile_picture_url: true,
+      },
     });
 
     return user;
@@ -33,6 +40,13 @@ export default class UserManager {
     const user = await this.prisma.user.findUnique({
       where: {
         username,
+      },
+      select: {
+        id: true,
+        name: true,
+        user_description: true,
+        username: true,
+        profile_picture_url: true,
       },
     });
 
