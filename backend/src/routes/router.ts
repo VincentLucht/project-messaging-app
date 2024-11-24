@@ -50,6 +50,15 @@ router.put(
   chatController.changeChatName,
 );
 
+// change chat description
+router.put(
+  '/chat/description',
+  token.extract,
+  token.verify,
+  chatValidator.changeChatDescriptionRules(),
+  chatController.changeChatDescription,
+);
+
 // ! MESSAGE
 // get all messages from a single chat
 router.get(
