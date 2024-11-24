@@ -4,11 +4,17 @@ import db from '@/db/db';
 import typingUsers from '@/server/typingUsers/typingUsers';
 import { User } from '@prisma/client';
 
-// Service
-import addUserToChat from '@/server/service/addUserToChat';
+// Controllers
+import tracker from '@/server/controllers/trackOnlineUsers';
+import addUserToChat from '@/server/controllers/addUserToChat';
 
 // track all rooms
 const chatRooms = new Map();
+// track user session for cleanup
+const userSessions = new Map();
+// track online users
+const onlineUsers = new Map<string, Set<string>>(); // username => socket id/s
+const socketToUser = new Map<string, string>(); // socket id => username
 
 function getActiveChatMembers(chatId: string) {
   return chatRooms.get(chatId);
@@ -42,8 +48,15 @@ export function setupSocketIO(httpServer: any) {
       socket.removeAllListeners('stopped-typing');
     };
 
-    // track user session for cleanup
-    const userSessions = new Map();
+    // track online user
+    socket.on('user-connected', (data: { username: string }) => {
+      tracker.saveOnlineUsers(
+        socket.id,
+        data.username,
+        onlineUsers,
+        socketToUser,
+      );
+    });
 
     // join room without fetching data
     // refreshes the chat order, puts most recent chat on the top
@@ -81,6 +94,8 @@ export function setupSocketIO(httpServer: any) {
       'join-chat',
       async (chatId: string, username: string, userId: string) => {
         try {
+          const rooms = Array.from(io.sockets.adapter.rooms.keys());
+          console.log('Rooms:', rooms);
           // add socket and data for tracking data on disconnect
           userSessions.set(socket.id, { chatId, username });
 
@@ -108,6 +123,8 @@ export function setupSocketIO(httpServer: any) {
           await db.messageRead.userReadAllMessages(chatId, [userId]);
 
           socket.join(chatId);
+
+          // console.log(chatRooms);
         } catch (error) {
           console.error('Error joining chat:', error);
           socket.emit('error', 'Failed to join chat');
@@ -127,6 +144,8 @@ export function setupSocketIO(httpServer: any) {
           chatRooms.delete(chatId);
         }
         socket.leave(chatId);
+
+        console.log(chatRooms);
       } catch (error) {
         console.error('Error joining chat:', error);
         socket.emit('error', 'Failed to join chat');
@@ -144,6 +163,17 @@ export function setupSocketIO(httpServer: any) {
       },
     );
 
+    // ! CHANGE CHAT DESCRIPTION
+    socket.on(
+      'change-chat-description',
+      async (chatId: string, newChatDescription: string) => {
+        io.to(`${chatId}:notifications`).emit('chat-description-changed', {
+          chatId,
+          newChatDescription,
+        });
+      },
+    );
+
     // ! USER WAS ADDED TO CHAT
     socket.on(
       'user-added-to-chat',
@@ -153,7 +183,16 @@ export function setupSocketIO(httpServer: any) {
         username: string,
         newUser: User,
       ) => {
-        addUserToChat(io, chatId, newUser);
+        addUserToChat(
+          io,
+          socket,
+          chatId,
+          userId,
+          username,
+          newUser,
+          getActiveChatMembers(chatId),
+          onlineUsers,
+        );
       },
     );
 
@@ -243,8 +282,10 @@ export function setupSocketIO(httpServer: any) {
         typingUsers.clearTypingStatus(chatId, username);
       }
 
+      // remove from online users
+      tracker.deleteOnlineUsers(socket.id, onlineUsers, socketToUser);
+
       cleanupEventListeners();
-      console.log('User disconnected and removed from chatRooms:', chatRooms);
     });
   });
 
