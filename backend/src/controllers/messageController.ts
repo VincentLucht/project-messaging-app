@@ -11,6 +11,8 @@ class MessageController {
 
     const chat_id = req.query.chat_id as string;
     const user_id = req.query.user_id as string;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
 
     try {
       const chat = await db.chat.getChatById(chat_id);
@@ -28,11 +30,16 @@ class MessageController {
           .json({ message: 'Chat ID or User ID not found' });
       }
 
-      const allMessages = await db.message.getAllChatMessages(chat_id);
+      const allMessages = await db.message.getAllChatMessages(
+        chat_id,
+        page,
+        limit,
+      );
 
-      return res
-        .status(201)
-        .json({ message: 'Successfully fetched all messages', allMessages });
+      return res.status(201).json({
+        message: `Successfully fetched all messages, page ${page}`,
+        allMessages,
+      });
     } catch (error) {
       return res.status(500).json({
         message: 'Failed to fetch messages',

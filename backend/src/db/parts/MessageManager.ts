@@ -17,8 +17,10 @@ export default class MessageManager {
     return message;
   }
 
-  async getAllChatMessages(chatId: string) {
-    const allChatMessages = await this.prisma.message.findMany({
+  async getAllChatMessages(chatId: string, page = 1, limit = 20) {
+    const offset = (page - 1) * limit;
+
+    const messages = await this.prisma.message.findMany({
       where: {
         chat_id: chatId,
       },
@@ -34,12 +36,23 @@ export default class MessageManager {
         },
         MessageRead: true,
       },
+      take: limit,
+      skip: offset,
     });
 
-    return allChatMessages;
+    // Check if there are more messages
+    // ? if it is 20, ASSUME there are more, if not, there are no more messages left
+    const hasMore = messages.length === limit;
+
+    return { messages, hasMore };
   }
 
-  async createMessage(userId: string, chatId: string, content: string) {
+  async createMessage(
+    userId: string,
+    chatId: string,
+    content: string,
+    isSystemMessage: boolean = false,
+  ) {
     const message = await this.prisma.$transaction(async (transaction) => {
       // Create the message
       const newMessage = await transaction.message.create({
@@ -47,6 +60,7 @@ export default class MessageManager {
           user: { connect: { id: userId } },
           chat: { connect: { id: chatId } },
           content,
+          is_system_message: isSystemMessage,
         },
       });
 
