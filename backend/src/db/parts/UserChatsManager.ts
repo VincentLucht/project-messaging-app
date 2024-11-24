@@ -27,10 +27,24 @@ export default class UserChatsManager {
             is_group_chat: true,
             chat_description: true,
             updated_at: true,
-            last_message: true,
+            last_message: {
+              include: {
+                user: {
+                  select: {
+                    username: true,
+                  },
+                },
+              },
+            },
             last_message_id: true,
             profile_picture_url: true,
-            owner_id: true,
+            owner: {
+              select: {
+                id: true,
+                name: true,
+                username: true,
+              },
+            },
             UserChats: {
               include: {
                 user: {
@@ -54,7 +68,7 @@ export default class UserChatsManager {
       },
     });
 
-    return userChats.map((userChat) => userChat.chat);
+    return !userChats ? [] : userChats.map((userChat) => userChat.chat);
   }
 
   async isUserInsideChat(chatId: string, userId: string) {
