@@ -20,11 +20,12 @@ module.exports = {
   },
   plugins: ['react-refresh', 'prettier', 'react'],
   rules: {
+    // indent: [2, 2, { SwitchCase: 1 }], 
+    // 'no-trailing-spaces': 2,
+    // 'padded-blocks': [2, 'never'],
     'prettier/prettier': 'error',
     semi: [2, 'always'], // Enforce semicolons at the end of statements
     quotes: ['error', 'single', { avoidEscape: true }],
-    indent: [2, 2, { SwitchCase: 1 }], // 2 spaces for indentation, and 1 additional level for switch cases
-    'no-trailing-spaces': 2, // Disallow trailing whitespace at the end of lines
     'eol-last': 2, // Enforce a newline at the end of files
     'no-multiple-empty-lines': [2, { max: 1 }], // Disallow multiple empty lines
     'brace-style': [2, '1tbs'], // Enforce one true brace style for block statements
@@ -52,7 +53,6 @@ module.exports = {
     'no-multi-spaces': 2, // Disallow multiple spaces
     'block-spacing': [2, 'always'], // Enforce consistent spacing inside single-line blocks
     'newline-per-chained-call': [2, { ignoreChainWithDepth: 2 }], // Enforce newlines between chained method calls up to a specified depth
-    'padded-blocks': [2, 'never'], // Disallow padding within blocks
     'template-curly-spacing': [2, 'never'], // Disallow spaces inside curly braces in template strings
     '@typescript-eslint/no-explicit-any': 'off',
 
