@@ -86,6 +86,9 @@ export default {
         '.secondary-gray': {
           backgroundColor: 'rgba(37,37,37,255)'
         },
+        '.text-secondary-gray-bg': {
+          color: 'rgb(37, 37, 37)' 
+        },
         '.bg-gray-strong': {
           backgroundColor: 'rgb(241,245,249,0.07)'
         },
