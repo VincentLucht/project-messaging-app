@@ -12,7 +12,7 @@ class MessageController {
     const chat_id = req.query.chat_id as string;
     const user_id = req.query.user_id as string;
     const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 20;
+    const limit = parseInt(req.query.limit as string) || 30;
 
     try {
       const chat = await db.chat.getChatById(chat_id);
