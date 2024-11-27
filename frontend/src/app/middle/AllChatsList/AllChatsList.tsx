@@ -51,8 +51,10 @@ export default function AllChatsList({
         {chats?.map((chat) => (
           <div
             onClick={() => {
-              setActiveChat(chat);
-              removeNotificationsOnJoin(chat.id);
+              if (activeChat?.id !== chat.id) {
+                setActiveChat(chat);
+                removeNotificationsOnJoin(chat.id);
+              }
             }}
             key={chat.id}
           >
