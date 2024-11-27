@@ -1,10 +1,13 @@
 import { Dispatch, SetStateAction } from 'react';
+import { toast } from 'react-toastify';
 
 interface EditButtonProps {
   isUserAdmin: boolean;
   isEditActive: boolean;
   setIsEditActive: Dispatch<SetStateAction<boolean>>;
   confirmSetterFunc: Dispatch<SetStateAction<boolean>>;
+  handleSubmit?: () => void;
+  isDisabled?: boolean;
 }
 
 export default function EditButton({
@@ -12,6 +15,8 @@ export default function EditButton({
   isEditActive,
   setIsEditActive,
   confirmSetterFunc,
+  handleSubmit,
+  isDisabled,
 }: EditButtonProps) {
   return (
     isUserAdmin && (
@@ -45,11 +50,17 @@ export default function EditButton({
               ? `translate-x-5 scale-100 cursor-pointer opacity-100 hover:scale-[115%]
                 active:scale-95`
               : 'translate-x-5 scale-75 opacity-0'
-          }`}
+            }`}
           onClick={() => {
-            if (isEditActive) {
-              setIsEditActive(false);
-              confirmSetterFunc(true);
+            if (isDisabled) {
+              toast.warning("You can't change the chat name to nothing");
+            } else if (isEditActive) {
+              if (!handleSubmit) {
+                setIsEditActive(false);
+                confirmSetterFunc(true);
+              } else {
+                handleSubmit();
+              }
             }
           }}
         />
