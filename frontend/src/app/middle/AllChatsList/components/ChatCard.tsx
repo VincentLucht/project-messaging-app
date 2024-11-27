@@ -1,7 +1,9 @@
-import LazyLoadImage from '@/app/components/LazyLoadImage';
 import { TypingUsersChat } from '@/app/interfaces/TypingUsers';
 import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
-import displayTypingUsers from '@/app/middle/AllChatsList/components/util/DisplayTypingUsers';
+
+import LazyLoadImage from '@/app/components/LazyLoadImage';
+import DisplayTypingUsers from '@/app/middle/AllChatsList/components/util/DisplayTypingUsers';
+
 import dayjs from 'dayjs';
 
 interface ChatCardProps {
@@ -61,9 +63,11 @@ export default function ChatCard({
 
         {/* Typing Users / Last message */}
         <div className="overflow-hidden overflow-ellipsis whitespace-nowrap text-left">
-          {displayTypingUsers(
+          {DisplayTypingUsers(
             typingUsers,
-            chat.last_message?.content,
+            username,
+            chat.last_message,
+            chat.is_group_chat,
             'overview',
           )}
         </div>
