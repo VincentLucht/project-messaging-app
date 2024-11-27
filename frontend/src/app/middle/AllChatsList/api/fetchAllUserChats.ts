@@ -1,5 +1,5 @@
-import { API_URL } from '../../../../App';
-import { DBChat } from '../../../interfaces/databaseSchema';
+import { API_URL } from '@/App';
+import { DBChat, DBMessageWithUser } from '@/app/interfaces/databaseSchema';
 
 export interface DBChatWithMembers extends DBChat {
   UserChats: {
@@ -13,6 +13,9 @@ export interface DBChatWithMembers extends DBChat {
   }[];
   ChatAdmins: { user_id: string }[];
   unreadCount: number;
+  messages?: DBMessageWithUser[];
+  page?: number;
+  hasMore?: boolean;
 }
 
 export interface AllUserChatsResponse {
