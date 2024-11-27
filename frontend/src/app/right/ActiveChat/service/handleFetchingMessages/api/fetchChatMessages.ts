@@ -3,15 +3,19 @@ import { DBMessageWithUser } from '@/app/interfaces/databaseSchema';
 
 interface ChatMessagesResponse {
   message: string;
-  allMessages: DBMessageWithUser[];
+  allMessages: {
+    messages: DBMessageWithUser[];
+    hasMore: boolean;
+  };
 }
 
 export default async function fetchChatMessages(
   userId: string,
   token: string,
   chatId: string,
+  page: number,
 ) {
-  const url = `${API_URL}/chat/message?chat_id=${encodeURIComponent(chatId)}&user_id=${encodeURIComponent(userId)}`;
+  const url = `${API_URL}/chat/message?chat_id=${encodeURIComponent(chatId)}&user_id=${encodeURIComponent(userId)}&page=${page}`;
 
   const response = await fetch(url, {
     method: 'GET',
