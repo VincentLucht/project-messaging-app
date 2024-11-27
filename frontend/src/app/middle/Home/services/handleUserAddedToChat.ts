@@ -4,19 +4,18 @@ import generateTempId from '@/app/right/ActiveChat/util/generateTempId';
 import { Socket } from 'socket.io-client';
 
 export default function handleUserAddedToChat(
-  socket: Socket | null,
+  socket: React.RefObject<Socket> | null,
   chats: DBChatWithMembers[] | null,
   setChats: (chats: DBChatWithMembers[]) => void,
+  activeChat: DBChatWithMembers | null,
   setActiveChat: (activeChat: DBChatWithMembers) => void,
 ) {
   if (!socket || !chats) return;
 
-  socket.on(
+  socket.current?.on(
     'new-user-added-to-chat',
     (data: { chatId: string; newUser: DBUser }) => {
       const { chatId, newUser } = data;
-
-      console.log({ chatId, newUser });
 
       // add user to chat and update chat order
       const newChats = chats.map((chat) => {
@@ -44,15 +43,15 @@ export default function handleUserAddedToChat(
         }
       });
 
-      setChats(newChats);
-
       // Update active chat if it matches the chat that was updated
-      if (setActiveChat) {
+      if (activeChat) {
         const updatedChat = newChats.find((chat) => chat.id === chatId);
         if (updatedChat) {
           setActiveChat(updatedChat);
         }
       }
+
+      setChats(newChats);
     },
   );
 }
