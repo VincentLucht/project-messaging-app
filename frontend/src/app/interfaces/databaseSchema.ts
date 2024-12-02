@@ -11,15 +11,13 @@ export interface DBUser {
 export interface DBChat {
   id: string;
   name: string;
-  is_password_protected: boolean;
-  // password
   time_created: Date;
+  profile_picture_url?: string;
   is_group_chat: boolean;
   chat_description: string | null;
   updated_at: Date;
   last_message_id: string | null;
   last_message: DBMessage | null;
-  profile_picture_url?: string;
   owner: {
     id: string;
     name: string;
@@ -61,7 +59,7 @@ export interface DBChatAdmin {
 // ALTERED
 export interface DBMessageWithUser extends DBMessage {
   user: {
-    id: string;
+    id?: string;
     username: string;
     profile_picture_url?: string;
   };
