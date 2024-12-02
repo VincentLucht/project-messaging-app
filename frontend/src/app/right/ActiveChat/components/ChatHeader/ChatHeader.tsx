@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction } from 'react';
 import { TypingUsers } from '@/app/interfaces/TypingUsers';
 
-import DisplayTypingUsers from '@/app/middle/AllChatsList/components/util/displayTypingUsers';
+import DisplayTypingUsers from '@/app/middle/AllChatsList/components/util/DisplayTypingUsers';
 import { DBMessage } from '@/app/interfaces/databaseSchema';
 
 // ! TODO: Fix "Load more" button not sticking to the top
@@ -26,7 +26,14 @@ export default function ChatHeader({
   username,
   lastChatMessage,
 }: ChatHeaderProps) {
-  const hasTypingUsers = Object.keys(typingUsers).length;
+  const allTypingUsers = typingUsers[chatId]
+    ? Object.keys(typingUsers[chatId])
+    : [];
+
+  let hasTypingUsers;
+  if (allTypingUsers.length) {
+    hasTypingUsers = allTypingUsers.length;
+  }
 
   return (
     <div
@@ -46,13 +53,14 @@ export default function ChatHeader({
       <div
         className={`absolute pl-10 pt-4 transition-all ${hasTypingUsers && 'translate-y-[6px]'}`}
       >
-        {DisplayTypingUsers(
-          typingUsers[chatId],
-          username,
-          lastChatMessage,
-          isGroupChat,
-          'precise',
-        )}
+        {hasTypingUsers &&
+          DisplayTypingUsers(
+            typingUsers[chatId],
+            username,
+            lastChatMessage,
+            isGroupChat,
+            'precise',
+          )}
       </div>
     </div>
   );
