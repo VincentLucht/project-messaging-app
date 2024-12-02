@@ -52,4 +52,19 @@ export default class UserManager {
 
     return user;
   }
+
+  async getUserByUsernameArr(usernames: string[]) {
+    const users = await this.prisma.user.findMany({
+      where: {
+        username: {
+          in: usernames,
+        },
+      },
+      select: {
+        username: true,
+      },
+    });
+
+    return users;
+  }
 }
