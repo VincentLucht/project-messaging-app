@@ -33,6 +33,8 @@ export default function handleBeingAddedToChat(
       const editedNewMessage: DBMessageWithUser = {
         ...newMessage,
         content: `${adderUsername} added ${parseUsername(newMessage.content, username, 'last-message') as string} to the chat`,
+        user: { username: adderUsername },
+        is_system_message: true,
       };
 
       // recreate frontend chat obj
