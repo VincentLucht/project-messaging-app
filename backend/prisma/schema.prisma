@@ -31,8 +31,6 @@ model User {
 model Chat {
   id                    String      @id @default(uuid())
   name                  String      @db.VarChar(100)
-  is_password_protected Boolean     @default(false)
-  password              String?
   time_created          DateTime    @default(now())
   profile_picture_url   String?
   is_group_chat         Boolean     @default(false)
