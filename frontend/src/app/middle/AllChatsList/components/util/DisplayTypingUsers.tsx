@@ -9,9 +9,17 @@ export default function DisplayTypingUsers(
   isGroupChat: boolean,
   mode: 'overview' | 'precise',
 ) {
-  // ! TODO: Fix typing users not being shown when there is no last message
-  // ? doesn't really happen - creating a chat should add a message??
   if (!lastChatMessage) return null;
+
+  // Chat message on newly created chat
+  if (
+    lastChatMessage.is_system_message &&
+    lastChatMessage.content === 'created the Chat' &&
+    mode === 'overview'
+  ) {
+    return `${lastChatMessage.user.username === username ? 'You' : lastChatMessage?.user.username} created the Chat`;
+  }
+
   if (!typingUsers && mode === 'overview') {
     const lastMessageWriter = lastChatMessage.user.username;
     const lastMessageContent = lastChatMessage.content;
