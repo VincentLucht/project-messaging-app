@@ -11,30 +11,63 @@ class ChatController {
 
     const {
       user_id,
-      name,
       is_group_chat,
+      other_usernames,
+      name,
+      profile_picture_url,
       chat_description,
-      is_password_protected,
     } = req.body;
-    const { password = undefined } = is_password_protected ? req.body : {};
 
     try {
+      // Check if user exists
       const user = await db.user.getUserById(user_id);
       if (!user) {
         return res.status(404).json({ message: 'User ID not found' });
       }
 
+      const foundUsers = await db.user.getUserByUsernameArr(other_usernames);
+
+      // Check if user adds themselves
+      const userSelf = await db.user.getUserById(user_id);
+      let isUserSelf;
+      foundUsers.forEach((user) => {
+        if (user.username === userSelf?.username) {
+          isUserSelf = true;
+        }
+      });
+      if (isUserSelf) {
+        return res.status(400).json({ message: "You can't add yourself" });
+      }
+
+      // Check if the usernames are valid
+      if (foundUsers.length !== other_usernames.length) {
+        const incorrectUsers: string[] = [];
+        other_usernames.forEach((other_user: string) => {
+          if (!foundUsers.some((user) => user.username === other_user)) {
+            incorrectUsers.push(other_user);
+          }
+        });
+
+        return res
+          .status(404)
+          .json({ message: 'Usernames not found', incorrectUsers });
+      }
+
+      const chatName = is_group_chat ? name : 'One on One Chat';
       const chat = await db.chat.createChat(
         user_id,
-        name,
         is_group_chat,
+        other_usernames,
+        chatName,
         chat_description,
-        is_password_protected,
-        password,
+        profile_picture_url,
       );
-      await db.chatAdmin.makeUserAdminById(chat.id, user_id);
 
-      return res.status(201).json({ message: 'Successfully created chat' });
+      console.log(chat);
+
+      return res
+        .status(201)
+        .json({ message: 'Successfully created chat', newChat: chat });
     } catch (error) {
       return res.status(500).json({
         message: 'Failed to create chat',
