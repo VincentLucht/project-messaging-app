@@ -1,5 +1,4 @@
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcrypt';
 
 export default class ChatManager {
   constructor(private prisma: PrismaClient) {}
@@ -9,8 +8,22 @@ export default class ChatManager {
     return this.prisma.chat.findUnique({
       where: { id: chatId },
       include: {
-        owner: true,
+        owner: {
+          select: {
+            created_at: true,
+            id: true,
+            name: true,
+            profile_picture_url: true,
+            user_description: true,
+            username: true,
+          },
+        },
         ChatAdmins: getAdmins ? { select: { user_id: true } } : false,
+        last_message: {
+          include: {
+            user: { select: { username: true } },
+          },
+        },
       },
     });
   }
@@ -53,12 +66,12 @@ export default class ChatManager {
 
   // ? CREATE
   async createChat(
-    user_id: string,
+    userId: string,
+    isGroupChat: boolean,
+    otherUsernames: string[],
     name: string,
-    is_group_chat: boolean,
-    chat_description: string,
-    is_password_protected: boolean,
-    password?: string,
+    chatDescription: string,
+    profilePictureUrl: string,
   ) {
     const chat = await this.prisma.chat.create({
       data: {
@@ -66,25 +79,60 @@ export default class ChatManager {
           create: [
             {
               user: {
-                connect: { id: user_id },
+                connect: { id: userId },
               },
             },
+            ...otherUsernames.map((username) => ({
+              user: {
+                connect: { username },
+              },
+            })),
           ],
         },
         ChatAdmins: {
           create: {
-            user_id,
+            user_id: userId,
           },
         },
-        owner_id: user_id,
+        owner_id: userId,
+        is_group_chat: isGroupChat,
         name,
-        is_password_protected,
-        password:
-          is_password_protected && password
-            ? await bcrypt.hash(password, 10)
-            : null,
-        is_group_chat,
-        chat_description,
+        chat_description: chatDescription ? chatDescription : undefined,
+        profile_picture_url: profilePictureUrl ? profilePictureUrl : undefined,
+      },
+      include: {
+        last_message: true,
+        owner: {
+          select: {
+            created_at: true,
+            id: true,
+            name: true,
+            profile_picture_url: true,
+            user_description: true,
+            username: true,
+          },
+        },
+        ChatAdmins: {
+          select: {
+            user_id: true,
+          },
+        },
+        UserChats: {
+          select: {
+            id: true,
+            chat_id: true,
+            joined_at: true,
+            user_id: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                profile_picture_url: true,
+                username: true,
+              },
+            },
+          },
+        },
       },
     });
 
