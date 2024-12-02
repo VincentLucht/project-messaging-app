@@ -1,10 +1,13 @@
 import { Dispatch, SetStateAction } from 'react';
-
 import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
 
-import ChatMemberCard from '@/app/right/ActiveChat/components/ChatSettings/components/ChatMemberCard/ChatMemberCard';
 import ChatName from '@/app/right/ActiveChat/components/ChatSettings/components/ChatName/ChatName';
+
+import ChatDescription from '@/app/right/ActiveChat/components/ChatSettings/components/ChatDescription/ChatDescription';
+
 import AddChatMember from '@/app/right/ActiveChat/components/ChatSettings/components/AddChatMember/AddChatMember';
+import ChatMemberCard from '@/app/right/ActiveChat/components/ChatSettings/components/ChatMemberCard/ChatMemberCard';
+
 import LazyLoadImage from '@/app/components/LazyLoadImage';
 import CloseButton from '@/app/components/CloseButton';
 
@@ -55,8 +58,8 @@ export default function ChatSettings({
           <LazyLoadImage
             src={chat.profile_picture_url ?? undefined}
             alt="Group profile picture"
-            className="aspect-square h-full max-h-[200px] w-full max-w-[200px] rounded-full
-              object-cover"
+            className="aspect-square h-full max-h-[200px] w-full max-w-[200px] rounded-full border
+              border-white object-cover"
           />
         </div>
 
@@ -82,12 +85,19 @@ export default function ChatSettings({
       <hr className="-mx-4" />
 
       {/* Section 2 */}
-      <div>
+      <div className="flex flex-col gap-4 py-4">
         {/* Chat Description */}
-        <div>{chat.chat_description}</div>
+        <ChatDescription
+          chatId={chat.id}
+          userId={userId}
+          token={token}
+          isUserAdmin={isUserAdmin}
+          chatDescription={chat.chat_description}
+          socket={socket}
+        />
 
         {/* Time Created */}
-        <div className="text-sm text-secondary-gray">{`Created on ${formattedDate} at ${formattedTime}`}</div>
+        <div className="text-sm text-secondary-gray">{`Created by ${chat.owner.id === userId ? 'You' : chat.owner.username} on ${formattedDate} at ${formattedTime}`}</div>
       </div>
 
       <hr className="-mx-4" />
@@ -112,7 +122,7 @@ export default function ChatSettings({
               chatMember={chatMember}
               isUserSelf={userId === chatMember.user.id}
               isAdmin={chatAdmins.has(chatMember.user.id)}
-              isOwner={chat.owner_id === chatMember.user.id}
+              isOwner={chat.owner.id === chatMember.user.id}
               isUserAdmin={isUserAdmin}
             />
           ))}
