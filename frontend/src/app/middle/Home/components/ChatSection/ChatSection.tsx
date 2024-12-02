@@ -1,18 +1,19 @@
-import { useState, useCallback, Dispatch, SetStateAction } from 'react';
+import { useState, Dispatch, SetStateAction } from 'react';
 import NewChat from '@/app/middle/NewChat/NewChat';
 import AllChatsList from '@/app/middle/AllChatsList/AllChatsList';
 
 import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
 import { TypingUsers } from '@/app/interfaces/TypingUsers';
+import { Socket } from 'socket.io-client';
 
 interface ChatSectionProps {
   chats: DBChatWithMembers[] | null;
   setChats: Dispatch<SetStateAction<DBChatWithMembers[] | null>>;
   activeChat: DBChatWithMembers | null;
   setActiveChat: Dispatch<SetStateAction<DBChatWithMembers | null>>;
-  setRefreshTrigger: Dispatch<SetStateAction<number>>;
   username: string;
   typingUsers: TypingUsers;
+  socket: Socket | null;
   isMobile: boolean;
 }
 
@@ -21,17 +22,12 @@ export default function ChatSection({
   setChats,
   activeChat,
   setActiveChat,
-  setRefreshTrigger,
   username,
   typingUsers,
+  socket,
   isMobile,
 }: ChatSectionProps) {
   const [showCreateChat, setShowCreateChat] = useState(false);
-
-  const handleChatCreated = useCallback(() => {
-    setRefreshTrigger((prev) => prev + 1);
-    setShowCreateChat(false);
-  }, [setRefreshTrigger]);
 
   return (
     <div>
@@ -54,9 +50,9 @@ export default function ChatSection({
 
         <div
           className={`overflow-hidden transition-all duration-150 ease-out
-            ${showCreateChat ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'} `}
+            ${showCreateChat ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'} `}
         >
-          <NewChat onChatCreated={handleChatCreated} />
+          <NewChat socket={socket} setChats={setChats} />
         </div>
       </div>
 
