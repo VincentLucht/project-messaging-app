@@ -65,7 +65,7 @@ async function main() {
   for (let i = 0; i <= 20; i++) {
     testUsers.push({
       name: `NotInChat${i}`,
-      username: `test${i}`,
+      username: `t${i}`,
       description: `test${i}`,
     });
   }
@@ -74,34 +74,44 @@ async function main() {
       data: {
         name: user.name,
         username: user.username,
-        password: await hashPassword('pass123'),
+        password: await hashPassword('1'),
         user_description: user.description,
       },
     });
   }
-  // Create a room
+  // Create the first chat with its initial message
   const chat = await prisma.chat.create({
     data: {
       owner_id: alice.id,
       name: 'Normal Chat',
-      chat_description: 'IDK what to write here',
       ChatAdmins: {
         create: {
           user_id: alice.id,
         },
       },
+      Messages: {
+        create: {
+          id: 'unique_message_id_1',
+          user_id: alice.id,
+          content: 'created the Chat',
+          is_system_message: true,
+        },
+      },
+    },
+    // After creation, update the last_message_id
+    include: {
+      Messages: true,
     },
   });
 
-  // Connect each user to the chat individually
-  await prisma.userChats.createMany({
-    data: [
-      { user_id: alice.id, chat_id: chat.id },
-      { user_id: john.id, chat_id: chat.id },
-    ],
+  // Update the chat with the last message ID
+  await prisma.chat.update({
+    where: { id: chat.id },
+    data: {
+      last_message_id: chat.Messages[0].id,
+    },
   });
 
-  // Create a second room
   const chat2 = await prisma.chat.create({
     data: {
       owner_id: alice.id,
@@ -113,7 +123,34 @@ async function main() {
       ChatAdmins: {
         create: [{ user_id: alice.id }, { user_id: john.id }],
       },
+      Messages: {
+        create: {
+          id: 'unique_message_id_2',
+          user_id: alice.id,
+          content: 'created the Chat',
+          is_system_message: true,
+        },
+      },
     },
+    include: {
+      Messages: true,
+    },
+  });
+
+  // Update the second chat with its last message ID
+  await prisma.chat.update({
+    where: { id: chat2.id },
+    data: {
+      last_message_id: chat2.Messages[0].id,
+    },
+  });
+
+  // Connect users to the first chat
+  await prisma.userChats.createMany({
+    data: [
+      { user_id: alice.id, chat_id: chat.id },
+      { user_id: john.id, chat_id: chat.id },
+    ],
   });
 
   // Connect again
