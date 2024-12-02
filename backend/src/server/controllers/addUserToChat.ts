@@ -47,14 +47,17 @@ export default async function addUserToChat(
 
   // send as notification
   io.to(`${chatId}:notifications`).emit('newMessageNotification', {
-    newMessage,
+    sentMessage: { ...newMessage, user: { username } },
   });
 
+  // Send the chat to the other user (if online)
   const otherUser = onlineUsers.get(newUser.username);
   if (otherUser) {
     const [socketId] = [...otherUser];
-    const chatWithAdmins = await db.chat.getChatById(chatId, true);
-    const chatMembersUnedited = await db.chat.getAllChatMembers(chatId, true);
+    const [chatWithAdmins, chatMembersUnedited] = await Promise.all([
+      db.chat.getChatById(chatId, true),
+      db.chat.getAllChatMembers(chatId, true),
+    ]);
 
     let chatMembers;
     if (chatMembersUnedited) {
