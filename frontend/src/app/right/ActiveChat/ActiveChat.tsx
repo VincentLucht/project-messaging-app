@@ -1,28 +1,37 @@
-import { useState, useEffect, Dispatch, SetStateAction } from 'react';
+import {
+  useState,
+  useEffect,
+  Dispatch,
+  SetStateAction,
+  useCallback,
+} from 'react';
 import { Socket } from 'socket.io-client';
-
-import fetchChatMessages from '@/app/right/ActiveChat/api/fetchChatMessages';
-import generateTempId from '@/app/right/ActiveChat/util/generateTempId';
 
 import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
 import { DBMessageWithUser } from '@/app/interfaces/databaseSchema';
 
-import ChatMessage from '@/app/right/ActiveChat/components/ChatMessage';
-import TextareaAutosize from 'react-textarea-autosize';
+import handleNewMessages from '@/app/right/ActiveChat/service/handleNewMessage';
+import handleUserJoiningChat from '@/app/right/ActiveChat/service/handleUserJoiningChat';
+import handleFetchingMessages from '@/app/right/ActiveChat/service/handleFetchingMessages/handleFetchingMessages';
+import handleUnmount from '@/app/right/ActiveChat/service/handleUnmount';
+
+import ChatHeader from '@/app/right/ActiveChat/components/ChatHeader/ChatHeader';
 import ChatSettings from '@/app/right/ActiveChat/components/ChatSettings/ChatSettings';
+import AllChatMessages from '@/app/right/ActiveChat/components/AllChatMessages/AllChatMessages';
+import SendMessageForm from '@/app/right/ActiveChat/components/ChatMessageForm/SendMessageForm';
 
 import { toast } from 'react-toastify';
-import toastUpdateOptions from '@/app/components/ts/toastUpdateObject';
-import createTempMessageRead from '@/app/right/ActiveChat/util/createTempMessageRead';
+import { TypingUsers } from '@/app/interfaces/TypingUsers';
 
 interface ActiveChatProps {
   chat: DBChatWithMembers;
+  setChats: Dispatch<SetStateAction<DBChatWithMembers[] | null>>;
   userId: string;
   username: string;
   token: string;
-  isMobile: boolean;
-  setShouldRefreshChatOrder: Dispatch<SetStateAction<boolean>>;
   socket: Socket | null;
+  typingUsers: TypingUsers;
+  isMobile: boolean;
 }
 
 /**
@@ -32,246 +41,134 @@ interface ActiveChatProps {
  */
 export default function ActiveChat({
   chat,
+  setChats,
   userId,
   username,
   token,
-  isMobile,
-  setShouldRefreshChatOrder,
   socket,
+  typingUsers,
+  isMobile,
 }: ActiveChatProps) {
-  const [messages, setMessages] = useState<DBMessageWithUser[]>([]);
-  const [message, setMessage] = useState('');
   const [showChatSettings, setShowChatSettings] = useState(false);
-
-  const [isTyping, setIsTyping] = useState(false);
-  const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
+  const [messages, setMessages] = useState<DBMessageWithUser[]>([]);
+  const [messagePage, setMessagePage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
   // socket events for active chat
   useEffect(() => {
     if (!socket) return;
 
-    // Join the chat room
-    socket.emit('join-chat', chat.id, username, userId);
-
-    // mark all messages as read from that user
-    socket.on(
-      'user-joined',
-      (data: {
-        username: string;
-        userId: string;
-        usersInChat: Map<string, { username: string; userId: string }>;
-      }) => {
-        const activeChatMembers = new Map(Object.entries(data.usersInChat));
-        activeChatMembers.delete(username);
-
-        // ! TODO: Put this into a func in util
-        setMessages((prevMessages) =>
-          prevMessages.map((message) => {
-            const messageRead = message.MessageRead;
-            if (messageRead === undefined) return message;
-
-            if (messageRead.length - 1 === activeChatMembers.size) {
-              // Skip if message was read by everyone
-              return message;
-            } else {
-              activeChatMembers.forEach(
-                (chatMember: { username: string; userId: string }) => {
-                  const hasRead = messageRead.some(
-                    (msgRead) => msgRead.user_id === chatMember.userId,
-                  );
-                  if (!hasRead) {
-                    messageRead.push({
-                      id: generateTempId(),
-                      message_id: message.id,
-                      read_at: new Date().toISOString(),
-                      user_id: chatMember.userId,
-                    });
-                  }
-                },
-              );
-
-              return message;
-            }
-          }),
-        );
-      },
-    );
-
-    // Handle new messages
-    socket.on(
-      'new-message',
-      (data: {
-        userId: string;
-        content: string;
-        username: string;
-        activeChatMembers: Map<string, { username: string; userId: string }>;
-      }) => {
-        // add temp Message
-        const newMessage: DBMessageWithUser = {
-          id: generateTempId(),
-          content: data.content,
-          time_created: new Date().toISOString(),
-          user_id: data.userId,
-          chat_id: chat.id,
-          user: {
-            id: data.userId,
-            username: data.username,
-          },
-          MessageRead: createTempMessageRead(
-            data.username,
-            data.activeChatMembers,
-          ),
-        };
-
-        setMessages((prevMessages) => [newMessage, ...prevMessages]);
-      },
-    );
-
-    // Handle typing indicators
-    socket.on('user-typing', (typingUsername: string) => {
-      if (typingUsername !== username) {
-        setIsOtherUserTyping(true);
-      }
-    });
-
-    socket.on('user-stopped-typing', (typingUsername: string) => {
-      if (typingUsername !== username) {
-        setIsOtherUserTyping(false);
-      }
-    });
+    handleUserJoiningChat(socket, chat.id, userId, username, setMessages);
 
     socket.on('error', (error: string) => {
       toast.error(`Socket error: ${error}`);
     });
 
-    // Cleanup: leave chat room and remove listeners
     return () => {
       socket.emit('leave-chat', chat.id, username);
-      socket.off('new-message');
       socket.off('user-typing');
       socket.off('user-stopped-typing');
       socket.off('error');
     };
   }, [socket, chat.id, userId, username]);
 
-  // Fetch chat messages
+  // New Messages
   useEffect(() => {
-    const toastId = toast.loading('Loading messages...');
+    handleNewMessages(socket, chat.id, setMessages);
 
-    fetchChatMessages(userId, token, chat.id)
-      .then((response) => {
-        setMessages(response.allMessages);
+    return () => {
+      socket?.off('new-message');
+    };
+  }, [socket, chat.id, setChats]);
 
-        toast.update(
-          toastId,
-          toastUpdateOptions('Successfully fetched messages', 'success'),
-        );
-      })
-      .catch(() => {
-        toast.update(
-          toastId,
-          toastUpdateOptions('Failed to load messages', 'error'),
-        );
-      });
-  }, [chat.id, token, userId]);
+  const loadInitialMessages = useCallback(() => {
+    handleFetchingMessages(
+      userId,
+      token,
+      chat.id,
+      1,
+      setMessages,
+      setChats,
+      setHasMore,
+    );
+  }, [userId, token, chat.id, setChats]);
 
-  const sendActivity = (currentMessage: string) => {
-    if (currentMessage !== '' && !isTyping && socket && chat.id) {
-      socket.emit('typing', { chatId: chat.id, username });
-      setIsTyping(true);
-    } else if (currentMessage === '' && isTyping && socket && chat.id) {
-      socket.emit('stopped-typing', { chatId: chat.id, username });
-      setIsTyping(false);
-    }
+  const loadMoreMessages = () => {
+    if (!hasMore) return;
+
+    const nextPage = messagePage + 1;
+    handleFetchingMessages(
+      userId,
+      token,
+      chat.id,
+      nextPage,
+      setMessages,
+      setChats,
+      setHasMore,
+    );
+
+    setMessagePage(nextPage);
   };
 
-  const sendMessage = (e: React.FormEvent | string) => {
-    if (typeof e !== 'string') {
-      e.preventDefault();
+  // Reset messages on chat change and avoid re-fetching "cached" data
+  useEffect(() => {
+    // ! has to check for undefined!
+    if (chat.messages && chat.page && chat.hasMore !== undefined) {
+      setMessages(chat.messages);
+      setMessagePage(chat.page);
+      setHasMore(chat.hasMore);
+    } else {
+      setMessages([]);
+      setMessagePage(1);
+      setHasMore(true);
+      loadInitialMessages();
     }
+  }, [chat.id, chat.hasMore, chat.messages, chat.page, loadInitialMessages]);
 
-    if (message !== '' && socket && chat.name) {
-      socket.emit('send-message', {
-        chatId: chat.id,
-        userId,
-        content: message,
-        username,
-      });
-
-      setMessage('');
-      setShouldRefreshChatOrder(true); // re-fetch chats to get new chat
-
-      if (isTyping) {
-        socket.emit('stopped-typing', { chatId: chat.id, username });
-        setIsTyping(false);
-      }
-    }
-  };
+  // Save current messages state to chat before unmounting
+  useEffect(() => {
+    return () => {
+      handleUnmount(setChats, chat.id, messages, messagePage, hasMore);
+    };
+  }, [chat.id, messages, messagePage, hasMore, setChats]);
 
   return (
     <div
       className={`${showChatSettings ? 'grid grid-cols-[5.5fr_4.5fr] md:grid-cols-[0%_100%]' : ''}`}
     >
       <div className="grid h-[100dvh] grid-rows-[auto_1fr_auto] border-l">
-        <div
-          className="cursor-pointer overflow-hidden"
-          onClick={() => setShowChatSettings(!showChatSettings)}
-        >
-          {/* chat name */}
-          <h2
-            className="overflow-hidden overflow-ellipsis whitespace-nowrap px-5 py-2 text-left text-2xl
-              font-bold"
-          >
-            {chat.name}
-          </h2>
-
-          {/* activity indicator */}
-          {isOtherUserTyping && <div>Someone is typing...</div>}
-        </div>
+        <ChatHeader
+          showChatSettings={showChatSettings}
+          setShowChatSettings={setShowChatSettings}
+          typingUsers={typingUsers}
+          chatId={chat.id}
+          chatName={chat.name}
+          username={username}
+          isGroupChat={chat.is_group_chat}
+          lastChatMessage={chat.last_message}
+        />
 
         {/* TODO: Actually style this! */}
         <hr />
 
-        {/* chat messages */}
-        <div className="flex flex-col-reverse gap-2 overflow-y-auto p-4">
-          {messages.map((message, index) => (
-            <ChatMessage
-              chatMembersLength={chat.UserChats.length}
-              message={message}
-              isCurrentUser={username === message.user.username}
-              key={index}
-            />
-          ))}
-        </div>
+        <AllChatMessages
+          messages={messages}
+          chatMembersLength={chat.UserChats.length}
+          username={username}
+          loadMoreMessages={loadMoreMessages}
+          hasMore={hasMore}
+        />
 
         {/* TODO: Actually style this */}
         <hr />
 
-        <div>
-          {/* send message form */}
-          <form className="flex gap-4 p-4" onSubmit={sendMessage}>
-            <TextareaAutosize
-              value={message}
-              onChange={(e) => {
-                setMessage(e.target.value);
-                sendActivity(e.target.value);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  if (message.trim()) {
-                    sendMessage(message);
-                  }
-                }
-              }}
-              className="flex-1 resize-none rounded-3xl border-2 px-6 py-3"
-              placeholder="Enter your message"
-              maxRows={6}
-            />
-
-            <button type="submit">Send message</button>
-          </form>
-        </div>
+        <SendMessageForm
+          socket={socket}
+          chatId={chat.id}
+          chatName={chat.name}
+          userId={userId}
+          username={username}
+        />
       </div>
 
       <ChatSettings
