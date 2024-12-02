@@ -35,7 +35,7 @@ export default function ChatDescription({
 
   const input = useRef<HTMLTextAreaElement>(null);
 
-  // Refresh
+  // Refresh on chat change
   useEffect(() => {
     setIsEditActive(false);
     setChangeChatDescription(false);
@@ -70,6 +70,7 @@ export default function ChatDescription({
             );
 
             setDisplayNewChatDescription(newChatDescription);
+            setChangeChatDescription(false);
 
             // send signal that description changed
             socket?.emit('change-chat-description', chatId, newChatDescription);
@@ -104,44 +105,49 @@ export default function ChatDescription({
 
   return (
     <div>
-      {chatDescription ? (
-        <div className="flex justify-center gap-2">
-          {isEditActive ? (
-            <TextareaAutosize
-              value={newChatDescription ? newChatDescription : ''}
-              onChange={(e) => setNewChatDescription(e.target.value)}
-              className="h-2 min-w-32 max-w-[300px] resize-none rounded-lg text-center outline-none
-                focus:ring-2 focus:ring-blue-400"
-              ref={input}
-              maxLength={200}
-              style={
-                newChatDescription
-                  ? { width: `${newChatDescription.length}ch` }
-                  : undefined
+      <div className="flex justify-center gap-2">
+        {isEditActive ? (
+          <TextareaAutosize
+            value={newChatDescription ? newChatDescription : ''}
+            onChange={(e) => setNewChatDescription(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                setChangeChatDescription(true);
+                setIsEditActive(false);
               }
-            />
-          ) : (
-            <div className="max-w-[400px]">
-              <div className="break-words">
-                {displayNewChatDescription
-                  ? displayNewChatDescription
-                  : chatDescription}
-              </div>
+            }}
+            className="h-2 min-w-[128px] max-w-[300px] resize-none rounded-lg text-center outline-none
+              focus:ring-2 focus:ring-blue-400"
+            ref={input}
+            maxLength={200}
+            style={
+              newChatDescription
+                ? { width: `${newChatDescription.length}ch` }
+                : { width: '128px' }
+            }
+          />
+        ) : (
+          <div className="max-w-[400px]">
+            <div className="break-words">
+              {displayNewChatDescription
+                ? displayNewChatDescription
+                : chatDescription
+                  ? chatDescription
+                  : 'No Chat Description'}
             </div>
-          )}
-
-          <div className="-mt-[6px]">
-            <EditButton
-              isUserAdmin={isUserAdmin}
-              isEditActive={isEditActive}
-              setIsEditActive={setIsEditActive}
-              confirmSetterFunc={setChangeChatDescription}
-            />
           </div>
+        )}
+
+        <div className="-mr-[28px] -mt-[12px]">
+          <EditButton
+            isUserAdmin={isUserAdmin}
+            isEditActive={isEditActive}
+            setIsEditActive={setIsEditActive}
+            confirmSetterFunc={setChangeChatDescription}
+          />
         </div>
-      ) : (
-        <div>Add Chat Description</div>
-      )}
+      </div>
     </div>
   );
 }
