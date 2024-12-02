@@ -4,6 +4,8 @@ interface InputProps {
   isRequired?: boolean;
   value: string;
   setValue: (newValue: string) => void;
+  className?: string;
+  classNameWrapper?: string;
 }
 
 export default function Input({
@@ -12,9 +14,11 @@ export default function Input({
   isRequired = true,
   value,
   setValue,
+  className,
+  classNameWrapper,
 }: InputProps) {
   return (
-    <div>
+    <div className={classNameWrapper}>
       <label htmlFor={`${accessibilityValue}`}>{labelValue}</label>
       <input
         type="text"
@@ -22,6 +26,7 @@ export default function Input({
         value={value}
         onChange={(e) => setValue(e.target.value)}
         required={isRequired}
+        className={className}
       />
     </div>
   );
