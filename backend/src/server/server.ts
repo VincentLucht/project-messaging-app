@@ -5,8 +5,12 @@ import typingUsers from '@/server/typingUsers/typingUsers';
 import { User } from '@prisma/client';
 
 // Controllers
-import tracker from '@/server/controllers/trackOnlineUsers';
+import tracker from '@/server/controllers/Tracker';
 import addUserToChat from '@/server/controllers/addUserToChat';
+import createChat from '@/server/controllers/createChat';
+
+// Frontend types
+import { DBChatWithMembers } from '@/server/interfaces/frontendInterfaces';
 
 // track all rooms
 const chatRooms = new Map();
@@ -42,6 +46,7 @@ export function setupSocketIO(httpServer: any) {
       socket.removeAllListeners('join-chat');
       socket.removeAllListeners('user-added-to-chat');
       socket.removeAllListeners('change-chat-name');
+      socket.removeAllListeners('create-new-chat');
       socket.removeAllListeners('leave-chat');
       socket.removeAllListeners('send-message');
       socket.removeAllListeners('typing');
@@ -89,13 +94,11 @@ export function setupSocketIO(httpServer: any) {
       },
     );
 
-    // ! JOINING CHAT
+    // ! JOINING CHAT (user connects to room)
     socket.on(
       'join-chat',
       async (chatId: string, username: string, userId: string) => {
         try {
-          const rooms = Array.from(io.sockets.adapter.rooms.keys());
-          console.log('Rooms:', rooms);
           // add socket and data for tracking data on disconnect
           userSessions.set(socket.id, { chatId, username });
 
@@ -132,10 +135,9 @@ export function setupSocketIO(httpServer: any) {
       },
     );
 
-    // ! LEAVING CHAT
+    // ! LEAVING CHAT (user disconnects from room)
     socket.on('leave-chat', async (chatId: string, username: string) => {
       try {
-        console.log(`${username} left the chat`);
         // remove user from room
         const room = chatRooms.get(chatId);
         room.delete(username);
@@ -144,13 +146,19 @@ export function setupSocketIO(httpServer: any) {
           chatRooms.delete(chatId);
         }
         socket.leave(chatId);
-
-        console.log(chatRooms);
       } catch (error) {
         console.error('Error joining chat:', error);
         socket.emit('error', 'Failed to join chat');
       }
     });
+
+    // ! CREATING CHAT
+    socket.on(
+      'create-new-chat',
+      async (userId: string, username: string, newChat: DBChatWithMembers) => {
+        createChat(io, userId, username, newChat, onlineUsers);
+      },
+    );
 
     // ! CHANGE CHAT NAME
     socket.on(
@@ -213,7 +221,8 @@ export function setupSocketIO(httpServer: any) {
             content,
           );
 
-          const activeChatMembers = getActiveChatMembers(chatId);
+          const activeChatMembers = getActiveChatMembers(chatId) || new Map();
+          console.log({ activeChatMembers });
 
           // send to other user
           io.to(chatId).emit('new-message', {
@@ -224,17 +233,22 @@ export function setupSocketIO(httpServer: any) {
           });
 
           // create MessageRead for the DB
-          activeChatMembers.delete(data.username);
           const activeChatMemberIds: string[] = [];
           activeChatMembers.forEach(
-            (user: { username: string; userId: string }) =>
-              activeChatMemberIds.push(user.userId),
+            (user: { username: string; userId: string }) => {
+              // avoid sender
+              if (user.username !== username) {
+                activeChatMemberIds.push(user.userId);
+              }
+            },
           );
+
           await db.messageRead.userReadAllMessages(chatId, activeChatMemberIds);
 
           // send message as notification to other user
+          const sentMessage = { ...newMessage, user: { username } };
           io.to(`${chatId}:notifications`).emit('newMessageNotification', {
-            newMessage,
+            sentMessage,
           });
 
           typingUsers.clearTypingStatus(chatId, username);
@@ -247,7 +261,7 @@ export function setupSocketIO(httpServer: any) {
 
     socket.on('typing', (data: { chatId: string; username: string }) => {
       typingUsers.addUsername(data.chatId, data.username);
-      console.log(typingUsers);
+      // console.log(typingUsers);
       typingUsers.emit(data.chatId, socket);
     });
 
@@ -257,7 +271,7 @@ export function setupSocketIO(httpServer: any) {
         typingUsers.deleteUsername(data.chatId, data.username);
         typingUsers.emit(data.chatId, socket);
         typingUsers.clearTypingStatus(data.chatId, data.username);
-        console.log(typingUsers);
+        // console.log(typingUsers);
       },
     );
 
