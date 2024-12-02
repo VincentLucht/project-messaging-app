@@ -7,8 +7,6 @@ export default function handleUserAddedToChat(
   socket: React.RefObject<Socket> | null,
   chats: DBChatWithMembers[] | null,
   setChats: (chats: DBChatWithMembers[]) => void,
-  activeChat: DBChatWithMembers | null,
-  setActiveChat: (activeChat: DBChatWithMembers) => void,
 ) {
   if (!socket || !chats) return;
 
@@ -42,14 +40,6 @@ export default function handleUserAddedToChat(
           return chat;
         }
       });
-
-      // Update active chat if it matches the chat that was updated
-      if (activeChat) {
-        const updatedChat = newChats.find((chat) => chat.id === chatId);
-        if (updatedChat) {
-          setActiveChat(updatedChat);
-        }
-      }
 
       setChats(newChats);
     },
