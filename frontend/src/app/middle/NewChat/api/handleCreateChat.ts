@@ -1,29 +1,34 @@
 import { API_URL } from '@/App';
+import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
 import { ExpressErrors } from '@/app/interfaces/express-validator-errors';
+
+interface HandleCreateChatResponse {
+  message: string;
+  newChat: DBChatWithMembers;
+}
 
 export default async function handleCreateChat(
   userId: string,
   token: string,
-  chatName: string,
   isGroupChat: boolean,
-  password?: string,
+  otherUsernames: string[],
+  chatName: string,
+  profilePictureUrl: string | undefined,
+  chatDescription: string | undefined,
 ) {
-  let isPasswordProtected: boolean;
-  password ? (isPasswordProtected = true) : (isPasswordProtected = false);
-
   const response = await fetch(`${API_URL}/chat`, {
     method: 'POST',
     headers: {
       Authorization: `${token}`,
       'Content-Type': 'application/json',
     },
-    // ? doesn't matter if password is undefined, backend will check if chat is password protected
     body: JSON.stringify({
       user_id: userId,
-      name: chatName,
       is_group_chat: isGroupChat,
-      password,
-      is_password_protected: isPasswordProtected,
+      other_usernames: otherUsernames,
+      name: chatName,
+      profile_picture_url: profilePictureUrl,
+      chat_description: chatDescription,
     }),
   });
 
@@ -31,4 +36,6 @@ export default async function handleCreateChat(
     const errorObject = (await response.json()) as ExpressErrors;
     throw errorObject;
   }
+
+  return (await response.json()) as HandleCreateChatResponse;
 }
