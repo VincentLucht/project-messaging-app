@@ -22,7 +22,6 @@ export default class UserChatsManager {
           select: {
             id: true,
             name: true,
-            is_password_protected: true,
             time_created: true,
             is_group_chat: true,
             chat_description: true,
