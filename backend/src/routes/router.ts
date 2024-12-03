@@ -60,7 +60,7 @@ router.put(
 );
 
 // ! MESSAGE
-// get all messages from a single chat
+// get messages from a single chat
 router.get(
   '/chat/message',
   token.extract,
@@ -112,8 +112,17 @@ router.post(
   '/chat/user',
   token.extract,
   token.verify,
-  chatValidator.addUserToChatRules(),
+  userChatsValidator.addUserToChatRules(),
   userChatsController.addUserToChat,
+);
+
+// delete user from chat
+router.delete(
+  '/chat/user',
+  token.extract,
+  token.verify,
+  userChatsValidator.deleteUserFromChatRules(),
+  userChatsController.deleteUserFromChat,
 );
 
 // ! CHAT_ADMIN

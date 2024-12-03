@@ -104,6 +104,52 @@ class UserChatsController {
       });
     }
   });
+
+  // ! DELETE
+  deleteUserFromChat = asyncHandler(async (req: Request, res: Response) => {
+    if (checkValidationError(req, res)) return;
+
+    const { chat_id, user_id, user_id_to_delete } = req.body;
+
+    try {
+      const isAdmin = await db.chatAdmin.isChatAdminById(chat_id, user_id);
+      if (!isAdmin) {
+        return res.status(403).json({ message: 'You are not an admin' });
+      }
+
+      // user can't remove themselves
+      if (user_id === user_id_to_delete) {
+        return res.status(409).json({ message: "You can't remove yourself" });
+      }
+
+      const otherUserInChat = await db.userChats.isUserInsideChat(
+        chat_id,
+        user_id,
+      );
+      if (!otherUserInChat) {
+        return res
+          .status(404)
+          .json({ message: 'Other user is not inside of the chat' });
+      }
+
+      const chatOwner = await db.chat.getOwnerById(chat_id, user_id_to_delete);
+      if (chatOwner) {
+        return res
+          .status(403)
+          .json({ message: "You can't remove the chat owner" });
+      }
+
+      // remove other user
+      await db.userChats.deleteUserFromChat(chat_id, user_id_to_delete);
+
+      return res.status(204).send();
+    } catch (error) {
+      return res.status(500).json({
+        message: 'Failed to remove user from chat',
+        error: (error as Error).message,
+      });
+    }
+  });
 }
 
 const userChatsController = new UserChatsController();

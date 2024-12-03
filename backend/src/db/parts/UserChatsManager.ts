@@ -7,6 +7,7 @@ export default class UserChatsManager {
     this.prisma = prisma;
   }
 
+  // ! READ
   async getAllUserChats(userId: string) {
     const userChats = await this.prisma.userChats.findMany({
       where: {
@@ -83,6 +84,7 @@ export default class UserChatsManager {
     return result;
   }
 
+  // ! CREATE
   async addUserToChat(otherUserId: string, chatId: string) {
     await this.prisma.userChats.create({
       data: {
@@ -90,5 +92,28 @@ export default class UserChatsManager {
         chat: { connect: { id: chatId } },
       },
     });
+  }
+
+  // ! DELETE
+  async deleteUserFromChat(chatId: string, removedUserId: string) {
+    // First, find the specific UserChats record
+    const userChatRecord = await this.prisma.userChats.findFirst({
+      where: {
+        chat_id: chatId,
+        user_id: removedUserId,
+      },
+    });
+
+    // If the record exists, delete it
+    if (userChatRecord) {
+      await this.prisma.userChats.delete({
+        where: {
+          id: userChatRecord.id,
+        },
+      });
+    } else {
+      // Optionally throw an error or handle the case where no record is found
+      throw new Error('User not found in the specified chat');
+    }
   }
 }

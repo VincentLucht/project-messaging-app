@@ -188,4 +188,93 @@ describe('UserChats routes', () => {
       });
     });
   });
+
+  describe('DELETE /chat/user', () => {
+    const sendRequest = (body: any) => {
+      return request(app)
+        .delete('/chat/user')
+        .set('Authorization', `Bearer ${token}`)
+        .send(body);
+    };
+
+    describe('Success cases', () => {
+      it('should successfully remove an user from a chat', async () => {
+        mockDB.chatAdmin.isChatAdminById.mockResolvedValue(true);
+        mockDB.userChats.isUserInsideChat.mockResolvedValue(true);
+        mockDB.chat.getOwnerById.mockResolvedValue(false);
+
+        const response = await sendRequest({
+          chat_id: 'realId',
+          user_id: 'user',
+          user_id_to_delete: 'userToDelete',
+        });
+
+        expect(response.status).toBe(204);
+      });
+    });
+
+    describe('Error cases', () => {
+      it('should not allow to remove the owner', async () => {
+        mockDB.chatAdmin.isChatAdminById.mockResolvedValue(true);
+        mockDB.userChats.isUserInsideChat.mockResolvedValue(true);
+        mockDB.chat.getOwnerById.mockResolvedValue(true);
+
+        const response = await sendRequest({
+          chat_id: 'realId',
+          user_id: 'user',
+          user_id_to_delete: 'userToDelete',
+        });
+
+        expect(response.status).toBe(403);
+        expect(response.body.message).toBe("You can't remove the chat owner");
+      });
+
+      it('should not allow user to remove themselves', async () => {
+        mockDB.chatAdmin.isChatAdminById.mockResolvedValue(true);
+        mockDB.userChats.isUserInsideChat.mockResolvedValue(true);
+        mockDB.chat.getOwnerById.mockResolvedValue(false);
+
+        const response = await sendRequest({
+          chat_id: 'realId',
+          user_id: 'same',
+          user_id_to_delete: 'same',
+        });
+
+        expect(response.status).toBe(409);
+        expect(response.body.message).toBe("You can't remove yourself");
+      });
+
+      it('should handle user not being an admin', async () => {
+        mockDB.chatAdmin.isChatAdminById.mockResolvedValue(false);
+
+        const response = await sendRequest({
+          chat_id: 'realId',
+          user_id: 'user',
+          user_id_to_delete: 'userToDelete',
+        });
+
+        expect(response.status).toBe(403);
+        expect(response.body.message).toBe('You are not an admin');
+      });
+
+      it('should handle missing required inputs', async () => {
+        const response = await sendRequest({});
+
+        expect(response.body.errors.length).toBe(3);
+      });
+
+      it('should handle db error', async () => {
+        mockDB.chatAdmin.isChatAdminById.mockRejectedValue(new Error('Database error'));
+
+        const response = await sendRequest({
+          chat_id: 'realId',
+          user_id: 'user',
+          user_id_to_delete: 'userToDelete',
+        });
+
+        expect(response.status).toBe(500);
+        expect(response.body.error).toBe('Database error');
+      });
+    });
+  });
 });
