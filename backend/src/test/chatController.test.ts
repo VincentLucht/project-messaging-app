@@ -57,8 +57,9 @@ describe('Chat Routes', () => {
     };
 
     describe('Success cases', () => {
-      it('should successfully create a chat with an admin', async () => {
-        // Mock the chat manager's create method
+      it('should successfully create a one-on-one chat', async () => {
+        mockDB.user.getUserById.mockResolvedValue(true);
+        mockDB.user.getUserByUsernameArr.mockResolvedValue([{ username: 'user1' }]);
         mockDB.chat.createChat.mockResolvedValueOnce(mockChat);
 
         // Send the request
@@ -66,20 +67,41 @@ describe('Chat Routes', () => {
           user_id: basicMockUser.id,
           name: 'Test Chat',
           is_group_chat: false,
-          is_password_protected: false,
+          other_usernames: ['user1'],
         });
 
         // Verify response
         expect(response.status).toBe(201);
         expect(response.body).toEqual({
           message: 'Successfully created chat',
+          newChat: {
+            ...mockChat,
+            createdAt: mockChat.createdAt.toISOString(),
+          },
+        });
+      });
+
+      it('should successfully create a group-chat', async () => {
+        mockDB.user.getUserById.mockResolvedValue(true);
+        mockDB.user.getUserByUsernameArr.mockResolvedValue([{ username: 'user1' }, { username: 'user2' }]);
+        mockDB.chat.createChat.mockResolvedValueOnce({ ...mockChat });
+
+        const response = await sendRequest({
+          user_id: basicMockUser.id,
+          name: 'Test Chat',
+          is_group_chat: true,
+          other_usernames: ['user1', 'user2'],
         });
 
-        // check if user is admin
-        expect(mockDB.chatAdmin.makeUserAdminById).toHaveBeenCalledWith(
-          mockChat.id,
-          basicMockUser.id,
-        );
+        expect(response.status).toBe(201);
+        expect(response.body).toEqual({
+          message: 'Successfully created chat',
+          newChat: {
+            ...mockChat,
+            createdAt: mockChat.createdAt.toISOString(),
+
+          },
+        });
       });
     });
 
@@ -94,7 +116,7 @@ describe('Chat Routes', () => {
 
         expect(responseWithoutName.status).toBe(400);
         expect(responseWithoutName.body).toHaveProperty('errors');
-        expect(responseWithoutName.body.errors[0].msg).toBe('Chat name is required');
+        expect(responseWithoutName.body.errors[0].msg).toBe('Other username/s is/are required');
 
         const responseWithoutUserId = await sendRequest({
           name: 'Test Chat',
@@ -109,6 +131,8 @@ describe('Chat Routes', () => {
       });
 
       it('should handle database errors during chat creation', async () => {
+        mockDB.user.getUserById.mockResolvedValueOnce(true);
+        mockDB.user.getUserByUsernameArr.mockResolvedValue([{ username: 'user1' }]);
         // Mock database error
         mockDB.chat.createChat.mockRejectedValueOnce(new Error('Database error'));
 
@@ -117,6 +141,7 @@ describe('Chat Routes', () => {
           name: 'Test Chat',
           is_group_chat: false,
           is_password_protected: false,
+          other_usernames: ['fake'],
         });
 
         expect(response.status).toBe(500);
@@ -128,13 +153,14 @@ describe('Chat Routes', () => {
 
       it('should handle non-existent user', async () => {
         // Mock user not found
-        mockDB.user.getUserById.mockResolvedValueOnce(null);
+        mockDB.user.getUserById.mockResolvedValueOnce(false);
 
         const response = await sendRequest({
           user_id: 'non-existent-user',
           name: 'Test Chat',
           is_group_chat: false,
           is_password_protected: false,
+          other_usernames: ['fake'],
         });
 
         expect(response.status).toBe(404);
