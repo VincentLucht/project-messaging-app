@@ -58,7 +58,7 @@ describe('Message Routes', () => {
     };
 
     describe('Success Cases', () => {
-      it('should get all chat messages successfully', async () => {
+      it('should get chat messages successfully', async () => {
         // mock chat existing
         mockDB.chat.getChatById.mockResolvedValue(true);
         // mock user being inside of the chat
@@ -73,7 +73,7 @@ describe('Message Routes', () => {
 
         expect(response.status).toBe(201);
         expect(response.body).toEqual({
-          message: 'Successfully fetched all messages',
+          message: 'Successfully fetched all messages, page 1',
           allMessages: mockMessages,
         });
       });
