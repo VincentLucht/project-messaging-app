@@ -14,6 +14,8 @@ import fetchChats from '@/app/middle/Home/services/fetchChats/fetchChats';
 import handleTypingUsers from '@/app/middle/Home/services/handleTypingUsers';
 import handleUserAddedToChat from '@/app/middle/Home/services/handleUserAddedToChat';
 import handleBeingAddedToChat from '@/app/middle/Home/services/handleBeingAddedToChat';
+import handleUserBeingDeletedFromChat from '@/app/middle/Home/services/handleUserBeingDeletedFromChat';
+import handleBeingDeletedFromChat from '@/app/middle/Home/services/handleBeingDeletedFromChat';
 
 // Left Components
 import OpenChatsButton from '@/app/left/OpenChatsButton';
@@ -42,7 +44,6 @@ export default function Home() {
 
   const { user, token, isLoggedIn, logout } = useAuth();
   const isMobile = useIsMobile();
-  // ! TODO: Currently re-renders when creating new chat => make more efficient!
 
   // Establish connection with socket
   useEffect(() => {
@@ -101,12 +102,42 @@ export default function Home() {
 
   // Handle other users being added to a chat
   useEffect(() => {
-    handleUserAddedToChat(socket, chats, setChats);
+    handleUserAddedToChat(socket, chats, setChats, activeChat, setActiveChat);
 
     return () => {
       socket.current?.off('new-user-added-to-chat');
     };
-  }, [chats, activeChat]);
+  }, [activeChat, chats]);
+
+  // Handle user being deleted from chat
+  useEffect(() => {
+    handleUserBeingDeletedFromChat(
+      socket,
+      chats,
+      setChats,
+      activeChat,
+      setActiveChat,
+    );
+
+    return () => {
+      socket.current?.off('deleted-user-from-chat');
+    };
+  }, [activeChat, chats]);
+
+  // Handle being deleted from chat
+  useEffect(() => {
+    handleBeingDeletedFromChat(
+      socket,
+      chats,
+      setChats,
+      activeChat,
+      setActiveChat,
+    );
+
+    return () => {
+      socket.current?.off('deleted-from-chat');
+    };
+  }, [activeChat, chats]);
 
   // Handle typing users
   useEffect(() => {
@@ -136,7 +167,6 @@ export default function Home() {
   }, [chats, user, activeChat]);
 
   // fetch all user chats and unread messages
-  // re-fetches chats every time refreshTrigger is triggered
   useEffect(() => {
     void fetchChats(isLoggedIn, user, token, socket.current, logout, setChats);
 
@@ -162,6 +192,8 @@ export default function Home() {
       >
         <OpenChatsButton />
         <OpenUserProfileButton imgUrl={user?.profile_picture_url} />
+        <button onClick={() => console.log(chats)}>Log chats</button>
+        <button onClick={() => console.log(activeChat)}>Log Active Chat</button>
       </nav>
 
       {/* MIDDLE */}
