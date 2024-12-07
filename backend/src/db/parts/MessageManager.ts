@@ -17,12 +17,40 @@ export default class MessageManager {
     return message;
   }
 
-  async getAllChatMessages(chatId: string, page = 1, limit = 20) {
+  async getAllChatMessages(
+    chatId: string,
+    userId: string,
+    page = 1,
+    limit = 20,
+  ) {
     const offset = (page - 1) * limit;
 
+    // Fetch the join time for the user in the specified chat
+    const userChat = await this.prisma.userChats.findUnique({
+      where: {
+        user_id_chat_id: {
+          user_id: userId,
+          chat_id: chatId,
+        },
+      },
+      select: {
+        joined_at: true,
+      },
+    });
+
+    if (!userChat) {
+      throw new Error('User has not joined this chat');
+    }
+
+    const joinTime = userChat.joined_at;
+
+    // Retrieve messages from the time the user joined
     const messages = await this.prisma.message.findMany({
       where: {
         chat_id: chatId,
+        time_created: {
+          gte: joinTime, // Filter messages created after the user's join time
+        },
       },
       orderBy: {
         time_created: 'desc',
