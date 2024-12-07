@@ -29,6 +29,15 @@
   border: 0;
 }
 
+.chat-list {
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.chat-list.loaded {
+  opacity: 1;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
