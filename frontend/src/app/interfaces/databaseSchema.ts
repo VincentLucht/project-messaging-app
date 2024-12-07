@@ -68,3 +68,11 @@ export interface DBMessageWithUser extends DBMessage {
 export interface DBChatWithAdmins extends DBChat {
   ChatAdmins: DBChatAdmin[];
 }
+
+export interface BasicUser {
+  id: string;
+  name: string;
+  username: string;
+  profile_picture_url?: string;
+  user_description: string;
+}
