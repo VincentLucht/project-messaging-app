@@ -3,6 +3,8 @@ import { Server, Socket } from 'socket.io';
 
 import db from '@/db/db';
 
+import createMessageReadForOnlineUsers from '@/controllers/util/createMessageReadForOnlineUsers';
+
 export default async function addUserToChat(
   io: Server,
   socket: Socket,
@@ -20,12 +22,6 @@ export default async function addUserToChat(
     true,
   );
 
-  // Emit to all users that a new user joined
-  io.to(`${chatId}:notifications`).emit('new-user-added-to-chat', {
-    chatId,
-    newUser,
-  });
-
   // send message as user that you added another user
   io.to(chatId).emit('new-message', {
     userId,
@@ -35,25 +31,20 @@ export default async function addUserToChat(
     isSystemMessage: true,
   });
 
-  // create MessageRead for the DB
-  if (activeChatMembers) {
-    activeChatMembers.delete(username);
-    const activeChatMemberIds: string[] = [];
-    activeChatMembers.forEach((user: { username: string; userId: string }) =>
-      activeChatMemberIds.push(user.userId),
-    );
-    await db.messageRead.userReadAllMessages(chatId, activeChatMemberIds);
-  }
+  // Emit to all users that a new user joined
+  io.to(`${chatId}:notifications`).emit('new-user-added-to-chat', {
+    chatId,
+    newUser,
+  });
 
   // send as notification
   io.to(`${chatId}:notifications`).emit('newMessageNotification', {
     sentMessage: { ...newMessage, user: { username } },
   });
 
-  // Send the chat to the other user (if online)
-  const otherUser = onlineUsers.get(newUser.username);
-  if (otherUser) {
-    const [socketId] = [...otherUser];
+  // Send the chat to the other user/s (if online)
+  const addedUser = onlineUsers.get(newUser.username);
+  if (addedUser && addedUser.size > 0) {
     const [chatWithAdmins, chatMembersUnedited] = await Promise.all([
       db.chat.getChatById(chatId, true),
       db.chat.getAllChatMembers(chatId, true),
@@ -65,8 +56,24 @@ export default async function addUserToChat(
       chatMembers = chatMembersUnedited.UserChats;
     }
 
-    socket
-      .to(socketId)
-      .emit('added-to-chat', chatWithAdmins, chatMembers, newMessage, username);
+    // Send chat to the online user/s on multiple socket connections
+    for (const socketId of addedUser) {
+      socket
+        .to(socketId)
+        .emit(
+          'added-to-chat',
+          chatWithAdmins,
+          chatMembers,
+          newMessage,
+          username,
+        );
+    }
   }
+
+  await createMessageReadForOnlineUsers(
+    activeChatMembers,
+    username,
+    chatId,
+    db,
+  );
 }
