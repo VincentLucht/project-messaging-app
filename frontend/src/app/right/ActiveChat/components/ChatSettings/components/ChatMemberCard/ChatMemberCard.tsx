@@ -1,27 +1,43 @@
+import { Dispatch, SetStateAction } from 'react';
+import { Socket } from 'socket.io-client';
+
 import LazyLoadImage from '@/app/components/LazyLoadImage';
+import { BasicUser } from '@/app/interfaces/databaseSchema';
+
+import UserAdminOptions from '@/app/right/ActiveChat/components/ChatSettings/components/ChatMemberCard/components/UserAdminOptions';
 
 interface ChatMemberCard {
+  socket: Socket | null;
+  chatId: string;
+  chatName: string;
   chatMember: {
-    user: {
-      id: string;
-      name: string;
-      username: string;
-      profile_picture_url?: string;
-      user_description: string;
-    };
+    user: BasicUser;
   };
+  userId: string;
+  username: string;
   isUserSelf: boolean;
   isAdmin: boolean;
   isOwner: boolean;
   isUserAdmin: boolean;
+  token: string;
+  openAdminPanelId: string | null;
+  setOpenAdminPanelId: Dispatch<SetStateAction<string | null>>;
 }
 
 export default function ChatMemberCard({
+  socket,
+  chatId,
+  chatName,
   chatMember,
+  userId,
+  username,
   isUserSelf,
   isAdmin,
   isOwner,
   isUserAdmin,
+  token,
+  openAdminPanelId,
+  setOpenAdminPanelId,
 }: ChatMemberCard) {
   const { user } = chatMember;
 
@@ -81,15 +97,18 @@ export default function ChatMemberCard({
         </div>
 
         {/* User Admin options */}
-        {isUserAdmin && (
-          <div className="p-[6px] pt-1 transition-transform hover:scale-[115%] active:scale-95">
-            <img
-              className="h-4 min-h-4 w-4 min-w-4"
-              src="./kebabMenu.svg"
-              alt="kebab menu for admin actions"
-            />
-          </div>
-        )}
+        <UserAdminOptions
+          socket={socket}
+          chatId={chatId}
+          chatName={chatName}
+          userId={userId}
+          username={username}
+          isUserAdmin={isUserAdmin}
+          user={user}
+          token={token}
+          openAdminPanelId={openAdminPanelId}
+          setOpenAdminPanelId={setOpenAdminPanelId}
+        />
       </div>
     </div>
   );
