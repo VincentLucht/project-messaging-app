@@ -8,6 +8,7 @@ import { User } from '@prisma/client';
 import tracker from '@/server/controllers/Tracker';
 import addUserToChat from '@/server/controllers/addUserToChat';
 import createChat from '@/server/controllers/createChat';
+import deleteUserFromChat from '@/server/controllers/deleteUserFromChat';
 
 // Frontend types
 import { DBChatWithMembers } from '@/server/interfaces/frontendInterfaces';
@@ -18,7 +19,7 @@ const chatRooms = new Map();
 const userSessions = new Map();
 // track online users
 const onlineUsers = new Map<string, Set<string>>(); // username => socket id/s
-const socketToUser = new Map<string, string>(); // socket id => username
+const socketToUser = new Map<string, Set<string>>(); // socket id => username
 
 function getActiveChatMembers(chatId: string) {
   return chatRooms.get(chatId);
@@ -45,6 +46,7 @@ export function setupSocketIO(httpServer: any) {
       socket.removeAllListeners('getUnreadMessages');
       socket.removeAllListeners('join-chat');
       socket.removeAllListeners('user-added-to-chat');
+      socket.removeAllListeners('user-deleted-from-chat');
       socket.removeAllListeners('change-chat-name');
       socket.removeAllListeners('create-new-chat');
       socket.removeAllListeners('leave-chat');
@@ -55,6 +57,7 @@ export function setupSocketIO(httpServer: any) {
 
     // track online user
     socket.on('user-connected', (data: { username: string }) => {
+      console.log(`${data.username} connected`);
       tracker.saveOnlineUsers(
         socket.id,
         data.username,
@@ -198,6 +201,32 @@ export function setupSocketIO(httpServer: any) {
           userId,
           username,
           newUser,
+          getActiveChatMembers(chatId),
+          onlineUsers,
+        );
+      },
+    );
+
+    // ! USER WAS DELETED FROM CHAT
+    socket.on(
+      'user-deleted-from-chat',
+      async (
+        chatId: string,
+        chatName: string,
+        removerUserId: string,
+        removerUsername: string,
+        userIdToDelete: string,
+        usernameToDelete: string,
+      ) => {
+        deleteUserFromChat(
+          io,
+          socket,
+          chatId,
+          chatName,
+          removerUserId,
+          removerUsername,
+          userIdToDelete,
+          usernameToDelete,
           getActiveChatMembers(chatId),
           onlineUsers,
         );
