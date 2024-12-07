@@ -32,6 +32,7 @@ class MessageController {
 
       const allMessages = await db.message.getAllChatMessages(
         chat_id,
+        user_id,
         page,
         limit,
       );
