@@ -18,9 +18,14 @@ import generateTempId from '@/app/right/ActiveChat/util/generateTempId';
 interface NewChatProps {
   socket: Socket | null;
   setChats: Dispatch<SetStateAction<DBChatWithMembers[] | null>>;
+  setShowCreateChat: Dispatch<SetStateAction<boolean>>;
 }
 
-export default function NewChat({ socket, setChats }: NewChatProps) {
+export default function NewChat({
+  socket,
+  setChats,
+  setShowCreateChat,
+}: NewChatProps) {
   const [isGroupChat, setIsGroupChat] = useState(false);
   const [otherUsernames, setOtherUsernames] = useState('');
   const [profilePictureUrl, setProfilePictureUrl] = useState('');
@@ -69,6 +74,8 @@ export default function NewChat({ socket, setChats }: NewChatProps) {
             },
             ...(prevChats ?? []),
           ]);
+
+          setShowCreateChat(false);
 
           // Send signal to backend
           socket?.emit('create-new-chat', user.id, user.username, newChat);

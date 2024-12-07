@@ -52,10 +52,13 @@ export default function ChatSection({
           className={`overflow-hidden transition-all duration-150 ease-out
             ${showCreateChat ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'} `}
         >
-          <NewChat socket={socket} setChats={setChats} />
+          <NewChat
+            socket={socket}
+            setChats={setChats}
+            setShowCreateChat={setShowCreateChat}
+          />
         </div>
       </div>
-
       <AllChatsList
         chats={chats}
         setChats={setChats}
