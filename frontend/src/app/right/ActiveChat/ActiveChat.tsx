@@ -10,7 +10,7 @@ import { Socket } from 'socket.io-client';
 import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
 import { DBMessageWithUser } from '@/app/interfaces/databaseSchema';
 
-import handleNewMessages from '@/app/right/ActiveChat/service/handleNewMessage';
+import handleNewMessages from '@/app/right/ActiveChat/service/handleNewMessages';
 import handleUserJoiningChat from '@/app/right/ActiveChat/service/handleUserJoiningChat';
 import handleFetchingMessages from '@/app/right/ActiveChat/service/handleFetchingMessages/handleFetchingMessages';
 import handleUnmount from '@/app/right/ActiveChat/service/handleUnmount';
@@ -110,20 +110,21 @@ export default function ActiveChat({
     setMessagePage(nextPage);
   };
 
-  // Reset messages on chat change and avoid re-fetching "cached" data
   useEffect(() => {
-    // ! has to check for undefined!
+    // Check if the chat already has cached messages
     if (chat.messages && chat.page && chat.hasMore !== undefined) {
+      // Use the cached messages, page, and hasMore
       setMessages(chat.messages);
       setMessagePage(chat.page);
       setHasMore(chat.hasMore);
     } else {
+      // If cached messages don't exist, fetch them
       setMessages([]);
       setMessagePage(1);
       setHasMore(true);
-      loadInitialMessages();
+      loadInitialMessages(); // re-fetch
     }
-  }, [chat.id, chat.hasMore, chat.messages, chat.page, loadInitialMessages]);
+  }, [chat.id, loadInitialMessages, chat.hasMore, chat.page, chat.messages]);
 
   // Save current messages state to chat before unmounting
   useEffect(() => {
