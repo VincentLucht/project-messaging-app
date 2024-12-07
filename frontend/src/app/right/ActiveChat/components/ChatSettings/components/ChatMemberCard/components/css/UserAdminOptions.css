@@ -1,0 +1,41 @@
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(15px);
+  }
+}
+
+.slide-in {
+  animation: slideIn 0.3s forwards;
+}
+
+.slide-out {
+  animation: slideOut 0.2s forwards;
+}
+
+.admin-panel-button {
+  width: 100%;
+  padding: 8px;
+  border-radius: 4px;
+  text-align: start;
+  transition: background-color 0.1s ease-in-out;
+}
+
+.admin-panel-button:hover {
+  background-color: rgba(255, 255, 255, 0.2); 
+}
