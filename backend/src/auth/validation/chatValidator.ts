@@ -37,22 +37,6 @@ class ChatValidator {
     ];
   }
 
-  addUserToChatRules() {
-    return [
-      body('username').trim()
-        .isLength({ min: 1 })
-        .withMessage('Username is required'),
-
-      body('other_username').trim()
-        .isLength({ min: 1 })
-        .withMessage('Other username is required'),
-
-      body('chat_id').trim()
-        .notEmpty()
-        .withMessage('Chat ID is required'),
-    ];
-  }
-
   changeChatNameRules() {
     return [
       body('chat_id').trim()
