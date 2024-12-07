@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction } from 'react';
+import { useState, Dispatch, SetStateAction } from 'react';
 import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
 
 import ChatName from '@/app/right/ActiveChat/components/ChatSettings/components/ChatName/ChatName';
@@ -33,6 +33,8 @@ export default function ChatSettings({
   token,
   socket,
 }: ChatSettingsProps) {
+  const [openAdminPanelId, setOpenAdminPanelId] = useState<string | null>(null);
+
   const memberAmount = chat.UserChats.length;
   const formattedDate = dayjs(chat.time_created).format('DD/MM/YY');
   const formattedTime = dayjs(chat.time_created).format('HH:MM');
@@ -119,11 +121,19 @@ export default function ChatSettings({
           {chat.UserChats.map((chatMember) => (
             <ChatMemberCard
               key={chatMember.user.id}
+              socket={socket}
+              chatId={chat.id}
+              chatName={chat.name}
               chatMember={chatMember}
+              userId={userId}
+              username={username}
               isUserSelf={userId === chatMember.user.id}
               isAdmin={chatAdmins.has(chatMember.user.id)}
               isOwner={chat.owner.id === chatMember.user.id}
               isUserAdmin={isUserAdmin}
+              token={token}
+              openAdminPanelId={openAdminPanelId}
+              setOpenAdminPanelId={setOpenAdminPanelId}
             />
           ))}
         </div>
