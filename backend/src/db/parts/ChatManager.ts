@@ -47,6 +47,11 @@ export default class ChatManager {
               },
             },
           },
+          orderBy: {
+            user: {
+              created_at: 'desc',
+            },
+          },
         },
       },
     });
@@ -62,6 +67,17 @@ export default class ChatManager {
       const chatMembers = chat.UserChats.map((userChat) => userChat.user);
       return chatMembers;
     }
+  }
+
+  async getOwnerById(chatId: string, userId: string) {
+    const owner = await this.prisma.chat.findUnique({
+      where: {
+        id: chatId,
+        owner_id: userId,
+      },
+    });
+
+    return owner;
   }
 
   // ? CREATE

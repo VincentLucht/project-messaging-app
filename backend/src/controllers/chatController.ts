@@ -28,10 +28,9 @@ class ChatController {
       const foundUsers = await db.user.getUserByUsernameArr(other_usernames);
 
       // Check if user adds themselves
-      const userSelf = await db.user.getUserById(user_id);
-      let isUserSelf;
-      foundUsers.forEach((user) => {
-        if (user.username === userSelf?.username) {
+      let isUserSelf = false;
+      foundUsers.forEach((foundUser) => {
+        if (foundUser.username === user.username) {
           isUserSelf = true;
         }
       });
@@ -62,8 +61,6 @@ class ChatController {
         chat_description,
         profile_picture_url,
       );
-
-      console.log(chat);
 
       return res
         .status(201)
