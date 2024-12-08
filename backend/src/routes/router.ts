@@ -135,6 +135,15 @@ router.post(
   chatAdminController.makeUserAdmin,
 );
 
+// remove admin status
+router.delete(
+  '/chat/user/admin',
+  token.extract,
+  token.verify,
+  chatAdminValidator.makeUserAdminRules(),
+  chatAdminController.removeUserAdmin,
+);
+
 // ? Authentication
 router.post('/sign-up', authValidator.signUpRules(), userController.createUser);
 router.post('/login', authValidator.loginRules(), authController.logIn);

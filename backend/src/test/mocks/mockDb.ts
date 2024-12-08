@@ -3,12 +3,15 @@ const mockDB = {
     createUser: jest.fn(),
     getUserById: jest.fn(),
     getUserByUsername: jest.fn(),
+    getUserByUsernameArr: jest.fn(),
   },
   chat: {
     getChatById: jest.fn(),
     getAllChatMembers: jest.fn(),
     createChat: jest.fn(),
     changeChatName: jest.fn(),
+    changeDescription: jest.fn(),
+    getOwnerById: jest.fn(),
   },
   message: {
     getMessageById: jest.fn(),
@@ -24,12 +27,15 @@ const mockDB = {
     getAllUserChats: jest.fn(),
     isUserInsideChat: jest.fn(),
     addUserToChat: jest.fn(),
+    deleteUserFromChat: jest.fn(),
+    isUserInsideChatByUsername: jest.fn(),
   },
   chatAdmin: {
     isChatAdminById: jest.fn(),
     isChatAdminByUsername: jest.fn(),
     makeUserAdminById: jest.fn(),
     makeUserAdminByUsername: jest.fn(),
+    removeAdminStatus: jest.fn(),
   },
 };
 

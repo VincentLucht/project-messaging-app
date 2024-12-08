@@ -32,7 +32,7 @@ describe('ChatAdmin Routes', () => {
   });
   const token = generateToken(basicMockUser.id, basicMockUser.name);
 
-  describe('/chat/user/admin', () => {
+  describe('POST /chat/user/admin', () => {
     const sendRequest = (body: any) => {
       return request(app)
         .post('/chat/user/admin')
@@ -45,6 +45,7 @@ describe('ChatAdmin Routes', () => {
         mockDB.user.getUserByUsername.mockResolvedValue(true);
         mockDB.chatAdmin.isChatAdminById.mockResolvedValue(true);
         mockDB.chatAdmin.isChatAdminByUsername.mockResolvedValue(false);
+        mockDB.userChats.isUserInsideChatByUsername.mockResolvedValue(true);
         mockDB.chatAdmin.makeUserAdminByUsername.mockResolvedValue(true);
 
         const response = await sendRequest({
@@ -76,6 +77,7 @@ describe('ChatAdmin Routes', () => {
       it('should handle other user already being an admin', async () => {
         mockDB.user.getUserByUsername.mockResolvedValue(true);
         mockDB.chatAdmin.isChatAdminById.mockResolvedValue(true);
+        mockDB.userChats.isUserInsideChatByUsername.mockResolvedValue(true);
         mockDB.chatAdmin.isChatAdminByUsername.mockResolvedValue(true);
 
         const response = await sendRequest({
@@ -91,6 +93,122 @@ describe('ChatAdmin Routes', () => {
       it('should handle user not being an admin', async () => {
         mockDB.user.getUserByUsername.mockResolvedValue(true);
         mockDB.chatAdmin.isChatAdminById.mockResolvedValue(false);
+
+        const response = await sendRequest({
+          user_id: basicMockUser.id,
+          other_username: 'other_user',
+          chat_id: basicMockChats[0].id,
+        });
+
+        expect(response.status).toBe(403);
+        expect(response.body.message).toBe('You are not an admin');
+      });
+
+      it('should handle missing input fields', async () => {
+        const response = await sendRequest({
+          // omit all 3 input parameters
+        });
+
+        expect(response.body).toHaveProperty('errors');
+        expect(response.body.errors.length).toBe(3);
+      });
+
+      it('should handle db error', async () => {
+        mockDB.user.getUserByUsername.mockRejectedValue(new Error('Database error'));
+
+        const response = await sendRequest({
+          user_id: basicMockUser.id,
+          other_username: 'other_user',
+          chat_id: basicMockChats[0].id,
+        });
+
+        expect(response.status).toBe(500);
+        expect(response.body.error).toBe('Database error');
+      });
+    });
+  });
+
+  describe('DELETE /chat/user/admin', () => {
+    const sendRequest = (body: any) => {
+      return request(app)
+        .delete('/chat/user/admin')
+        .set('Authorization', `Bearer ${token}`)
+        .send(body);
+    };
+
+    describe('Success cases', () => {
+      it('should successfully make an user admin', async () => {
+        mockDB.user.getUserByUsername.mockResolvedValue(true);
+        mockDB.chatAdmin.isChatAdminById.mockResolvedValue(true);
+        mockDB.userChats.isUserInsideChatByUsername.mockResolvedValue(true);
+        mockDB.chatAdmin.isChatAdminByUsername.mockResolvedValue(true);
+        mockDB.chatAdmin.makeUserAdminByUsername.mockResolvedValue(true);
+        mockDB.chat.getOwnerById.mockResolvedValue({ id: 'fake id' });
+
+        const response = await sendRequest({
+          user_id: basicMockUser.id,
+          other_username: 'other_user',
+          chat_id: basicMockChats[0].id,
+        });
+
+        expect(response.status).toBe(200);
+        expect(response.body.message).toBe('Successfully removed admin status from other_user');
+      });
+    });
+
+    describe('Error cases', () => {
+      it('should handle other user not existing', async () => {
+        // mock user not existing
+        mockDB.user.getUserByUsername.mockResolvedValue(false);
+
+        const response = await sendRequest({
+          user_id: basicMockUser.id,
+          other_username: 'other_user',
+          chat_id: basicMockChats[0].id,
+        });
+
+        expect(response.status).toBe(404);
+        expect(response.body.message).toBe('Username other_user not found');
+      });
+
+      it('should handle other user being the chat owner', async() => {
+        mockDB.user.getUserByUsername.mockResolvedValue(true);
+        mockDB.chatAdmin.isChatAdminById.mockResolvedValue(true);
+        mockDB.userChats.isUserInsideChatByUsername.mockResolvedValue(true);
+        mockDB.chatAdmin.isChatAdminByUsername.mockResolvedValue(true);
+        mockDB.chat.getOwnerById.mockResolvedValue(true);
+
+        const response = await sendRequest({
+          user_id: basicMockUser.id,
+          other_username: 'other_user',
+          chat_id: basicMockChats[0].id,
+        });
+
+        expect(response.status).toBe(403);
+        expect(response.body.message).toBe("You can't remove admin status from the chat owner");
+      });
+
+      it('should handle other user not being an admin', async () => {
+        mockDB.user.getUserByUsername.mockResolvedValue(true);
+        mockDB.userChats.isUserInsideChatByUsername.mockResolvedValue(true);
+        mockDB.chatAdmin.isChatAdminById.mockResolvedValue(true);
+        mockDB.chatAdmin.isChatAdminByUsername.mockResolvedValue(false);
+
+        const response = await sendRequest({
+          user_id: basicMockUser.id,
+          other_username: 'other_user',
+          chat_id: basicMockChats[0].id,
+        });
+
+        expect(response.status).toBe(404);
+        expect(response.body.message).toBe('User other_user is not an admin');
+      });
+
+      it('should handle user not being an admin', async () => {
+        mockDB.user.getUserByUsername.mockResolvedValue(true);
+        mockDB.userChats.isUserInsideChatByUsername.mockResolvedValue(true);
+        mockDB.chatAdmin.isChatAdminById.mockResolvedValue(false);
+        mockDB.chatAdmin.isChatAdminByUsername.mockResolvedValue(true);
 
         const response = await sendRequest({
           user_id: basicMockUser.id,

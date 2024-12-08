@@ -87,4 +87,16 @@ export default class ChatAdminManager {
       }
     }
   }
+
+  // ! DELETE
+  async removeAdminStatus(chatId: string, userId: string) {
+    await this.prisma.chatAdmin.delete({
+      where: {
+        user_id_chat_id: {
+          chat_id: chatId,
+          user_id: userId,
+        },
+      },
+    });
+  }
 }

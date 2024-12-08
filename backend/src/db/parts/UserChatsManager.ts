@@ -84,6 +84,29 @@ export default class UserChatsManager {
     return result;
   }
 
+  async isUserInsideChatByUsername(chatId: string, username: string) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        username,
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    const result = await this.prisma.userChats.findUnique({
+      where: {
+        user_id_chat_id: {
+          chat_id: chatId,
+          user_id: user.id,
+        },
+      },
+    });
+
+    return result;
+  }
+
   // ! CREATE
   async addUserToChat(otherUserId: string, chatId: string) {
     await this.prisma.userChats.create({
