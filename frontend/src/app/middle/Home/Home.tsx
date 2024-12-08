@@ -41,6 +41,7 @@ export default function Home() {
   const [activeChat, setActiveChat] = useState<DBChatWithMembers | null>(null);
   const [typingUsers, setTypingUsers] = useState<TypingUsers>({});
   const socket = useRef<Socket | null>(null);
+  const joinedChats = useRef<Set<string>>(new Set());
 
   const { user, token, isLoggedIn, logout } = useAuth();
   const isMobile = useIsMobile();
@@ -64,20 +65,31 @@ export default function Home() {
   useEffect(() => {
     if (!chats || !isLoggedIn || !socket.current) return;
 
-    chats.forEach((chat) => {
-      socket.current?.emit('joinChatNotifications', {
-        chatId: chat.id,
-        userId: user?.id,
-      });
-    });
+    const joinedChatsRef = joinedChats.current;
 
-    // Cleanup func
-    return () => {
-      chats.forEach((chat) => {
-        socket.current?.emit('leaveChatNotifications', {
+    // Join only new chats
+    chats.forEach((chat) => {
+      if (!joinedChats.current.has(chat.id)) {
+        socket.current?.emit('joinChatNotifications', {
           chatId: chat.id,
           userId: user?.id,
         });
+        joinedChatsRef.add(chat.id);
+      }
+    });
+
+    // Cleanup: leave chats only if they are removed from the list
+    return () => {
+      const currentChatIds = new Set(chats.map((chat) => chat.id));
+
+      joinedChatsRef.forEach((chatId) => {
+        if (!currentChatIds.has(chatId)) {
+          socket.current?.emit('leaveChatNotifications', {
+            chatId,
+            userId: user?.id,
+          });
+          joinedChatsRef.delete(chatId);
+        }
       });
     };
   }, [chats, isLoggedIn, user]);
@@ -128,6 +140,7 @@ export default function Home() {
   useEffect(() => {
     handleBeingDeletedFromChat(
       socket,
+      user?.username,
       chats,
       setChats,
       activeChat,
@@ -137,7 +150,7 @@ export default function Home() {
     return () => {
       socket.current?.off('deleted-from-chat');
     };
-  }, [activeChat, chats]);
+  }, [activeChat, chats, user?.username]);
 
   // Handle typing users
   useEffect(() => {
