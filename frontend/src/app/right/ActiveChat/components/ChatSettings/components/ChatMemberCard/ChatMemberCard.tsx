@@ -103,8 +103,9 @@ export default function ChatMemberCard({
           chatName={chatName}
           userId={userId}
           username={username}
-          isUserAdmin={isUserAdmin}
+          isUserSelfAdmin={isUserAdmin}
           user={user}
+          isOtherUserAdmin={isAdmin}
           token={token}
           openAdminPanelId={openAdminPanelId}
           setOpenAdminPanelId={setOpenAdminPanelId}
