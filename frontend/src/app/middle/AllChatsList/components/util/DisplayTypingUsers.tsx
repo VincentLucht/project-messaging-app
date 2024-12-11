@@ -10,6 +10,10 @@ export default function DisplayTypingUsers(
   mode: 'overview' | 'precise',
 ) {
   if (!lastChatMessage) return null;
+  const lastMessageWriter =
+    lastChatMessage.user.username === username
+      ? 'You'
+      : lastChatMessage.user.username;
 
   // Chat message on newly created chat
   if (
@@ -17,11 +21,10 @@ export default function DisplayTypingUsers(
     lastChatMessage.content === 'created the Chat' &&
     mode === 'overview'
   ) {
-    return `${lastChatMessage.user.username === username ? 'You' : lastChatMessage?.user.username} created the Chat`;
+    return `${lastMessageWriter} created the Chat`;
   }
 
   if (!typingUsers && mode === 'overview') {
-    const lastMessageWriter = lastChatMessage.user.username;
     const lastMessageContent = lastChatMessage.content;
 
     const isUser =
