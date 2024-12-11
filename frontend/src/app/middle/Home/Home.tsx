@@ -16,6 +16,7 @@ import handleUserAddedToChat from '@/app/middle/Home/services/handleUserAddedToC
 import handleBeingAddedToChat from '@/app/middle/Home/services/handleBeingAddedToChat';
 import handleUserBeingDeletedFromChat from '@/app/middle/Home/services/handleUserBeingDeletedFromChat';
 import handleBeingDeletedFromChat from '@/app/middle/Home/services/handleBeingDeletedFromChat';
+import handleAdminStatusRemoved from '@/app/middle/Home/services/handleAdminStatusRemoved';
 
 // Left Components
 import OpenChatsButton from '@/app/left/OpenChatsButton';
@@ -160,6 +161,21 @@ export default function Home() {
       socket.current?.off('typing-users');
     };
   }, [user]);
+
+  // Handle admin status being removed
+  useEffect(() => {
+    handleAdminStatusRemoved(
+      user?.id,
+      setChats,
+      activeChat,
+      setActiveChat,
+      socket,
+    );
+
+    return () => {
+      socket.current?.off('admin-status-removed');
+    };
+  }, [activeChat, user?.id]);
 
   // handle notifications
   useEffect(() => {
