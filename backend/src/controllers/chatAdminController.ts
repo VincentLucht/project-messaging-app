@@ -70,6 +70,13 @@ class ChatAdminController {
           .json({ message: `Username ${other_username} not found` });
       }
 
+      // Don't allow user to remove admin status from themselves
+      if (user_id === otherUser.id) {
+        return res
+          .status(409)
+          .json({ message: "You can't remove admin status from yourself" });
+      }
+
       const isAdmin = await db.chatAdmin.isChatAdminById(chat_id, user_id);
       if (!isAdmin) {
         return res.status(403).json({ message: 'You are not an admin' });
@@ -94,7 +101,7 @@ class ChatAdminController {
       }
 
       const chatOwner = await db.chat.getOwnerById(chat_id, otherUser.id);
-      if (chatOwner?.id === otherUser.id) {
+      if (chatOwner?.owner_id === otherUser.id) {
         return res.status(403).json({
           message: "You can't remove admin status from the chat owner",
         });
