@@ -15,6 +15,7 @@ export default function handleAdminStatusRemoved(
     removerUsername: string,
     userIdToRemoveAdmin: string,
     usernameToRemoveAdmin: string,
+    shouldCreateMessage = true,
   ) => {
     const activeChatMembers = getActiveChatMembers(chatRooms, chatId)!;
     removeAdminStatus(
@@ -26,6 +27,7 @@ export default function handleAdminStatusRemoved(
       userIdToRemoveAdmin,
       usernameToRemoveAdmin,
       activeChatMembers,
+      shouldCreateMessage,
     );
   };
 }

@@ -15,41 +15,46 @@ export default async function removeAdminStatus(
   userIdToRemoveAdmin: string,
   usernameToRemoveAdmin: string,
   activeChatMembers: ActiveChatMembers,
+  shouldCreateMessage = true,
 ) {
-  // send message to db
-  const newMessage = await db.message.createMessage(
-    removerUserId,
-    chatId,
-    `removed Admin Role from ${usernameToRemoveAdmin}`,
-    true,
-  );
+  if (shouldCreateMessage) {
+    // send message to db
+    const newMessage = await db.message.createMessage(
+      removerUserId,
+      chatId,
+      `revoked the Admin Role from ${usernameToRemoveAdmin}`,
+      true,
+    );
 
-  // send message to chat
-  io.to(chatId).emit('new-message', {
-    userId: userIdToRemoveAdmin,
-    content: newMessage.content,
-    username: removerUsername,
-    activeChatMembers,
-    isSystemMessage: true,
-  });
+    // send message to chat
+    io.to(chatId).emit('new-message', {
+      userId: userIdToRemoveAdmin,
+      content: newMessage.content,
+      username: removerUsername,
+      activeChatMembers,
+      isSystemMessage: true,
+    });
 
-  // emit notification
-  io.to(`${chatId}:notifications`).emit('newMessageNotification', {
-    sentMessage: { ...newMessage, user: { username: removerUsername } },
-  });
+    // emit notification
+    io.to(`${chatId}:notifications`).emit('newMessageNotification', {
+      sentMessage: { ...newMessage, user: { username: removerUsername } },
+    });
+  }
 
   // send the id of the removed user to the notif room
   io.to(`${chatId}:notifications`).emit('admin-status-removed', {
     chatId,
     chatName,
     userIdToRemoveAdmin,
+    shouldNotify: shouldCreateMessage,
   });
 
-  // create messageread for the db
-  await createMessageReadForOnlineUsers(
-    activeChatMembers,
-    removerUsername,
-    chatId,
-    db,
-  );
+  if (shouldCreateMessage) {
+    await createMessageReadForOnlineUsers(
+      activeChatMembers,
+      removerUsername,
+      chatId,
+      db,
+    );
+  }
 }
