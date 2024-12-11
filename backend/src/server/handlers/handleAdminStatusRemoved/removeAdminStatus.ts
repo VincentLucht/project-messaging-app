@@ -49,6 +49,10 @@ export default async function removeAdminStatus(
     shouldNotify: shouldCreateMessage,
   });
 
+  if (!shouldCreateMessage) {
+    await db.chatAdmin.removeAdminStatus(chatId, userIdToRemoveAdmin);
+  }
+
   if (shouldCreateMessage) {
     await createMessageReadForOnlineUsers(
       activeChatMembers,
