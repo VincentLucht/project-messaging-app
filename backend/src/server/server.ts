@@ -2,28 +2,31 @@ import { Server, Socket } from 'socket.io';
 import db from '@/db/db';
 
 import typingUsers from '@/server/typingUsers/typingUsers';
-import { User } from '@prisma/client';
 
 // Controllers
 import tracker from '@/server/controllers/Tracker';
-import addUserToChat from '@/server/controllers/addUserToChat';
 import createChat from '@/server/controllers/createChat';
-import deleteUserFromChat from '@/server/controllers/deleteUserFromChat';
+
+// Handlers
+import handleUserAddedToChat from '@/server/handlers/handleUserAddedToChat/handleUserAddedToChat';
+import handleUserDeletedFromChat from '@/server/handlers/handleUserDeletedFromChat/handleUserDeletedFromChat';
+import handleAdminStatusRemoved from '@/server/handlers/handleAdminStatusRemoved/handleAdminStatusRemoved';
+
+import getActiveChatMembers from '@/server/util/getActiveChatMembers';
+
+// Types
+import { ChatRooms } from '@/server/interfaces/commonTypes';
 
 // Frontend types
 import { DBChatWithMembers } from '@/server/interfaces/frontendInterfaces';
 
 // track all rooms
-const chatRooms = new Map();
+const chatRooms: ChatRooms = new Map();
 // track user session for cleanup
 const userSessions = new Map();
 // track online users
 const onlineUsers = new Map<string, Set<string>>(); // username => socket id/s
 const socketToUser = new Map<string, Set<string>>(); // socket id => username
-
-function getActiveChatMembers(chatId: string) {
-  return chatRooms.get(chatId);
-}
 
 /**
  * Allows real time communication via socket.io.
@@ -40,24 +43,11 @@ export function setupSocketIO(httpServer: any) {
   io.on('connection', (socket: Socket) => {
     // Clean up event listeners on disconnect
     const cleanupEventListeners = () => {
-      // ! TODO: add removeAllListeners to EVERYTHING
-      socket.removeAllListeners('joinChatNotifications');
-      socket.removeAllListeners('leaveChatNotifications');
-      socket.removeAllListeners('getUnreadMessages');
-      socket.removeAllListeners('join-chat');
-      socket.removeAllListeners('user-added-to-chat');
-      socket.removeAllListeners('user-deleted-from-chat');
-      socket.removeAllListeners('change-chat-name');
-      socket.removeAllListeners('create-new-chat');
-      socket.removeAllListeners('leave-chat');
-      socket.removeAllListeners('send-message');
-      socket.removeAllListeners('typing');
-      socket.removeAllListeners('stopped-typing');
+      socket.removeAllListeners();
     };
 
     // track online user
     socket.on('user-connected', (data: { username: string }) => {
-      console.log(`${data.username} connected`);
       tracker.saveOnlineUsers(
         socket.id,
         data.username,
@@ -111,7 +101,9 @@ export function setupSocketIO(httpServer: any) {
           }
 
           // get users map from chat ID
-          const usersInChat = chatRooms.get(chatId);
+          const usersInChat = getActiveChatMembers(chatRooms, chatId);
+          if (!usersInChat) throw new Error(`Chat ID ${chatId} not found`);
+
           // add user to userInChat map
           usersInChat.set(username, {
             username,
@@ -142,7 +134,9 @@ export function setupSocketIO(httpServer: any) {
     socket.on('leave-chat', async (chatId: string, username: string) => {
       try {
         // remove user from room
-        const room = chatRooms.get(chatId);
+        const room = getActiveChatMembers(chatRooms, chatId);
+        if (!room) throw new Error('Room does not exist');
+
         room.delete(username);
         // delete if empty
         if (room.size === 0) {
@@ -188,49 +182,22 @@ export function setupSocketIO(httpServer: any) {
     // ! USER WAS ADDED TO CHAT
     socket.on(
       'user-added-to-chat',
-      async (
-        chatId: string,
-        userId: string,
-        username: string,
-        newUser: User,
-      ) => {
-        addUserToChat(
-          io,
-          socket,
-          chatId,
-          userId,
-          username,
-          newUser,
-          getActiveChatMembers(chatId),
-          onlineUsers,
-        );
-      },
+      handleUserAddedToChat(io, socket, chatRooms, onlineUsers),
     );
 
     // ! USER WAS DELETED FROM CHAT
+    // ! TODO: Fix admin status not being removed
     socket.on(
       'user-deleted-from-chat',
-      async (
-        chatId: string,
-        chatName: string,
-        removerUserId: string,
-        removerUsername: string,
-        userIdToDelete: string,
-        usernameToDelete: string,
-      ) => {
-        deleteUserFromChat(
-          io,
-          socket,
-          chatId,
-          chatName,
-          removerUserId,
-          removerUsername,
-          userIdToDelete,
-          usernameToDelete,
-          getActiveChatMembers(chatId),
-          onlineUsers,
-        );
-      },
+      handleUserDeletedFromChat(io, socket, chatRooms, onlineUsers),
+    );
+
+    // ! MAKE USER ADMIN
+
+    // ! REMOVE USER ADMIN
+    socket.on(
+      'remove-admin-status',
+      handleAdminStatusRemoved(io, socket, chatRooms, onlineUsers),
     );
 
     socket.on(
@@ -250,8 +217,8 @@ export function setupSocketIO(httpServer: any) {
             content,
           );
 
-          const activeChatMembers = getActiveChatMembers(chatId) || new Map();
-          console.log({ activeChatMembers });
+          const activeChatMembers =
+            getActiveChatMembers(chatRooms, chatId) || new Map();
 
           // send to other user
           io.to(chatId).emit('new-message', {
@@ -290,7 +257,6 @@ export function setupSocketIO(httpServer: any) {
 
     socket.on('typing', (data: { chatId: string; username: string }) => {
       typingUsers.addUsername(data.chatId, data.username);
-      // console.log(typingUsers);
       typingUsers.emit(data.chatId, socket);
     });
 
@@ -300,7 +266,6 @@ export function setupSocketIO(httpServer: any) {
         typingUsers.deleteUsername(data.chatId, data.username);
         typingUsers.emit(data.chatId, socket);
         typingUsers.clearTypingStatus(data.chatId, data.username);
-        // console.log(typingUsers);
       },
     );
 
