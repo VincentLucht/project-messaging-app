@@ -35,7 +35,7 @@ export default function onAddAdmin(
       toast.update(
         toastId,
         toastUpdateOptions(
-          `Successfully added Admin Status from ${usernameToAddAdmin}`,
+          `Successfully added Admin Status to ${usernameToAddAdmin}`,
           'success',
         ),
       );
