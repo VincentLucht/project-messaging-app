@@ -2,11 +2,10 @@ import { useState, Dispatch, SetStateAction } from 'react';
 import { BasicUser } from '@/app/interfaces/databaseSchema';
 import { Socket } from 'socket.io-client';
 
-import removeUserFromChat from '@/app/right/ActiveChat/components/ChatSettings/components/ChatMemberCard/components/api/removeUserFromChat';
 import './css/UserAdminOptions.css';
-
-import { toast } from 'react-toastify';
-import toastUpdateOptions from '@/app/components/ts/toastUpdateObject';
+import onRemoveUser from '@/app/right/ActiveChat/components/ChatSettings/components/ChatMemberCard/components/util/onRemoveUser';
+import onAddAdmin from '@/app/right/ActiveChat/components/ChatSettings/components/ChatMemberCard/components/util/onAddAdmin';
+import onRemoveAdmin from '@/app/right/ActiveChat/components/ChatSettings/components/ChatMemberCard/components/util/onRemoveAdmin';
 
 interface UserAdminOptionsInterface {
   socket: Socket | null;
@@ -14,8 +13,9 @@ interface UserAdminOptionsInterface {
   chatName: string;
   userId: string;
   username: string;
-  isUserAdmin: boolean;
+  isUserSelfAdmin: boolean;
   user: BasicUser;
+  isOtherUserAdmin: boolean;
   token: string;
   openAdminPanelId: string | null;
   setOpenAdminPanelId: Dispatch<SetStateAction<string | null>>;
@@ -27,7 +27,8 @@ export default function UserAdminOptions({
   chatName,
   userId,
   username,
-  isUserAdmin,
+  isUserSelfAdmin,
+  isOtherUserAdmin,
   user,
   token,
   openAdminPanelId,
@@ -47,53 +48,8 @@ export default function UserAdminOptions({
     }
   };
 
-  const onRemoveUser = () => {
-    if (confirm(`Are you sure you want to remove ${user.username}?`)) {
-      const toastId = toast.loading('Removing user...');
-
-      removeUserFromChat(chatId, userId, user.id, token)
-        .then(() => {
-          socket?.emit(
-            'user-deleted-from-chat',
-            chatId,
-            chatName,
-            userId,
-            username,
-            user.id,
-            user.username,
-          );
-
-          toast.update(
-            toastId,
-            toastUpdateOptions(
-              'Successfully removed user from chat',
-              'success',
-            ),
-          );
-
-          // setOpenAdminPanelId(null);
-        })
-        .catch((error: { error: string; message?: string }) => {
-          let errorMessage: string | undefined = '';
-          if (error.error) {
-            errorMessage = error.error;
-          } else {
-            errorMessage = error.message;
-          }
-
-          toast.update(
-            toastId,
-            toastUpdateOptions(
-              `${errorMessage ? errorMessage : 'Failed to remove user from the chat'}`,
-              'error',
-            ),
-          );
-        });
-    }
-  };
-
   return (
-    isUserAdmin && (
+    isUserSelfAdmin && (
       <div className="relative p-[6px] pt-1 df">
         {openAdminPanelId === user.id && (
           <div
@@ -101,9 +57,52 @@ export default function UserAdminOptions({
             flex-col gap-2 rounded bg-blue-500 p-4 text-white shadow-lg
             ${isClosing ? 'slide-out' : 'slide-in'}`}
           >
-            <button className="admin-panel-button">Remove Admin Role</button>
+            <button
+              className="admin-panel-button"
+              onClick={() => {
+                isOtherUserAdmin
+                  ? onRemoveAdmin(
+                      chatId,
+                      chatName,
+                      userId,
+                      username,
+                      user.id,
+                      user.username,
+                      token,
+                      socket,
+                      handleDropdownToggle,
+                    )
+                  : onAddAdmin(
+                      chatId,
+                      chatName,
+                      userId,
+                      username,
+                      user.id,
+                      user.username,
+                      token,
+                      socket,
+                      handleDropdownToggle,
+                    );
+              }}
+            >
+              {isOtherUserAdmin ? 'Remove Admin Role' : 'Add Admin Role'}
+            </button>
 
-            <button className="admin-panel-button" onClick={onRemoveUser}>
+            <button
+              className="admin-panel-button"
+              onClick={() =>
+                onRemoveUser(
+                  user,
+                  chatId,
+                  chatName,
+                  userId,
+                  username,
+                  token,
+                  socket,
+                  handleDropdownToggle,
+                )
+              }
+            >
               Remove User
             </button>
           </div>

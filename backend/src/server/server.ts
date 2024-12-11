@@ -10,6 +10,7 @@ import createChat from '@/server/controllers/createChat';
 // Handlers
 import handleUserAddedToChat from '@/server/handlers/handleUserAddedToChat/handleUserAddedToChat';
 import handleUserDeletedFromChat from '@/server/handlers/handleUserDeletedFromChat/handleUserDeletedFromChat';
+import handleAdminStatusAdded from '@/server/handlers/handleAdminStatusAdded/handleAdminStatusAdded';
 import handleAdminStatusRemoved from '@/server/handlers/handleAdminStatusRemoved/handleAdminStatusRemoved';
 
 import getActiveChatMembers from '@/server/util/getActiveChatMembers';
@@ -193,12 +194,10 @@ export function setupSocketIO(httpServer: any) {
     );
 
     // ! MAKE USER ADMIN
+    socket.on('add-admin-status', handleAdminStatusAdded(io, chatRooms));
 
     // ! REMOVE USER ADMIN
-    socket.on(
-      'remove-admin-status',
-      handleAdminStatusRemoved(io, socket, chatRooms, onlineUsers),
-    );
+    socket.on('remove-admin-status', handleAdminStatusRemoved(io, chatRooms));
 
     socket.on(
       'send-message',
