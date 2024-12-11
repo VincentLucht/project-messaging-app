@@ -4,6 +4,8 @@ import { Server, Socket } from 'socket.io';
 import db from '@/db/db';
 
 import createMessageReadForOnlineUsers from '@/controllers/util/createMessageReadForOnlineUsers';
+import { ActiveChatMembers } from '@/server/interfaces/commonTypes';
+import { OnlineUsers } from '@/server/interfaces/commonTypes';
 
 export default async function addUserToChat(
   io: Server,
@@ -12,8 +14,8 @@ export default async function addUserToChat(
   userId: string,
   username: string,
   newUser: User,
-  activeChatMembers: Map<string, { username: string; userId: string }>,
-  onlineUsers: Map<string, Set<string>>,
+  activeChatMembers: ActiveChatMembers,
+  onlineUsers: OnlineUsers,
 ) {
   const newMessage = await db.message.createMessage(
     userId,

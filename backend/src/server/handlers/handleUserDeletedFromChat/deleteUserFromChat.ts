@@ -4,6 +4,9 @@ import db from '@/db/db';
 
 import createMessageReadForOnlineUsers from '@/controllers/util/createMessageReadForOnlineUsers';
 
+import { ActiveChatMembers } from '@/server/interfaces/commonTypes';
+import { OnlineUsers } from '@/server/interfaces/commonTypes';
+
 export default async function deleteUserFromChat(
   io: Server,
   socket: Socket,
@@ -13,8 +16,8 @@ export default async function deleteUserFromChat(
   removerUsername: string,
   userIdToDelete: string,
   usernameToDelete: string,
-  activeChatMembers: Map<string, { username: string; userId: string }>,
-  onlineUsers: Map<string, Set<string>>,
+  activeChatMembers: ActiveChatMembers,
+  onlineUsers: OnlineUsers,
 ) {
   const newMessage = await db.message.createMessage(
     removerUserId,
@@ -49,7 +52,7 @@ export default async function deleteUserFromChat(
   if (deletedUser && deletedUser.size > 0) {
     // Send signal that they were removed from the chat
     for (const socketId of deletedUser) {
-      socket.to(socketId).emit('deleted-from-chat', { chatId });
+      socket.to(socketId).emit('deleted-from-chat', { chatId, chatName });
     }
   }
 
