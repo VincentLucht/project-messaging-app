@@ -4,6 +4,7 @@ import TextareaAutosize from 'react-textarea-autosize';
 import EditButton from '@/app/components/EditButton';
 
 import editChatDescription from '@/app/right/ActiveChat/components/ChatSettings/components/ChatDescription/api/editChatDescription';
+import sendMessage from '@/app/right/ActiveChat/components/ChatSettings/components/util/sendMessage';
 
 import { toast } from 'react-toastify';
 import toastUpdateOptions from '@/app/components/ts/toastUpdateObject';
@@ -12,6 +13,7 @@ import { Socket } from 'socket.io-client';
 interface ChatDescriptionProps {
   chatId: string;
   userId: string;
+  username: string;
   token: string;
   isUserAdmin: boolean;
   chatDescription: string | null;
@@ -21,6 +23,7 @@ interface ChatDescriptionProps {
 export default function ChatDescription({
   chatId,
   userId,
+  username,
   token,
   isUserAdmin,
   chatDescription,
@@ -39,7 +42,9 @@ export default function ChatDescription({
   useEffect(() => {
     setIsEditActive(false);
     setChangeChatDescription(false);
-  }, [chatId]);
+    setNewChatDescription(chatDescription);
+    setDisplayNewChatDescription('');
+  }, [chatId, chatDescription]);
 
   // Autofocus the change group name input
   useEffect(() => {
@@ -58,45 +63,37 @@ export default function ChatDescription({
       }
 
       const toastId = toast.loading('Updating Chat Description');
-      try {
-        editChatDescription(chatId, newChatDescription, userId, token)
-          .then(() => {
-            toast.update(
-              toastId,
-              toastUpdateOptions(
-                'Successfully changed Chat Description',
-                'success',
-              ),
-            );
+      editChatDescription(chatId, newChatDescription, userId, token)
+        .then(() => {
+          toast.update(
+            toastId,
+            toastUpdateOptions(
+              'Successfully changed Chat Description',
+              'success',
+            ),
+          );
 
-            setDisplayNewChatDescription(newChatDescription);
-            setChangeChatDescription(false);
+          setDisplayNewChatDescription(newChatDescription);
+          setChangeChatDescription(false);
 
-            // send signal that description changed
-            socket?.emit('change-chat-description', chatId, newChatDescription);
-          })
-          .catch((error) => {
-            toast.update(
-              toastId,
-              toastUpdateOptions(
-                `Failed to change Chat Description: ${(error as Error).message}`,
-                'success',
-              ),
-            );
-          });
-      } catch (error) {
-        toast.update(
-          toastId,
-          toastUpdateOptions(
-            `Failed to change Chat Description: ${(error as Error).message}`,
-            'error',
-          ),
-        );
-      }
+          socket?.emit('change-chat-description', chatId, newChatDescription);
+          const message = 'changed the Chat Description';
+          sendMessage(socket, chatId, userId, username, message, true);
+        })
+        .catch((error) => {
+          toast.update(
+            toastId,
+            toastUpdateOptions(
+              `Failed to change Chat Description: ${(error as Error).message}`,
+              'error',
+            ),
+          );
+        });
     }
   }, [
     chatId,
     userId,
+    username,
     token,
     changeChatDescription,
     newChatDescription,
