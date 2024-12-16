@@ -26,7 +26,7 @@ export default function Input({
         value={value}
         onChange={(e) => setValue(e.target.value)}
         required={isRequired}
-        className={className}
+        className={`${className} outline-none focus:ring-2 focus:ring-blue-400`}
       />
     </div>
   );
