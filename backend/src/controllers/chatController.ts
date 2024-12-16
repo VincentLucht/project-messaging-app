@@ -111,6 +111,34 @@ class ChatController {
     }
   });
 
+  changeGroupPFP = asyncHandler(async (req: Request, res: Response) => {
+    if (checkValidationError(req, res)) return;
+
+    const { chat_id, user_id, new_chat_pfp } = req.body;
+
+    try {
+      // check if chat exists
+      const doesChatExist = await db.chat.getChatById(chat_id);
+      if (!doesChatExist) {
+        return res.status(404).json({ message: 'Chat does not exist' });
+      }
+
+      // check if the user exists and is an admin
+      const isAdmin = await db.chatAdmin.isChatAdminById(chat_id, user_id);
+      if (!isAdmin) {
+        return res.status(403).json({ message: 'You are not an admin' });
+      }
+
+      await db.chat.changePFP(chat_id, new_chat_pfp);
+      return res.status(200).json({ message: 'Successfully changed chat PFP' });
+    } catch (error) {
+      return res.status(500).json({
+        message: 'Failed to change chat PFP',
+        error: (error as Error).message,
+      });
+    }
+  });
+
   changeChatDescription = asyncHandler(async (req: Request, res: Response) => {
     if (checkValidationError(req, res)) return;
 

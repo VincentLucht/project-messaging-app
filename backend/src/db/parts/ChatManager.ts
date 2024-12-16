@@ -167,6 +167,17 @@ export default class ChatManager {
     });
   }
 
+  async changePFP(chatId: string, newPFPUrl: string) {
+    await this.prisma.chat.update({
+      where: {
+        id: chatId,
+      },
+      data: {
+        profile_picture_url: newPFPUrl,
+      },
+    });
+  }
+
   async changeDescription(chatId: string, newDescriptionName: string) {
     await this.prisma.chat.update({
       where: {

@@ -54,6 +54,22 @@ class ChatValidator {
     ];
   }
 
+  changePFPRules() {
+    return [
+      body('chat_id').trim()
+        .notEmpty()
+        .withMessage('Chat ID is required'),
+
+      body('user_id').trim()
+        .notEmpty()
+        .withMessage('User ID is required'),
+
+      body('new_chat_pfp').trim()
+        .notEmpty()
+        .withMessage('New Chat PFP URL is required'),
+    ];
+  }
+
   changeChatDescriptionRules() {
     return [
       body('chat_id').trim()

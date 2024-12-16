@@ -50,6 +50,14 @@ router.put(
   chatController.changeChatName,
 );
 
+router.put(
+  '/chat/pfp',
+  token.extract,
+  token.verify,
+  chatValidator.changePFPRules(),
+  chatController.changeGroupPFP,
+);
+
 // change chat description
 router.put(
   '/chat/description',
