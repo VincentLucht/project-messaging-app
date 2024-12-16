@@ -1,14 +1,13 @@
 import { useState, Dispatch, SetStateAction } from 'react';
 import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
 
+import ChatPFP from '@/app/right/ActiveChat/components/ChatSettings/components/ChatPFP/ChatPFP';
 import ChatName from '@/app/right/ActiveChat/components/ChatSettings/components/ChatName/ChatName';
-
 import ChatDescription from '@/app/right/ActiveChat/components/ChatSettings/components/ChatDescription/ChatDescription';
 
 import AddChatMember from '@/app/right/ActiveChat/components/ChatSettings/components/AddChatMember/AddChatMember';
 import ChatMemberCard from '@/app/right/ActiveChat/components/ChatSettings/components/ChatMemberCard/ChatMemberCard';
 
-import LazyLoadImage from '@/app/components/LazyLoadImage';
 import CloseButton from '@/app/components/CloseButton';
 
 import dayjs from 'dayjs';
@@ -46,7 +45,7 @@ export default function ChatSettings({
   }
 
   return (
-    <div className="z-10 overflow-x-hidden p-4 pt-2 secondary-gray">
+    <div className="z-10 h-screen overflow-y-auto overflow-x-hidden p-4 pt-2 secondary-gray">
       <div className="mb-3 flex items-center justify-between">
         <CloseButton setterFunction={setShowChatSettings} />
 
@@ -56,19 +55,21 @@ export default function ChatSettings({
       {/* Section 1 */}
       <div>
         {/* Group PFP */}
-        <div className="mb-2 df">
-          <LazyLoadImage
-            src={chat.profile_picture_url ?? undefined}
-            alt="Group profile picture"
-            className="aspect-square h-full max-h-[200px] w-full max-w-[200px] rounded-full border
-              border-white object-cover"
-          />
-        </div>
+        <ChatPFP
+          chatId={chat.id}
+          userId={userId}
+          username={username}
+          token={token}
+          isUserAdmin={isUserAdmin}
+          profilePictureUrl={chat.profile_picture_url ?? undefined}
+          socket={socket}
+        />
 
         {/* Chat name */}
         <ChatName
           isUserAdmin={isUserAdmin}
           userId={userId}
+          username={username}
           chatName={chat.name}
           chatId={chat.id}
           token={token}
@@ -92,6 +93,7 @@ export default function ChatSettings({
         <ChatDescription
           chatId={chat.id}
           userId={userId}
+          username={username}
           token={token}
           isUserAdmin={isUserAdmin}
           chatDescription={chat.chat_description}
