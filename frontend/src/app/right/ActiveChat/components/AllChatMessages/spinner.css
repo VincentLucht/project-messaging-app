@@ -9,7 +9,7 @@
   border-top-color: #3b82f6;
 
   border-radius: 50%;
-  animation: spin 0.5s ease infinite;
+  animation: spin 1s ease infinite;
 }
 
 @keyframes spin {
