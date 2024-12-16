@@ -1,10 +1,12 @@
 import { Socket } from 'socket.io';
 
 export interface TypingUsersInterface {
-  [key: string]: any;
+  [chatId: string]: {
+    [username: string]: boolean;
+  };
 }
 
-class TypingUsers {
+export class TypingUsers {
   private chats: TypingUsersInterface;
   constructor() {
     this.chats = {};
