@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 import CloseButton from '@/app/components/CloseButton';
 
@@ -24,6 +24,13 @@ export default function AddChatMember({
 }: AddChatMemberProps) {
   const [otherUsername, setOtherUsername] = useState('');
   const [showAddChatMember, setShowAddChatMember] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (showAddChatMember) {
+      inputRef.current?.focus();
+    }
+  }, [showAddChatMember]);
 
   if (!isUserAdmin) return;
 
@@ -59,7 +66,8 @@ export default function AddChatMember({
                 value={otherUsername}
                 maxLength={30}
                 onChange={(e) => setOtherUsername(e.target.value)}
-                className="h-9 rounded-md px-2"
+                className="h-9 rounded-md px-2 outline-none focus:ring-2 focus:ring-blue-400"
+                ref={inputRef}
               />
 
               <button
