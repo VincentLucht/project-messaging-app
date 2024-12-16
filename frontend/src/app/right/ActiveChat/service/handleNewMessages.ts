@@ -38,8 +38,6 @@ export default function handleNewMessages(
         is_system_message: data.isSystemMessage ? true : false,
       };
 
-      console.log(newMessage);
-
       setMessages((prevMessages) => [newMessage, ...prevMessages]);
     },
   );

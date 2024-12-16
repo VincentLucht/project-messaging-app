@@ -18,8 +18,6 @@ class Tracker {
       socketToUser.set(socketId, new Set());
     }
     socketToUser.get(socketId)?.add(username);
-
-    console.log({ onlineUsers, socketToUser });
   }
 
   deleteOnlineUsers(
@@ -43,8 +41,6 @@ class Tracker {
       // Clean up the socket ID entry
       socketToUser.delete(socketId);
     }
-
-    console.log({ onlineUsers, socketToUser });
   }
 }
 
