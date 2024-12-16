@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
 import EditButton from '@/app/components/EditButton';
 import editGroupChatName from '@/app/right/ActiveChat/components/ChatSettings/components/ChatName/api/editGroupChatName';
+import sendMessage from '@/app/right/ActiveChat/components/ChatSettings/components/util/sendMessage';
 
 import { toast } from 'react-toastify';
 import toastUpdateOptions from '@/app/components/ts/toastUpdateObject';
@@ -10,6 +11,7 @@ import { Socket } from 'socket.io-client';
 interface ChatNameProps {
   isUserAdmin: boolean;
   userId: string;
+  username: string;
   chatId: string;
   chatName: string;
   token: string;
@@ -19,21 +21,24 @@ interface ChatNameProps {
 export default function ChatName({
   isUserAdmin,
   userId,
+  username,
   chatId,
   chatName,
   token,
   socket,
 }: ChatNameProps) {
   const [newChatName, setNewChatName] = useState(chatName);
-  const input = useRef<HTMLTextAreaElement>(null);
   const [isEditActive, setIsEditActive] = useState(false);
   const [changeChatName, setChangeChatName] = useState(false);
+
+  const input = useRef<HTMLTextAreaElement>(null);
 
   // Refresh on chat change
   useEffect(() => {
     setIsEditActive(false);
     setChangeChatName(false);
-  }, [chatId]);
+    setNewChatName(chatName);
+  }, [chatId, chatName]);
 
   // Autofocus the change group name input
   useEffect(() => {
@@ -59,6 +64,9 @@ export default function ChatName({
 
             // send signal that chat name change
             socket?.emit('change-chat-name', chatId, newChatName);
+
+            const message = `changed the Group Name from ${chatName} to ${newChatName}`;
+            sendMessage(socket, chatId, userId, username, message, true);
           })
           .catch(() => {
             toast.update(
@@ -78,7 +86,16 @@ export default function ChatName({
 
       setChangeChatName(false);
     }
-  }, [changeChatName, chatId, newChatName, token, userId, socket]);
+  }, [
+    changeChatName,
+    chatId,
+    chatName,
+    newChatName,
+    token,
+    userId,
+    username,
+    socket,
+  ]);
 
   const handleSubmit = () => {
     if (newChatName !== chatName) {
