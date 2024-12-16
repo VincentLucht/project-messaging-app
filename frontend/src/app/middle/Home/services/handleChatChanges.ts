@@ -7,7 +7,7 @@ import { User } from '@/app/middle/Home/Home';
 
 export default function handleChatChanges(
   chats: DBChatWithMembers[] | null,
-  setChats: (chats: DBChatWithMembers[]) => void,
+  setChats: Dispatch<SetStateAction<DBChatWithMembers[] | null>>,
   activeChat: DBChatWithMembers | null,
   setActiveChat: Dispatch<SetStateAction<DBChatWithMembers | null>>,
   user: User | null,
@@ -52,28 +52,58 @@ export default function handleChatChanges(
     (data: { chatId: string; newChatName: string }) => {
       const { chatId, newChatName } = data;
 
-      // update chat order
-      let updatedChat;
-      const filteredChat: DBChatWithMembers[] = [];
-      chats.forEach((chat) => {
-        if (chat.id === chatId) {
-          updatedChat = {
-            ...chat,
-            name: newChatName,
-          };
-        } else {
-          filteredChat.push(chat);
-        }
+      setChats((prevChats) => {
+        if (!prevChats) return prevChats;
+
+        return prevChats.map((chat) => {
+          if (chat.id === chatId) {
+            return {
+              ...chat,
+              name: newChatName,
+            };
+          } else {
+            return chat;
+          }
+        });
       });
 
-      if (updatedChat) {
-        filteredChat.unshift(updatedChat);
-        if (activeChat) {
-          setActiveChat(updatedChat);
-        }
-      }
+      if (activeChat?.id === chatId) {
+        setActiveChat((prev) => {
+          if (!prev) return null;
 
-      setChats(filteredChat);
+          return { ...prev, name: newChatName };
+        });
+      }
+    },
+  );
+
+  socket.on(
+    'chat-pfp-changed',
+    (data: { chatId: string; newPFPUrl: string }) => {
+      const { chatId, newPFPUrl } = data;
+
+      setChats((prevChats) => {
+        if (!prevChats) return prevChats;
+
+        return prevChats.map((chat) => {
+          if (chat.id === chatId) {
+            return {
+              ...chat,
+              profile_picture_url: newPFPUrl,
+            };
+          } else {
+            return chat;
+          }
+        });
+      });
+
+      if (activeChat?.id === chatId) {
+        setActiveChat((prev) => {
+          if (!prev) return null;
+
+          return { ...prev, profile_picture_url: newPFPUrl };
+        });
+      }
     },
   );
 
@@ -82,23 +112,31 @@ export default function handleChatChanges(
     (data: { chatId: string; newChatDescription: string }) => {
       const { chatId, newChatDescription } = data;
 
-      const newChats = chats.map((chat) => {
-        if (chat.id === chatId) {
-          return {
-            ...chat,
-            chat_description: newChatDescription,
-          };
-        } else {
-          return chat;
-        }
+      setChats((prevChats) => {
+        if (!prevChats) return prevChats;
+
+        return prevChats?.map((chat) => {
+          if (chat.id === chatId) {
+            return {
+              ...chat,
+              chat_description: newChatDescription,
+            };
+          } else {
+            return chat;
+          }
+        });
       });
 
-      if (activeChat) {
-        const newChat = newChats.find((chat) => chat.id === chatId) ?? null;
-        setActiveChat(newChat);
-      }
+      if (activeChat?.id === chatId) {
+        setActiveChat((prev) => {
+          if (!prev) return null;
 
-      setChats(newChats);
+          return {
+            ...prev,
+            chat_description: newChatDescription,
+          };
+        });
+      }
     },
   );
 }
