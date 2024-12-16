@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 
 export default function handleBeingDeletedFromChat(
   socket: React.RefObject<Socket> | null,
+  username: string | undefined,
   chats: DBChatWithMembers[] | null,
   setChats: Dispatch<SetStateAction<DBChatWithMembers[] | null>>,
   activeChat: DBChatWithMembers | null,
@@ -13,24 +14,30 @@ export default function handleBeingDeletedFromChat(
 ) {
   if (!socket || !chats) return;
 
-  socket.current?.on('deleted-from-chat', (data: { chatId: string }) => {
-    const { chatId } = data;
+  socket.current?.on(
+    'deleted-from-chat',
+    (data: { chatId: string; chatName: string }) => {
+      const { chatId, chatName } = data;
 
-    setChats((prevChats) => {
-      if (!prevChats) return prevChats;
+      socket.current?.emit('stopped-typing', { chatId, username });
 
-      return prevChats.filter((chat) => {
-        chat.id !== chatId;
-        toast.info(`You were removed from ${chat.name}`);
+      toast.info(`You were removed from Group "${chatName}"`);
+
+      setChats((prevChats) => {
+        if (!prevChats) return prevChats;
+
+        return prevChats.filter((chat) => {
+          return chat.id !== chatId;
+        });
       });
-    });
 
-    if (activeChat?.id === chatId) {
-      setActiveChat((prev) => {
-        if (!prev) return null;
+      if (activeChat?.id === chatId) {
+        setActiveChat((prev) => {
+          if (!prev) return null;
 
-        return null;
-      });
-    }
-  });
+          return null;
+        });
+      }
+    },
+  );
 }
