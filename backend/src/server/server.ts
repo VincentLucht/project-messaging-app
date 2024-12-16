@@ -8,6 +8,7 @@ import tracker from '@/server/controllers/Tracker';
 import createChat from '@/server/controllers/createChat';
 
 // Handlers
+import handleSendMessage from '@/server/handlers/handleSendMessage/handleSendMessage';
 import handleUserAddedToChat from '@/server/handlers/handleUserAddedToChat/handleUserAddedToChat';
 import handleUserDeletedFromChat from '@/server/handlers/handleUserDeletedFromChat/handleUserDeletedFromChat';
 import handleAdminStatusAdded from '@/server/handlers/handleAdminStatusAdded/handleAdminStatusAdded';
@@ -169,6 +170,14 @@ export function setupSocketIO(httpServer: any) {
       },
     );
 
+    // ! CHANGE PFP
+    socket.on('change-chat-pfp', async (chatId: string, newPFPUrl: string) => {
+      io.to(`${chatId}:notifications`).emit('chat-pfp-changed', {
+        chatId,
+        newPFPUrl,
+      });
+    });
+
     // ! CHANGE CHAT DESCRIPTION
     socket.on(
       'change-chat-description',
@@ -187,7 +196,6 @@ export function setupSocketIO(httpServer: any) {
     );
 
     // ! USER WAS DELETED FROM CHAT
-    // ! TODO: Fix admin status not being removed
     socket.on(
       'user-deleted-from-chat',
       handleUserDeletedFromChat(io, socket, chatRooms, onlineUsers),
@@ -201,57 +209,7 @@ export function setupSocketIO(httpServer: any) {
 
     socket.on(
       'send-message',
-      async (data: {
-        chatId: string;
-        userId: string;
-        username: string;
-        content: string;
-      }) => {
-        try {
-          const { chatId, userId, content, username } = data;
-
-          const newMessage = await db.message.createMessage(
-            userId,
-            chatId,
-            content,
-          );
-
-          const activeChatMembers =
-            getActiveChatMembers(chatRooms, chatId) || new Map();
-
-          // send to other user
-          io.to(chatId).emit('new-message', {
-            userId,
-            content,
-            username,
-            activeChatMembers: Object.fromEntries(activeChatMembers),
-          });
-
-          // create MessageRead for the DB
-          const activeChatMemberIds: string[] = [];
-          activeChatMembers.forEach(
-            (user: { username: string; userId: string }) => {
-              // avoid sender
-              if (user.username !== username) {
-                activeChatMemberIds.push(user.userId);
-              }
-            },
-          );
-
-          await db.messageRead.userReadAllMessages(chatId, activeChatMemberIds);
-
-          // send message as notification to other user
-          const sentMessage = { ...newMessage, user: { username } };
-          io.to(`${chatId}:notifications`).emit('newMessageNotification', {
-            sentMessage,
-          });
-
-          typingUsers.clearTypingStatus(chatId, username);
-        } catch (error) {
-          console.error('Error sending message:', error);
-          socket.emit('error', 'Failed to send message');
-        }
-      },
+      handleSendMessage(io, socket, chatRooms, typingUsers),
     );
 
     socket.on('typing', (data: { chatId: string; username: string }) => {
