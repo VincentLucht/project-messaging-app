@@ -137,13 +137,13 @@ describe('ChatAdmin Routes', () => {
     };
 
     describe('Success cases', () => {
-      it('should successfully make an user admin', async () => {
-        mockDB.user.getUserByUsername.mockResolvedValue(true);
+      it('should successfully remove admin status', async () => {
+        mockDB.user.getUserByUsername.mockResolvedValue({ id: 'otherUser' });
         mockDB.chatAdmin.isChatAdminById.mockResolvedValue(true);
         mockDB.userChats.isUserInsideChatByUsername.mockResolvedValue(true);
         mockDB.chatAdmin.isChatAdminByUsername.mockResolvedValue(true);
         mockDB.chatAdmin.makeUserAdminByUsername.mockResolvedValue(true);
-        mockDB.chat.getOwnerById.mockResolvedValue({ id: 'fake id' });
+        mockDB.chat.getOwnerById.mockResolvedValue(false);
 
         const response = await sendRequest({
           user_id: basicMockUser.id,
