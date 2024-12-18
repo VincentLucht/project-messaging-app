@@ -41,6 +41,18 @@ class UserChatsValidator {
         .withMessage('User ID of the removed user is required'),
     ];
   }
+
+  leaveChatRules() {
+    return [
+      body('chat_id').trim()
+        .isLength({ min: 1 })
+        .withMessage('Chat ID is required'),
+
+      body('user_id').trim()
+        .isLength({ min: 1 })
+        .withMessage('User ID of the requestor is required'),
+    ];
+  }
 }
 
 const userChatsValidator = new UserChatsValidator();

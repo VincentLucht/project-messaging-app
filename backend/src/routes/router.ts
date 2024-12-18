@@ -67,6 +67,14 @@ router.put(
   chatController.changeChatDescription,
 );
 
+router.delete(
+  '/chat',
+  token.extract,
+  token.verify,
+  chatValidator.deleteChatRules(),
+  chatController.deleteChat,
+);
+
 // ! MESSAGE
 // get messages from a single chat
 router.get(
@@ -131,6 +139,15 @@ router.delete(
   token.verify,
   userChatsValidator.deleteUserFromChatRules(),
   userChatsController.deleteUserFromChat,
+);
+
+// leave chat
+router.delete(
+  '/chat/user/leave',
+  token.extract,
+  token.verify,
+  userChatsValidator.leaveChatRules(),
+  userChatsController.leaveChat,
 );
 
 // ! CHAT_ADMIN

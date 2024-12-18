@@ -13,6 +13,7 @@ import handleUserAddedToChat from '@/server/handlers/handleUserAddedToChat/handl
 import handleUserDeletedFromChat from '@/server/handlers/handleUserDeletedFromChat/handleUserDeletedFromChat';
 import handleAdminStatusAdded from '@/server/handlers/handleAdminStatusAdded/handleAdminStatusAdded';
 import handleAdminStatusRemoved from '@/server/handlers/handleAdminStatusRemoved/handleAdminStatusRemoved';
+import handleLeaveChat from '@/server/handlers/handleLeaveChat/handleLeaveChat';
 
 import getActiveChatMembers from '@/server/util/getActiveChatMembers';
 
@@ -90,6 +91,7 @@ export function setupSocketIO(httpServer: any) {
     );
 
     // ! JOINING CHAT (user connects to room)
+    // ! TODO: Create handler
     socket.on(
       'join-chat',
       async (chatId: string, username: string, userId: string) => {
@@ -201,6 +203,11 @@ export function setupSocketIO(httpServer: any) {
       handleUserDeletedFromChat(io, socket, chatRooms, onlineUsers),
     );
 
+    socket.on(
+      'user-left-chat',
+      handleLeaveChat(io, socket, chatRooms, typingUsers),
+    );
+
     // ! MAKE USER ADMIN
     socket.on('add-admin-status', handleAdminStatusAdded(io, chatRooms));
 
@@ -226,6 +233,7 @@ export function setupSocketIO(httpServer: any) {
       },
     );
 
+    // ! TODO: Create handler
     socket.on('disconnect', () => {
       // Fetch user session info on disconnect
       const session = userSessions.get(socket.id); // Get user's chat details by socket.id

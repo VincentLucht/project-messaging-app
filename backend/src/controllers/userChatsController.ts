@@ -150,6 +150,47 @@ class UserChatsController {
       });
     }
   });
+
+  leaveChat = asyncHandler(async (req: Request, res: Response) => {
+    if (checkValidationError(req, res)) return;
+
+    const { chat_id, user_id } = req.body;
+
+    try {
+      const user = await db.user.getUserById(user_id);
+      if (!user) {
+        return res.status(404).json({ message: 'User does not exist' });
+      }
+
+      const chat = await db.chat.getAllChatMembers(chat_id);
+      if (!chat || !Array.isArray(chat)) {
+        return res.status(404).json({ message: 'Chat not found' });
+      }
+
+      const chatOwner = await db.chat.getOwnerById(chat_id, user_id);
+      const isOwner = chatOwner?.owner_id === user_id;
+      if (isOwner) {
+        if (chat.length > 1) {
+          return res.status(403).json({
+            message:
+              "As the owner, you can't leave the chat until you are the last person",
+          });
+        }
+      }
+
+      await db.userChats.deleteUserFromChat(chat_id, user_id);
+      if (isOwner) {
+        await db.chat.deleteChat(chat_id, user_id);
+      }
+
+      return res.status(204).send();
+    } catch (error) {
+      return res.status(500).json({
+        message: 'Failed to leave chat',
+        error: (error as Error).message,
+      });
+    }
+  });
 }
 
 const userChatsController = new UserChatsController();

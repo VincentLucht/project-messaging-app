@@ -277,4 +277,109 @@ describe('UserChats routes', () => {
       });
     });
   });
+
+  describe('DELETE /chat/user/leave', () => {
+    // ! TODO:
+    const sendRequest = (body: any) => {
+      return request(app)
+        .delete('/chat/user/leave')
+        .set('Authorization', `Bearer ${token}`)
+        .send(body);
+    };
+
+    describe('Success cases', () => {
+      it('should handle a user leaving successfully', async () => {
+        mockDB.user.getUserById.mockResolvedValue(true);
+        mockDB.chat.getAllChatMembers.mockResolvedValue([]);
+        mockDB.chat.getOwnerById.mockResolvedValue(false);
+
+        const response = await sendRequest({
+          chat_id: 'id',
+          user_id: 'userId',
+        });
+
+        expect(response.status).toBe(204);
+      });
+
+      it('should handle deleting the chat after the owner leaves', async () => {
+        mockDB.user.getUserById.mockResolvedValue({ id: 'ownerUser', name: 'Owner' }); // User exists
+        mockDB.chat.getAllChatMembers.mockResolvedValue([{ id: 'ownerUser', name: 'Owner' }]); // Only one member
+        mockDB.chat.getOwnerById.mockResolvedValue({ owner_id: 'ownerUser' }); // User is the owner
+        mockDB.userChats.deleteUserFromChat.mockResolvedValue(true); // User deletion
+        mockDB.chat.deleteChat.mockResolvedValue(true); // Chat deletion
+
+        const response = await sendRequest({
+          chat_id: 'chat_with_owner',
+          user_id: 'ownerUser',
+        });
+
+        expect(response.status).toBe(204);
+        expect(mockDB.user.getUserById).toHaveBeenCalledWith('ownerUser');
+        expect(mockDB.chat.getAllChatMembers).toHaveBeenCalledWith('chat_with_owner');
+        expect(mockDB.chat.getOwnerById).toHaveBeenCalledWith('chat_with_owner', 'ownerUser');
+        expect(mockDB.userChats.deleteUserFromChat).toHaveBeenCalledWith('chat_with_owner', 'ownerUser');
+        expect(mockDB.chat.deleteChat).toHaveBeenCalledWith('chat_with_owner', 'ownerUser');
+      });
+    });
+
+    describe('Error cases', () => {
+      it('should not allow user to leave chat when they are not last person', async () => {
+        mockDB.user.getUserById.mockResolvedValue({ id: 'ownerUser', name: 'Owner' });
+        mockDB.chat.getAllChatMembers.mockResolvedValue([{ id: 'ownerUser', name: 'Owner' }, { id: 'otherUser', name: 'other' }]); // 2 members
+        mockDB.chat.getOwnerById.mockResolvedValue({ owner_id: 'ownerUser' }); // User is the owner
+        mockDB.userChats.deleteUserFromChat.mockResolvedValue(true);
+
+        const response = await sendRequest({
+          chat_id: 'chat_with_owner',
+          user_id: 'ownerUser',
+        });
+
+        expect(response.status).toBe(403);
+        expect(mockDB.chat.deleteChat).not.toHaveBeenCalled();
+      });
+
+      it('should handle user not existing', async () => {
+        mockDB.user.getUserById.mockResolvedValue(false);
+
+        const response = await sendRequest({
+          chat_id: 'chat_with_owner',
+          user_id: 'ownerUser',
+        });
+
+        expect(response.status).toBe(404);
+        expect(response.body.message).toBe('User does not exist');
+      });
+
+      it('should handle chat not existing', async () => {
+        mockDB.user.getUserById.mockResolvedValue(true);
+        mockDB.chat.getChatById.mockResolvedValue(false);
+
+        const response = await sendRequest({
+          chat_id: 'chat_with_owner',
+          user_id: 'ownerUser',
+        });
+
+        expect(response.status).toBe(404);
+        expect(response.body.message).toBe('Chat not found');
+      });
+
+      it('should handle missing input fields', async () => {
+        const response = await sendRequest({});
+
+        expect(response.body.errors.length).toBe(2);
+      });
+
+      it('should handle db error', async () => {
+        mockDB.user.getUserById.mockRejectedValue('Database error');
+
+        const response = await sendRequest({
+          chat_id: 'chat_with_owner',
+          user_id: 'ownerUser',
+        });
+
+        expect(response.status).toBe(500);
+        expect(response.body.message).toBe('Failed to leave chat');
+      });
+    });
+  });
 });
