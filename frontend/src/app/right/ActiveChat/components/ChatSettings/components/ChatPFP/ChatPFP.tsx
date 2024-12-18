@@ -92,7 +92,7 @@ export default function ChatPFP({
           />
         </div>
 
-        {!isEditActive && (
+        {!isEditActive && isUserAdmin && (
           <div className="-mr-[20px] -mt-[170px]">
             <EditButton
               isEditActive={isEditActive}
@@ -104,7 +104,7 @@ export default function ChatPFP({
         )}
       </div>
 
-      {isEditActive && (
+      {isEditActive && isUserAdmin && (
         <div className="ml-2 flex justify-center pb-4 pt-2">
           <TextareaAutosize
             value={groupPFP}
