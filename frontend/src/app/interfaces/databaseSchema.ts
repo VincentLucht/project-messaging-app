@@ -36,6 +36,7 @@ export interface DBMessage {
     username: string;
   };
   MessageRead?: DBMessageRead[];
+  iv: string;
 }
 
 export interface DBMessageRead {
