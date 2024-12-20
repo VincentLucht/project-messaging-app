@@ -29,20 +29,20 @@ model User {
 }
 
 model Chat {
-  id                    String      @id @default(uuid())
-  name                  String      @db.VarChar(100)
-  time_created          DateTime    @default(now())
-  profile_picture_url   String?
-  is_group_chat         Boolean     @default(false)
-  chat_description      String?     @db.VarChar(200)
-  updated_at            DateTime    @updatedAt
-  last_message_id       String?     @unique
-  owner_id              String
-  owner                 User        @relation(fields: [owner_id], references: [id], onDelete: Cascade)
-  last_message          Message?    @relation("LastMessage", fields: [last_message_id], references: [id], onDelete: SetNull)
-  Messages              Message[]   @relation("ChatMessages")
-  UserChats             UserChats[]
-  ChatAdmins            ChatAdmin[]
+  id                  String      @id @default(uuid())
+  name                String      @db.VarChar(100)
+  time_created        DateTime    @default(now())
+  profile_picture_url String?
+  is_group_chat       Boolean     @default(false)
+  chat_description    String?     @db.VarChar(200)
+  updated_at          DateTime    @updatedAt
+  last_message_id     String?     @unique
+  owner_id            String
+  owner               User        @relation(fields: [owner_id], references: [id], onDelete: Cascade)
+  last_message        Message?    @relation("LastMessage", fields: [last_message_id], references: [id], onDelete: SetNull)
+  Messages            Message[]   @relation("ChatMessages")
+  UserChats           UserChats[]
+  ChatAdmins          ChatAdmin[]
 
   @@index([updated_at])
 }
@@ -58,6 +58,7 @@ model Message {
   chat_id           String
   last_message_chat Chat?         @relation("LastMessage")
   MessageRead       MessageRead[]
+  iv                String
 
   @@index([chat_id, time_created])
   @@index([chat_id, user_id])
