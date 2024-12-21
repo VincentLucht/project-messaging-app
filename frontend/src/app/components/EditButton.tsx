@@ -5,7 +5,7 @@ interface EditButtonProps {
   isUserAdmin: boolean;
   isEditActive: boolean;
   setIsEditActive: Dispatch<SetStateAction<boolean>>;
-  confirmSetterFunc: Dispatch<SetStateAction<boolean>>;
+  confirmSetterFunc?: Dispatch<SetStateAction<boolean>>;
   handleSubmit?: () => void;
   isDisabled?: boolean;
 }
@@ -57,7 +57,9 @@ export default function EditButton({
             } else if (isEditActive) {
               if (!handleSubmit) {
                 setIsEditActive(false);
-                confirmSetterFunc(true);
+                if (confirmSetterFunc) {
+                  confirmSetterFunc(true);
+                }
               } else {
                 handleSubmit();
               }
