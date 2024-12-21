@@ -1,11 +1,12 @@
 import express from 'express';
 
-import token from '../auth/token';
-import authController from '../auth/authController';
-import authValidator from '../auth/authValidator';
+import token from '@/auth/token';
+import authController from '@/auth/authController';
+import authValidator from '@/auth/authValidator';
 
 // user
-import userController from '../controllers/userController';
+import userController from '@/controllers/userController';
+import userValidator from '@/auth/validation/userValidator';
 
 // chat
 import chatValidator from '@/auth/validation/chatValidator';
@@ -172,7 +173,30 @@ router.delete(
   chatAdminController.removeUserAdmin,
 );
 
-// ? Authentication
+// ! USER
+// sign up
+
+// change name
+router.put(
+  '/user/name',
+  token.extract,
+  token.verify,
+  userValidator.changeNameRules(),
+  userController.changeName,
+);
+
+// change pfp
+
+// change user description
+router.put(
+  '/user/description',
+  token.extract,
+  token.verify,
+  userValidator.changeDescriptionRules(),
+  userController.changeDescription,
+);
+
+// ! Authentication
 router.post('/sign-up', authValidator.signUpRules(), userController.createUser);
 router.post('/login', authValidator.loginRules(), authController.logIn);
 

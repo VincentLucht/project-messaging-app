@@ -67,4 +67,28 @@ export default class UserManager {
 
     return users;
   }
+
+  async changePFP(userID: string, newPFP: string) {}
+
+  async changeName(userId: string, newName: string) {
+    await this.prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        name: newName,
+      },
+    });
+  }
+
+  async changeUserDescription(userId: string, newChatDescription: string) {
+    await this.prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        user_description: newChatDescription,
+      },
+    });
+  }
 }
