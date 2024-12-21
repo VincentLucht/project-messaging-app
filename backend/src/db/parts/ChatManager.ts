@@ -188,4 +188,14 @@ export default class ChatManager {
       },
     });
   }
+
+  // ! DELETE
+  async deleteChat(chatId: string, userId: string) {
+    await this.prisma.chat.delete({
+      where: {
+        id: chatId,
+        owner_id: userId,
+      },
+    });
+  }
 }

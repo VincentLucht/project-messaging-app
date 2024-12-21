@@ -77,10 +77,22 @@ class ChatValidator {
         .withMessage('Chat ID is required'),
 
       body('new_description_name')
-        .default('') // Add a default empty string if not provided
+        .default('')
         .trim()
         .isString()
         .withMessage('New Chat Description name must be a string'),
+
+      body('user_id').trim()
+        .notEmpty()
+        .withMessage('User ID is required'),
+    ];
+  }
+
+  deleteChatRules() {
+    return [
+      body('chat_id').trim()
+        .notEmpty()
+        .withMessage('Chat ID is required'),
 
       body('user_id').trim()
         .notEmpty()

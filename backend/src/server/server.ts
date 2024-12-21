@@ -14,6 +14,7 @@ import handleUserDeletedFromChat from '@/server/handlers/handleUserDeletedFromCh
 import handleAdminStatusAdded from '@/server/handlers/handleAdminStatusAdded/handleAdminStatusAdded';
 import handleAdminStatusRemoved from '@/server/handlers/handleAdminStatusRemoved/handleAdminStatusRemoved';
 import handleLeaveChat from '@/server/handlers/handleLeaveChat/handleLeaveChat';
+import handleDeleteChat from '@/server/handlers/handleDeleteChat/handleDeleteChat';
 
 import getActiveChatMembers from '@/server/util/getActiveChatMembers';
 
@@ -200,8 +201,17 @@ export function setupSocketIO(httpServer: any) {
     // ! USER WAS DELETED FROM CHAT
     socket.on(
       'user-deleted-from-chat',
-      handleUserDeletedFromChat(io, socket, chatRooms, onlineUsers),
+      handleUserDeletedFromChat(
+        io,
+        socket,
+        chatRooms,
+        onlineUsers,
+        typingUsers,
+      ),
     );
+
+    // ! OWNER DELETES CHAT
+    socket.on('user-deleted-chat', handleDeleteChat(io));
 
     socket.on(
       'user-left-chat',
@@ -209,10 +219,16 @@ export function setupSocketIO(httpServer: any) {
     );
 
     // ! MAKE USER ADMIN
-    socket.on('add-admin-status', handleAdminStatusAdded(io, chatRooms));
+    socket.on(
+      'add-admin-status',
+      handleAdminStatusAdded(io, socket, chatRooms, typingUsers),
+    );
 
     // ! REMOVE USER ADMIN
-    socket.on('remove-admin-status', handleAdminStatusRemoved(io, chatRooms));
+    socket.on(
+      'remove-admin-status',
+      handleAdminStatusRemoved(io, socket, chatRooms, typingUsers),
+    );
 
     socket.on(
       'send-message',

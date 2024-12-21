@@ -50,6 +50,7 @@ router.put(
   chatController.changeChatName,
 );
 
+// change chat pfp
 router.put(
   '/chat/pfp',
   token.extract,
@@ -67,6 +68,7 @@ router.put(
   chatController.changeChatDescription,
 );
 
+// delete chat
 router.delete(
   '/chat',
   token.extract,
@@ -85,6 +87,7 @@ router.get(
   messageController.getAllChatMessages,
 );
 
+// ! TODO: Remove? Not used, http server handles messages real time
 // create a message
 router.post(
   '/chat/message',

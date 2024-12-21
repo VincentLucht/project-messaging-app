@@ -19,6 +19,7 @@ import handleBeingDeletedFromChat from '@/app/middle/Home/services/handleBeingDe
 import handleAdminStatusAdded from '@/app/middle/Home/services/handleAdminStatusAdded';
 import handleAdminStatusRemoved from '@/app/middle/Home/services/handleAdminStatusRemoved';
 import handleLeaveChat from '@/app/middle/Home/services/handleLeaveChat';
+import handleChatDeletion from '@/app/middle/Home/services/handleChatDeletion';
 
 // Left Components
 import OpenChatsButton from '@/app/left/OpenChatsButton';
@@ -154,6 +155,22 @@ export default function Home() {
       socket.current?.off('deleted-from-chat');
     };
   }, [activeChat, chats, user?.username]);
+
+  // Handle chat deletion
+  useEffect(() => {
+    handleChatDeletion(
+      socket,
+      chats,
+      setChats,
+      activeChat,
+      setActiveChat,
+      user?.id,
+    );
+
+    return () => {
+      socket.current?.off('deleted-chat');
+    };
+  }, [chats, activeChat, user?.id]);
 
   // Handle user leaving chat
   useEffect(() => {

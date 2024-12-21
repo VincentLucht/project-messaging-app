@@ -7,6 +7,8 @@ import ChatDescription from '@/app/right/ActiveChat/components/ChatSettings/comp
 
 import AddChatMember from '@/app/right/ActiveChat/components/ChatSettings/components/AddChatMember/AddChatMember';
 import ChatMemberCard from '@/app/right/ActiveChat/components/ChatSettings/components/ChatMemberCard/ChatMemberCard';
+import LeaveChat from '@/app/right/ActiveChat/components/ChatSettings/components/LeaveChat/LeaveChat';
+import DeleteChat from '@/app/right/ActiveChat/components/ChatSettings/components/DeleteChat/DeleteChat';
 
 import CloseButton from '@/app/components/CloseButton';
 
@@ -139,6 +141,24 @@ export default function ChatSettings({
             />
           ))}
         </div>
+
+        <LeaveChat
+          socket={socket}
+          userId={userId}
+          username={username}
+          chatId={chat.id}
+          chatName={chat.name}
+          token={token}
+        />
+
+        <DeleteChat
+          socket={socket}
+          userId={userId}
+          chatId={chat.id}
+          chatName={chat.name}
+          token={token}
+          isOwner={chat.owner.id === userId}
+        />
       </div>
     </div>
   );

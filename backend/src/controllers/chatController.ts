@@ -153,8 +153,8 @@ class ChatController {
       }
 
       // check if chat exists
-      const doesChatExist = await db.chat.getChatById(chat_id);
-      if (!doesChatExist) {
+      const chat = await db.chat.getChatById(chat_id);
+      if (!chat) {
         return res.status(404).json({ message: 'Chat does not exist' });
       }
 
@@ -172,6 +172,33 @@ class ChatController {
     } catch (error) {
       return res.status(500).json({
         message: 'Failed to change chat description',
+        error: (error as Error).message,
+      });
+    }
+  });
+
+  // ! DELETE
+  deleteChat = asyncHandler(async (req: Request, res: Response) => {
+    if (checkValidationError(req, res)) return;
+
+    const { chat_id, user_id } = req.body;
+
+    try {
+      const chat = await db.chat.getChatById(chat_id);
+      if (!chat) {
+        return res.status(404).json({ message: 'Chat does not exist' });
+      }
+
+      if (user_id !== chat.owner_id) {
+        return res.status(403).json({ message: 'You are not the chat owner' });
+      }
+
+      await db.chat.deleteChat(chat_id, user_id);
+
+      return res.status(204).send();
+    } catch (error) {
+      return res.status(500).json({
+        message: 'Failed to delete chat',
         error: (error as Error).message,
       });
     }

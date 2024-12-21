@@ -407,4 +407,77 @@ describe('Chat Routes', () => {
       });
     });
   });
+
+  describe('DELETE /chat', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      jest.resetAllMocks();
+    });
+
+    const token = generateToken(basicMockUser.id, basicMockUser.name);
+    const sendRequest = (body: any) => {
+      return request(app)
+        .delete('/chat')
+        .set('Authorization', `Bearer ${token}`)
+        .send(body);
+    };
+
+    describe('Success cases', () => {
+      it('should successfully delete a chat', async () => {
+        mockDB.chat.getChatById.mockResolvedValue({ owner_id: basicMockUser.id });
+
+        const response = await sendRequest({
+          chat_id: mockChat.id,
+          user_id: basicMockUser.id,
+        });
+
+        expect(response.status).toBe(204);
+        expect(mockDB.chat.deleteChat).toHaveBeenCalled();
+      });
+    });
+
+    describe('Error cases', () => {
+      it('should handle chat not existing', async () => {
+        mockDB.chat.getChatById.mockResolvedValue(false);
+
+        const response = await sendRequest({
+          chat_id: mockChat.id,
+          user_id: basicMockUser.id,
+        });
+
+        expect(response.status).toBe(404);
+        expect(response.body.message).toBe('Chat does not exist');
+      });
+
+      it('should handle user not being the owner', async () => {
+        mockDB.chat.getChatById.mockResolvedValue({ owner_id: basicMockUser.id });
+
+        const response = await sendRequest({
+          chat_id: mockChat.id,
+          user_id: 'notOwner',
+        });
+
+        expect(response.status).toBe(403);
+        expect(response.body.message).toBe('You are not the chat owner');
+      });
+
+      it('should handle missing required inputs', async () => {
+        const response = await sendRequest({});
+
+        expect(response.body.errors.length).toBe(2);
+      });
+
+      it('should handle db error', async () => {
+        mockDB.chat.getChatById.mockResolvedValue({ owner_id: basicMockUser.id });
+        mockDB.chat.deleteChat.mockRejectedValue(new Error('Database error'));
+
+        const response = await sendRequest({
+          chat_id: mockChat.id,
+          user_id: basicMockUser.id,
+        });
+
+        expect(response.status).toBe(500);
+      });
+    });
+  });
 });
