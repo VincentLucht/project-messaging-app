@@ -26,6 +26,10 @@ export default function ChatCard({
     : dayjs(chat.time_created).format('HH:mm'); // ? show creation date of chat
 
   const getProfilePicture = () => {
+    if (!chat?.UserChats) {
+      return './placeholderPFP.jpg';
+    }
+
     let urlPath = '';
 
     if (chat.is_group_chat) {
