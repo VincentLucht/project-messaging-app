@@ -12,6 +12,7 @@ export default function onRemoveUser(
   username: string,
   token: string,
   socket: Socket | null,
+  isOtherUserAdmin: boolean,
   handleDropdownToggle: () => void,
 ) {
   if (confirm(`Are you sure you want to remove ${user.username}?`)) {
@@ -40,6 +41,7 @@ export default function onRemoveUser(
           user.id,
           user.username,
           false,
+          isOtherUserAdmin,
         );
 
         toast.update(

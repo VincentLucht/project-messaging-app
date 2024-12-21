@@ -99,6 +99,7 @@ export default function UserAdminOptions({
                   username,
                   token,
                   socket,
+                  isOtherUserAdmin,
                   handleDropdownToggle,
                 )
               }
