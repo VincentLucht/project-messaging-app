@@ -21,7 +21,7 @@ export default async function sendMessage(
   skipMemberShipCheck = false,
 ) {
   try {
-    if (!skipMemberShipCheck) {
+    if (skipMemberShipCheck) {
       const isInsideChat = await db.userChats.isUserInsideChat(chatId, userId);
       if (!isInsideChat) {
         socket.emit('error', 'You are not part of this chat anymore');
