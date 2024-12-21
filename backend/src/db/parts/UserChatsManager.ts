@@ -57,6 +57,9 @@ export default class UserChatsManager {
                   },
                 },
               },
+              orderBy: {
+                joined_at: 'asc',
+              },
             },
             ChatAdmins: {
               select: {
