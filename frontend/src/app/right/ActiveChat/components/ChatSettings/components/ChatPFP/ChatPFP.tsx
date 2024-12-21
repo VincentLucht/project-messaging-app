@@ -4,11 +4,12 @@ import EditButton from '@/app/components/EditButton';
 import LazyLoadImage from '@/app/components/LazyLoadImage';
 import TextareaAutosize from 'react-textarea-autosize';
 import editPFP from '@/app/right/ActiveChat/components/ChatSettings/components/ChatPFP/api/editPFP';
-import sendMessage from '@/app/right/ActiveChat/components/ChatSettings/components/util/sendMessage';
 import { toast } from 'react-toastify';
 import toastUpdateOptions from '@/app/components/ts/toastUpdateObject';
 
 import { Socket } from 'socket.io-client';
+import sendEncryptedMessage from '@/app/secure/sendEncryptedMessage';
+import { encryptMessage } from '@/app/secure/cryptoUtils';
 
 interface ChatPFPProps {
   chatId: string;
@@ -54,10 +55,22 @@ export default function ChatPFP({
 
       editPFP(chatId, groupPFP, userId, token)
         .then(() => {
+          if (!socket) throw new Error('No socket connections');
+
           socket?.emit('change-chat-pfp', chatId, groupPFP);
 
-          const message = 'changed the Group Profile Picture';
-          sendMessage(socket, chatId, userId, username, message, true);
+          const { encryptedMessage, iv } = encryptMessage(
+            'changed the Group Profile Picture',
+          );
+          sendEncryptedMessage(
+            socket,
+            chatId,
+            userId,
+            username,
+            encryptedMessage,
+            iv,
+            true,
+          );
 
           setChangePFP(false);
           toast.update(

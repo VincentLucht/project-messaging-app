@@ -79,6 +79,7 @@ export default class MessageManager {
     userId: string,
     chatId: string,
     content: string,
+    iv: string,
     isSystemMessage: boolean = false,
   ) {
     const message = await this.prisma.$transaction(async (transaction) => {
@@ -88,6 +89,7 @@ export default class MessageManager {
           user: { connect: { id: userId } },
           chat: { connect: { id: chatId } },
           content,
+          iv,
           is_system_message: isSystemMessage,
         },
       });

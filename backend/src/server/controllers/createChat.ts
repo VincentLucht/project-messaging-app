@@ -2,6 +2,7 @@ import { Server } from 'socket.io';
 import { DBChatWithMembers } from '@/server/interfaces/frontendInterfaces';
 
 import db from '@/db/db';
+import { encryptMessage } from '@/server/secure/cryptoUtils';
 
 export default async function createChat(
   io: Server,
@@ -10,10 +11,12 @@ export default async function createChat(
   newChat: DBChatWithMembers,
   onlineUsers: Map<string, Set<string>>,
 ) {
+  const { encryptedMessage, iv } = encryptMessage('created the Chat');
   const newMessage = await db.message.createMessage(
     userId,
     newChat.id,
-    'created the Chat',
+    encryptedMessage,
+    iv,
     true,
   );
 

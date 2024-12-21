@@ -9,6 +9,8 @@ import sendMessage from '@/app/right/ActiveChat/components/ChatSettings/componen
 import { toast } from 'react-toastify';
 import toastUpdateOptions from '@/app/components/ts/toastUpdateObject';
 import { Socket } from 'socket.io-client';
+import sendEncryptedMessage from '@/app/secure/sendEncryptedMessage';
+import { encryptMessage } from '@/app/secure/cryptoUtils';
 
 interface ChatDescriptionProps {
   chatId: string;
@@ -65,6 +67,8 @@ export default function ChatDescription({
       const toastId = toast.loading('Updating Chat Description');
       editChatDescription(chatId, newChatDescription, userId, token)
         .then(() => {
+          if (!socket) throw new Error('No socket connection');
+
           toast.update(
             toastId,
             toastUpdateOptions(
@@ -77,8 +81,19 @@ export default function ChatDescription({
           setChangeChatDescription(false);
 
           socket?.emit('change-chat-description', chatId, newChatDescription);
-          const message = 'changed the Chat Description';
-          sendMessage(socket, chatId, userId, username, message, true);
+
+          const { encryptedMessage, iv } = encryptMessage(
+            'changed the Chat Description',
+          );
+          sendEncryptedMessage(
+            socket,
+            chatId,
+            userId,
+            username,
+            encryptedMessage,
+            iv,
+            true,
+          );
         })
         .catch((error) => {
           toast.update(

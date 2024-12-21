@@ -14,23 +14,26 @@ export default function handleSendMessage(
   return async ({
     chatId,
     userId,
-    content,
+    encryptedMessage,
     username,
+    iv,
     isSystemMessage = false,
   }: {
     chatId: string;
     userId: string;
-    content: string;
     username: string;
+    encryptedMessage: string;
+    iv: string;
     isSystemMessage: boolean;
   }) => {
-    sendMessage(
+    await sendMessage(
       io,
       socket,
       chatId,
       userId,
       username,
-      content,
+      encryptedMessage,
+      iv,
       isSystemMessage,
       getActiveChatMembers(chatRooms, chatId)!,
       typingUsers,

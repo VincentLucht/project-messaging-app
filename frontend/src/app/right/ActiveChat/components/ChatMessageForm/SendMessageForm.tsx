@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
 import { Socket } from 'socket.io-client';
+import { encryptMessage } from '@/app/secure/cryptoUtils';
+import sendEncryptedMessage from '@/app/secure/sendEncryptedMessage';
 
 interface SendMessageFormProps {
   socket: Socket | null;
@@ -26,12 +28,15 @@ export default function SendMessageForm({
     }
 
     if (message !== '' && socket && chatName) {
-      socket.emit('send-message', {
+      const { encryptedMessage, iv } = encryptMessage(message);
+      sendEncryptedMessage(
+        socket,
         chatId,
         userId,
-        content: message,
         username,
-      });
+        encryptedMessage,
+        iv,
+      );
 
       setMessage('');
 

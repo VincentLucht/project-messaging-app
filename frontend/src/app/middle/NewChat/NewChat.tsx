@@ -14,6 +14,7 @@ import './css/NewChat.css';
 import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
 import { Socket } from 'socket.io-client';
 import generateTempId from '@/app/right/ActiveChat/util/generateTempId';
+import { encryptMessage } from '@/app/secure/cryptoUtils';
 
 interface NewChatProps {
   socket: Socket | null;
@@ -58,13 +59,15 @@ export default function NewChat({
           // Add unread count
           const { newChat } = response;
 
+          const { encryptedMessage, iv } = encryptMessage('created the Chat');
           setChats((prevChats) => [
             {
               ...newChat,
               unreadCount: 0,
               last_message: {
                 chat_id: generateTempId(),
-                content: 'created the Chat',
+                content: encryptedMessage,
+                iv,
                 id: generateTempId(),
                 is_system_message: true,
                 time_created: new Date().toISOString(),

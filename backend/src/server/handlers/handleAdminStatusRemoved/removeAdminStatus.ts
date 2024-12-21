@@ -1,13 +1,16 @@
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 
 import db from '@/db/db';
-
-import createMessageReadForOnlineUsers from '@/controllers/util/createMessageReadForOnlineUsers';
+import sendMessage from '@/server/handlers/handleSendMessage/sendMessage';
 
 import { ActiveChatMembers } from '@/server/interfaces/commonTypes';
+import { TypingUsers } from '@/server/typingUsers/typingUsers';
+import { encryptMessage } from '@/server/secure/cryptoUtils';
 
 export default async function removeAdminStatus(
   io: Server,
+  socket: Socket,
+  typingUsers: TypingUsers,
   chatId: string,
   chatName: string,
   removerUsername: string,
@@ -15,30 +18,26 @@ export default async function removeAdminStatus(
   userIdToRemoveAdmin: string,
   usernameToRemoveAdmin: string,
   activeChatMembers: ActiveChatMembers,
-  shouldCreateMessage = true,
+  shouldCreateMessage: boolean,
+  isOtherUserAdmin: boolean,
 ) {
   if (shouldCreateMessage) {
-    // send message to db
-    const newMessage = await db.message.createMessage(
-      removerUserId,
-      chatId,
+    const { encryptedMessage, iv } = encryptMessage(
       `revoked the Admin Role from ${usernameToRemoveAdmin}`,
-      true,
     );
-
-    // send message to chat
-    io.to(chatId).emit('new-message', {
-      userId: userIdToRemoveAdmin,
-      content: newMessage.content,
-      username: removerUsername,
+    await sendMessage(
+      io,
+      socket,
+      chatId,
+      removerUserId,
+      removerUsername,
+      encryptedMessage,
+      iv,
+      true,
       activeChatMembers,
-      isSystemMessage: true,
-    });
-
-    // emit notification
-    io.to(`${chatId}:notifications`).emit('newMessageNotification', {
-      sentMessage: { ...newMessage, user: { username: removerUsername } },
-    });
+      typingUsers,
+      false,
+    );
   }
 
   // send the id of the removed user to the notif room
@@ -49,16 +48,7 @@ export default async function removeAdminStatus(
     shouldNotify: shouldCreateMessage,
   });
 
-  if (!shouldCreateMessage) {
+  if (!shouldCreateMessage && isOtherUserAdmin) {
     await db.chatAdmin.removeAdminStatus(chatId, userIdToRemoveAdmin);
-  }
-
-  if (shouldCreateMessage) {
-    await createMessageReadForOnlineUsers(
-      activeChatMembers,
-      removerUsername,
-      chatId,
-      db,
-    );
   }
 }

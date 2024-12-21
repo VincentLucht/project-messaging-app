@@ -3,9 +3,11 @@ import { Server, Socket } from 'socket.io';
 
 import db from '@/db/db';
 
-import createMessageReadForOnlineUsers from '@/controllers/util/createMessageReadForOnlineUsers';
+import sendMessage from '@/server/handlers/handleSendMessage/sendMessage';
 import { ActiveChatMembers } from '@/server/interfaces/commonTypes';
 import { OnlineUsers } from '@/server/interfaces/commonTypes';
+import typingUsers from '@/server/typingUsers/typingUsers';
+import { encryptMessage } from '@/server/secure/cryptoUtils';
 
 export default async function addUserToChat(
   io: Server,
@@ -17,31 +19,27 @@ export default async function addUserToChat(
   activeChatMembers: ActiveChatMembers,
   onlineUsers: OnlineUsers,
 ) {
-  const newMessage = await db.message.createMessage(
-    userId,
-    chatId,
+  const { encryptedMessage, iv } = encryptMessage(
     `added ${newUser.username} to the Chat`,
+  );
+  const newMessage = await sendMessage(
+    io,
+    socket,
+    chatId,
+    userId,
+    username,
+    encryptedMessage,
+    iv,
+    true,
+    activeChatMembers,
+    typingUsers,
     true,
   );
-
-  // send message as user that you added another user
-  io.to(chatId).emit('new-message', {
-    userId,
-    content: `added ${newUser.username} to the Chat`,
-    username,
-    activeChatMembers,
-    isSystemMessage: true,
-  });
 
   // Emit to all users that a new user joined
   io.to(`${chatId}:notifications`).emit('new-user-added-to-chat', {
     chatId,
     newUser,
-  });
-
-  // send as notification
-  io.to(`${chatId}:notifications`).emit('newMessageNotification', {
-    sentMessage: { ...newMessage, user: { username } },
   });
 
   // Send the chat to the other user/s (if online)
@@ -71,11 +69,4 @@ export default async function addUserToChat(
         );
     }
   }
-
-  await createMessageReadForOnlineUsers(
-    activeChatMembers,
-    username,
-    chatId,
-    db,
-  );
 }

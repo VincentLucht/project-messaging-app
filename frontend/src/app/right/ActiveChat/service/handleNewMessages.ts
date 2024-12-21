@@ -4,6 +4,7 @@ import { DBMessageWithUser } from '@/app/interfaces/databaseSchema';
 
 import generateTempId from '@/app/right/ActiveChat/util/generateTempId';
 import createTempMessageRead from '@/app/right/ActiveChat/util/createTempMessageRead';
+import { decryptMessage } from '@/app/secure/cryptoUtils';
 
 export default function handleNewMessages(
   socket: Socket | null,
@@ -17,14 +18,18 @@ export default function handleNewMessages(
     (data: {
       userId: string;
       content: string;
+      iv: string;
       username: string;
       activeChatMembers: Map<string, { username: string; userId: string }>;
       isSystemMessage: boolean;
     }) => {
+      const decrypted = decryptMessage(data.content, data.iv);
+
       // add temp Message
       const newMessage: DBMessageWithUser = {
         id: generateTempId(),
-        content: data.content,
+        content: decrypted,
+        iv: data.iv,
         time_created: new Date().toISOString(),
         user_id: data.userId,
         chat_id: chatId,

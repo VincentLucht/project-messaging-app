@@ -1,13 +1,14 @@
-import { Server } from 'socket.io';
-
-import db from '@/db/db';
-
-import createMessageReadForOnlineUsers from '@/controllers/util/createMessageReadForOnlineUsers';
+import { Server, Socket } from 'socket.io';
 
 import { ActiveChatMembers } from '@/server/interfaces/commonTypes';
+import sendMessage from '@/server/handlers/handleSendMessage/sendMessage';
+import { TypingUsers } from '@/server/typingUsers/typingUsers';
+import { encryptMessage } from '@/server/secure/cryptoUtils';
 
 export default async function addAdminStatus(
   io: Server,
+  socket: Socket,
+  typingUsers: TypingUsers,
   chatId: string,
   chatName: string,
   removerUsername: string,
@@ -16,27 +17,22 @@ export default async function addAdminStatus(
   usernameToAddAdmin: string,
   activeChatMembers: ActiveChatMembers,
 ) {
-  // send message to db
-  const newMessage = await db.message.createMessage(
-    removerUserId,
-    chatId,
+  const { encryptedMessage, iv } = encryptMessage(
     `made ${usernameToAddAdmin} an Admin`,
-    true,
   );
-
-  // send message to chat
-  io.to(chatId).emit('new-message', {
-    userId: userIdToAddAdmin,
-    content: newMessage.content,
-    username: removerUsername,
+  await sendMessage(
+    io,
+    socket,
+    chatId,
+    removerUserId,
+    removerUsername,
+    encryptedMessage,
+    iv,
+    true,
     activeChatMembers,
-    isSystemMessage: true,
-  });
-
-  // emit notification
-  io.to(`${chatId}:notifications`).emit('newMessageNotification', {
-    sentMessage: { ...newMessage, user: { username: removerUsername } },
-  });
+    typingUsers,
+    false,
+  );
 
   // send user info to chat
   io.to(`${chatId}:notifications`).emit('admin-status-added', {
@@ -44,11 +40,4 @@ export default async function addAdminStatus(
     chatName,
     userIdToAddAdmin,
   });
-
-  await createMessageReadForOnlineUsers(
-    activeChatMembers,
-    removerUsername,
-    chatId,
-    db,
-  );
 }

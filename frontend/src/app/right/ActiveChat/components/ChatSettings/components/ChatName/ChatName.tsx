@@ -7,6 +7,8 @@ import sendMessage from '@/app/right/ActiveChat/components/ChatSettings/componen
 import { toast } from 'react-toastify';
 import toastUpdateOptions from '@/app/components/ts/toastUpdateObject';
 import { Socket } from 'socket.io-client';
+import sendEncryptedMessage from '@/app/secure/sendEncryptedMessage';
+import { encryptMessage } from '@/app/secure/cryptoUtils';
 
 interface ChatNameProps {
   isUserAdmin: boolean;
@@ -57,6 +59,7 @@ export default function ChatName({
       try {
         editGroupChatName(chatId, userId, newChatName, token)
           .then(() => {
+            if (!socket) throw new Error('No socket connection');
             toast.update(
               toastId,
               toastUpdateOptions('Successfully changed Chat Name', 'success'),
@@ -65,8 +68,18 @@ export default function ChatName({
             // send signal that chat name change
             socket?.emit('change-chat-name', chatId, newChatName);
 
-            const message = `changed the Group Name from ${chatName} to ${newChatName}`;
-            sendMessage(socket, chatId, userId, username, message, true);
+            const { encryptedMessage, iv } = encryptMessage(
+              `changed the Group Name from "${chatName}" to "${newChatName}"`,
+            );
+            sendEncryptedMessage(
+              socket,
+              chatId,
+              userId,
+              username,
+              encryptedMessage,
+              iv,
+              true,
+            );
           })
           .catch(() => {
             toast.update(

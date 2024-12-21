@@ -1,11 +1,10 @@
 import { Server, Socket } from 'socket.io';
 
-import db from '@/db/db';
-
-import createMessageReadForOnlineUsers from '@/controllers/util/createMessageReadForOnlineUsers';
-
 import { ActiveChatMembers } from '@/server/interfaces/commonTypes';
 import { OnlineUsers } from '@/server/interfaces/commonTypes';
+import sendMessage from '@/server/handlers/handleSendMessage/sendMessage';
+import { TypingUsers } from '@/server/typingUsers/typingUsers';
+import { encryptMessage } from '@/server/secure/cryptoUtils';
 
 export default async function deleteUserFromChat(
   io: Server,
@@ -18,29 +17,25 @@ export default async function deleteUserFromChat(
   usernameToDelete: string,
   activeChatMembers: ActiveChatMembers,
   onlineUsers: OnlineUsers,
+  typingUsers: TypingUsers,
 ) {
-  const newMessage = await db.message.createMessage(
-    removerUserId,
-    chatId,
+  const { encryptedMessage, iv } = encryptMessage(
     `removed ${usernameToDelete} from the Chat`,
+  );
+  await sendMessage(
+    io,
+    socket,
+    chatId,
+    removerUserId,
+    removerUsername,
+    encryptedMessage,
+    iv,
     true,
+    activeChatMembers,
+    typingUsers,
   );
 
-  // send message that user removed other user from chat
-  io.to(chatId).emit('new-message', {
-    userId: userIdToDelete,
-    content: newMessage.content,
-    username: removerUsername,
-    activeChatMembers,
-    isSystemMessage: true,
-  });
-
-  // emit notification
-  io.to(`${chatId}:notifications`).emit('newMessageNotification', {
-    sentMessage: { ...newMessage, user: { username: removerUsername } },
-  });
-
-  // send the removedUserId + chat id to the notification room
+  // Send the removedUserId + chat id to the notification room
   io.to(`${chatId}:notifications`).emit('deleted-user-from-chat', {
     chatId,
     chatName,
@@ -55,12 +50,4 @@ export default async function deleteUserFromChat(
       socket.to(socketId).emit('deleted-from-chat', { chatId, chatName });
     }
   }
-
-  // create MessageRead for the DB
-  await createMessageReadForOnlineUsers(
-    activeChatMembers,
-    removerUsername,
-    chatId,
-    db,
-  );
 }

@@ -4,12 +4,14 @@ import { OnlineUsers } from '@/server/interfaces/commonTypes';
 
 import deleteUserFromChat from '@/server/handlers/handleUserDeletedFromChat/deleteUserFromChat';
 import getActiveChatMembers from '@/server/util/getActiveChatMembers';
+import { TypingUsers } from '@/server/typingUsers/typingUsers';
 
 export default function handleUserDeletedFromChat(
   io: Server,
   socket: Socket,
   chatRooms: ChatRooms,
   onlineUsers: OnlineUsers,
+  typingUsers: TypingUsers,
 ) {
   return async (
     chatId: string,
@@ -31,6 +33,7 @@ export default function handleUserDeletedFromChat(
       usernameToDelete,
       activeChatMembers,
       onlineUsers,
+      typingUsers,
     );
   };
 }

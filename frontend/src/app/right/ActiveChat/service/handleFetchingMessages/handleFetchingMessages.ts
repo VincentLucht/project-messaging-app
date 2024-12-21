@@ -5,6 +5,7 @@ import fetchChatMessages from '@/app/right/ActiveChat/service/handleFetchingMess
 import { Dispatch, SetStateAction } from 'react';
 import { DBMessageWithUser } from '@/app/interfaces/databaseSchema';
 import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
+import { decryptMessage } from '@/app/secure/cryptoUtils';
 
 export default function handleFetchingMessages(
   userId: string,
@@ -21,7 +22,10 @@ export default function handleFetchingMessages(
     .then((response) => {
       setMessages((prevMessages) => [
         ...prevMessages,
-        ...response.allMessages.messages,
+        ...response.allMessages.messages.map((message) => ({
+          ...message,
+          content: decryptMessage(message.content, message.iv),
+        })),
       ]);
 
       setHasMore(response.allMessages.hasMore);
@@ -35,7 +39,7 @@ export default function handleFetchingMessages(
               ...prevChat,
               messages: [
                 ...(prevChat.messages ?? []),
-                ...response.allMessages.messages,
+                ...response.allMessages.messages, // ? TODO: Change here?
               ],
               page: messagePage,
               hasMore: response.allMessages.hasMore,

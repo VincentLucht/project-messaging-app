@@ -12,25 +12,36 @@ export default async function sendMessage(
   chatId: string,
   userId: string,
   username: string,
-  content: string,
+  encryptedMessage: string,
+  iv: string,
   isSystemMessage: boolean,
   activeChatMembers: ActiveChatMembers,
   typingUsers: TypingUsers,
+  returnMessage = false,
+  skipMemberShipCheck = false,
 ) {
   try {
-    console.log({ username, userId, content });
+    if (!skipMemberShipCheck) {
+      const isInsideChat = await db.userChats.isUserInsideChat(chatId, userId);
+      if (!isInsideChat) {
+        socket.emit('error', 'You are not part of this chat anymore');
+        return;
+      }
+    }
 
     const newMessage = await db.message.createMessage(
       userId,
       chatId,
-      content,
+      encryptedMessage,
+      iv,
       isSystemMessage,
     );
 
     // send to other user
     io.to(chatId).emit('new-message', {
       userId,
-      content,
+      content: encryptedMessage,
+      iv,
       username,
       activeChatMembers: Object.fromEntries(activeChatMembers),
       isSystemMessage,
@@ -49,6 +60,10 @@ export default async function sendMessage(
       chatId,
       db,
     );
+
+    if (returnMessage) {
+      return newMessage;
+    }
   } catch (error) {
     console.error('Error sending message:', error);
     socket.emit('error', 'Failed to send message');
