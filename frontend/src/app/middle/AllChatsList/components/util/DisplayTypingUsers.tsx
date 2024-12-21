@@ -1,6 +1,7 @@
 import { DBMessage } from '@/app/interfaces/databaseSchema';
 import { TypingUsersChat } from '@/app/interfaces/TypingUsers';
-import parseUsername from '@/app/right/ActiveChat/components/util/ParseUsername';
+import parseUsername from '@/app/right/ActiveChat/components/util/parseUsername';
+import { decryptMessage } from '@/app/secure/cryptoUtils';
 
 export default function DisplayTypingUsers(
   typingUsers: TypingUsersChat,
@@ -14,24 +15,27 @@ export default function DisplayTypingUsers(
     lastChatMessage.user.username === username
       ? 'You'
       : lastChatMessage.user.username;
+  const decryptedMessage = decryptMessage(
+    lastChatMessage.content,
+    lastChatMessage.iv,
+  );
 
   // Chat message on newly created chat
   if (
     lastChatMessage.is_system_message &&
-    lastChatMessage.content === 'created the Chat' &&
+    decryptedMessage === 'created the Chat' &&
     mode === 'overview'
   ) {
     return `${lastMessageWriter} created the Chat`;
   }
 
   if (!typingUsers && mode === 'overview') {
-    const lastMessageContent = lastChatMessage.content;
+    const lastMessageContent = decryptedMessage;
 
-    const isUser =
-      parseUsername(lastMessageContent, username, 'last-message') === 'You';
+    const parsedMessage = parseUsername(lastMessageContent, username);
 
     return lastChatMessage.is_system_message
-      ? `${lastMessageWriter} ${isUser ? 'added You to the chat' : lastMessageContent}`
+      ? `${lastMessageWriter} ${parsedMessage}`
       : `${lastMessageWriter}: ${lastMessageContent}`;
   } else if (!typingUsers && mode === 'precise') {
     return null;
@@ -40,7 +44,7 @@ export default function DisplayTypingUsers(
   const typingUsersLength = Object.keys(typingUsers).length;
 
   if (typingUsersLength === 0) {
-    return lastChatMessage.content;
+    return decryptedMessage;
   }
 
   if (typingUsersLength === 1) {
