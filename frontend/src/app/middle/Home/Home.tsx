@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { Routes, Route } from 'react-router-dom';
 import { useAuth } from '@/app/auth/context/hooks/useAuth';
 import useIsMobile from '@/app/components/hooks/useIsMobile';
 import { JwtPayload } from 'jwt-decode';
@@ -7,6 +6,7 @@ import { JwtPayload } from 'jwt-decode';
 import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
 import { Socket, io } from 'socket.io-client';
 import { TypingUsers } from '@/app/interfaces/TypingUsers';
+import { Location } from '@/app/interfaces/location';
 
 // useEffect function
 import handleChatChanges from '@/app/middle/Home/services/handleChatChanges';
@@ -46,6 +46,7 @@ export default function Home() {
   const [typingUsers, setTypingUsers] = useState<TypingUsers>({});
   const socket = useRef<Socket | null>(null);
   const joinedChats = useRef<Set<string>>(new Set());
+  const [location, setLocation] = useState<Location>('home');
 
   const { user, token, isLoggedIn, logout } = useAuth();
   const isMobile = useIsMobile();
@@ -269,32 +270,46 @@ export default function Home() {
         className={`flex flex-col gap-4
           ${isMobile ? 'order-last' : 'order-first p-3 secondary-gray'}`}
       >
-        <OpenChatsButton />
-        <OpenUserProfileButton imgUrl={user?.profile_picture_url} />
-        <button onClick={() => console.log(chats)}>Log chats</button>
-        <button onClick={() => console.log(activeChat)}>Log Active Chat</button>
+        <OpenChatsButton location={location} setLocation={setLocation} />
+        <OpenUserProfileButton
+          imgUrl={user?.profile_picture_url}
+          location={location}
+          setLocation={setLocation}
+        />
       </nav>
 
       {/* MIDDLE */}
-      <main className="min-w-0 bg-blue-900/20">
-        <Routes>
-          <Route path="/user" element={<UserProfile />} />
-          <Route
-            path="/*"
-            element={
-              <ChatSection
-                chats={chats}
-                setChats={setChats}
-                activeChat={activeChat}
-                setActiveChat={setActiveChat}
-                username={user.username}
-                typingUsers={typingUsers}
-                socket={socket.current}
-                isMobile={isMobile}
-              />
-            }
-          />
-        </Routes>
+      <main className="relative min-w-0 overflow-hidden bg-blue-900/20">
+        <div className="absolute inset-0">
+          <div
+            className={`absolute inset-0 transition-all duration-300 ease-in-out ${
+              location === 'home'
+                ? 'pointer-events-auto translate-y-0 opacity-100'
+                : 'pointer-events-none translate-y-[-100%] opacity-0'
+                }`}
+          >
+            <ChatSection
+              chats={chats}
+              setChats={setChats}
+              activeChat={activeChat}
+              setActiveChat={setActiveChat}
+              username={user.username}
+              typingUsers={typingUsers}
+              socket={socket.current}
+              isMobile={isMobile}
+            />
+          </div>
+
+          <div
+            className={`absolute inset-0 transition-all duration-300 ease-in-out ${
+              location === 'user'
+                ? 'pointer-events-auto translate-y-0 opacity-100'
+                : 'pointer-events-none translate-y-[100%] opacity-0'
+            }`}
+          >
+            <UserProfile />
+          </div>
+        </div>
       </main>
 
       {/* RIGHT SIDE */}

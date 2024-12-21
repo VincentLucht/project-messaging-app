@@ -1,19 +1,23 @@
-import { useNavigate } from 'react-router-dom';
-import { useLocation } from 'react-router-dom';
+import { Location } from '@/app/interfaces/location';
+import { Dispatch, SetStateAction } from 'react';
 
-export default function OpenChatsButton() {
-  const navigate = useNavigate();
-  const url = useLocation();
-
+interface OpenChatsButtonProps {
+  location: Location;
+  setLocation: Dispatch<SetStateAction<Location>>;
+}
+export default function OpenChatsButton({
+  location,
+  setLocation,
+}: OpenChatsButtonProps) {
   let imgPath;
-  if (url.pathname === '/chats' || url.pathname === '/') {
+  if (location === 'home') {
     imgPath = './chatIcon.svg';
   } else {
     imgPath = './chatIconOutline.svg';
   }
 
   return (
-    <button onClick={() => navigate('/chats')}>
+    <button onClick={() => setLocation('home')}>
       <img src={imgPath} alt="Go to chats" />
     </button>
   );
