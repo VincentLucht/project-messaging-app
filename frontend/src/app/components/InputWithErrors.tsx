@@ -12,6 +12,7 @@ interface LoginInputProps {
   otherFunc?: (value: string) => void; // ? additional function f.e. for sending activity
   containerClassName?: string;
   className?: string;
+  skipPlaceHolder?: string;
 }
 
 export function InputWithErrors({
@@ -24,8 +25,15 @@ export function InputWithErrors({
   otherFunc,
   containerClassName,
   className,
+  skipPlaceHolder,
 }: LoginInputProps) {
-  const fieldName = placeholder.toLowerCase();
+  let fieldName = '';
+  if (skipPlaceHolder) {
+    fieldName = skipPlaceHolder.toLowerCase();
+  } else {
+    fieldName = placeholder.toLowerCase();
+  }
+
   let hasError;
   if (errors) {
     hasError = errors[fieldName] !== undefined;
@@ -45,7 +53,7 @@ export function InputWithErrors({
           hasError
             ? 'border-red-500'
             : 'border-transparent hover:border-white focus:border-transparent'
-        }`}
+          }`}
       />
 
       {imgPath && (
