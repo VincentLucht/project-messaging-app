@@ -1,4 +1,11 @@
-import { FormEvent, useState, Dispatch, SetStateAction } from 'react';
+import {
+  FormEvent,
+  useState,
+  useEffect,
+  useRef,
+  Dispatch,
+  SetStateAction,
+} from 'react';
 import { useAuth } from '@/app/auth/context/hooks/useAuth';
 
 import { toast } from 'react-toastify';
@@ -19,12 +26,14 @@ import { encryptMessage } from '@/app/secure/cryptoUtils';
 interface NewChatProps {
   socket: Socket | null;
   setChats: Dispatch<SetStateAction<DBChatWithMembers[] | null>>;
+  showCreateChat: boolean;
   setShowCreateChat: Dispatch<SetStateAction<boolean>>;
 }
 
 export default function NewChat({
   socket,
   setChats,
+  showCreateChat,
   setShowCreateChat,
 }: NewChatProps) {
   const [isGroupChat, setIsGroupChat] = useState(false);
@@ -36,6 +45,13 @@ export default function NewChat({
   const [errors, setErrors] = useState('');
   const [incorrectUsers, setIncorrectUsers] = useState<string[]>([]);
   const { user, token } = useAuth();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (inputRef.current && showCreateChat) {
+      inputRef.current.focus();
+    }
+  }, [showCreateChat]);
 
   // ! TODO: Put into different file??
   const onSubmit = (e: FormEvent) => {
@@ -163,6 +179,7 @@ export default function NewChat({
           isRequired={true}
           classNameWrapper="new-chat-input-wrapper"
           className="new-chat-input df"
+          ref={inputRef}
         />
 
         {isGroupChat && (

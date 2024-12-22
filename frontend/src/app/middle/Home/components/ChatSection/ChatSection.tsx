@@ -1,4 +1,4 @@
-import { useState, Dispatch, SetStateAction } from 'react';
+import { Dispatch, SetStateAction } from 'react';
 import NewChat from '@/app/middle/NewChat/NewChat';
 import AllChatsList from '@/app/middle/AllChatsList/AllChatsList';
 
@@ -11,6 +11,8 @@ interface ChatSectionProps {
   setChats: Dispatch<SetStateAction<DBChatWithMembers[] | null>>;
   activeChat: DBChatWithMembers | null;
   setActiveChat: Dispatch<SetStateAction<DBChatWithMembers | null>>;
+  showCreateChat: boolean;
+  setShowCreateChat: Dispatch<SetStateAction<boolean>>;
   username: string;
   typingUsers: TypingUsers;
   socket: Socket | null;
@@ -22,13 +24,13 @@ export default function ChatSection({
   setChats,
   activeChat,
   setActiveChat,
+  showCreateChat,
+  setShowCreateChat,
   username,
   typingUsers,
   socket,
   isMobile,
 }: ChatSectionProps) {
-  const [showCreateChat, setShowCreateChat] = useState(false);
-
   return (
     <div>
       <div className="bg-blue-500 px-5 py-2">
@@ -55,10 +57,12 @@ export default function ChatSection({
           <NewChat
             socket={socket}
             setChats={setChats}
+            showCreateChat={showCreateChat}
             setShowCreateChat={setShowCreateChat}
           />
         </div>
       </div>
+
       <AllChatsList
         chats={chats}
         setChats={setChats}
