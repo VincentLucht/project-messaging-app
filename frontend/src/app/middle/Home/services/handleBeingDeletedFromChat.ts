@@ -26,9 +26,7 @@ export default function handleBeingDeletedFromChat(
       setChats((prevChats) => {
         if (!prevChats) return prevChats;
 
-        return prevChats.filter((chat) => {
-          return chat.id !== chatId;
-        });
+        return prevChats.filter((chat) => chat.id !== chatId);
       });
 
       if (activeChat?.id === chatId) {
