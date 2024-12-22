@@ -4,6 +4,7 @@ import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserCha
 import ChatCard from '@/app/middle/AllChatsList/components/ChatCard';
 import LoadingChatCards from '@/app/middle/AllChatsList/components/LoadingChatCards';
 import { TypingUsers } from '@/app/interfaces/TypingUsers';
+import './css/typingDots.css';
 
 interface AllChatsListProps {
   chats: DBChatWithMembers[] | null;
@@ -44,17 +45,27 @@ export default function AllChatsList({
   }
 
   if (chats.length === 0) {
-    return <div>You don&apos;t have any Chats...</div>;
+    return (
+      <div className="pt-2 font-bold df">
+        It&apos;s quiet here
+        <div className="typing-dots ml-[2px] mr-2 df">
+          <span className="dot"></span>
+          <span className="dot"></span>
+          <span className="dot"></span>
+        </div>
+        Why not message a friend?
+      </div>
+    );
   }
 
   const removeNotificationsOnJoin = (chatId: string) => {
     if (!chats) return;
-    // set unread count to 0
+
     const newChats = chats?.map((chat) => {
       if (chat.id === chatId) {
         return {
           ...chat,
-          unreadCount: 0,
+          unreadCount: 0, // refresh unread count
         };
       } else {
         return chat;
@@ -65,7 +76,10 @@ export default function AllChatsList({
 
   return (
     <div>
-      <div className={`chat-list ${loaded ? 'loaded' : ''}`}>
+      <div
+        className={`chat-list overflow-y-auto ${loaded ? 'loaded' : ''}`}
+        style={{ height: 'calc(100vh - 48px)' }}
+      >
         {chats.map((chat) => (
           <div
             onClick={() => {
