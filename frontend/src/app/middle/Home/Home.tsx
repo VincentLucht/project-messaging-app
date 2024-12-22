@@ -30,6 +30,7 @@ import ChatSection from '@/app/middle/Home/components/ChatSection/ChatSection';
 import UserProfile from '@/app/middle/UserProfile/UserProfile';
 
 // Right Components
+import CoverPage from '@/app/middle/Home/components/CoverPage/CoverPage';
 import ActiveChat from '@/app/right/ActiveChat/ActiveChat';
 import handleBeingAddedToCreatedChat from '@/app/middle/Home/services/handleBeingAddedToCreatedChat';
 
@@ -47,6 +48,7 @@ export default function Home() {
   const socket = useRef<Socket | null>(null);
   const joinedChats = useRef<Set<string>>(new Set());
   const [location, setLocation] = useState<Location>('home');
+  const [showCreateChat, setShowCreateChat] = useState(false);
 
   const { user, token, isLoggedIn, logout } = useAuth();
   const isMobile = useIsMobile();
@@ -293,6 +295,8 @@ export default function Home() {
               setChats={setChats}
               activeChat={activeChat}
               setActiveChat={setActiveChat}
+              showCreateChat={showCreateChat}
+              setShowCreateChat={setShowCreateChat}
               username={user.username}
               typingUsers={typingUsers}
               socket={socket.current}
@@ -325,7 +329,7 @@ export default function Home() {
           isMobile={isMobile}
         />
       ) : (
-        <div>Select a Chat to send Messages!</div>
+        <CoverPage setterFunc={setShowCreateChat} />
       )}
     </div>
   );
