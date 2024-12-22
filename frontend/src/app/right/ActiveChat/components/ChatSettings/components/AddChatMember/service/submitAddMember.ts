@@ -1,3 +1,4 @@
+import { Dispatch, SetStateAction } from 'react';
 import {
   ExpressError,
   ExpressErrors,
@@ -14,6 +15,7 @@ export default function submitAddMember(
   chatId: string,
   token: string,
   socket: Socket | null,
+  setOtherUserName: Dispatch<SetStateAction<string>>,
 ) {
   const toastId = toast.loading('Adding user to chat...');
 
@@ -34,6 +36,8 @@ export default function submitAddMember(
         toastId,
         toastUpdateOptions('Added user to chat', 'success'),
       );
+
+      setOtherUserName('');
 
       // Send signal to server that a user was added to chat
       socket?.emit(

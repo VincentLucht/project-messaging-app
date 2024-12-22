@@ -26,6 +26,18 @@ export default function AddChatMember({
   const [showAddChatMember, setShowAddChatMember] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const submitAddMemberHandler = () => {
+    submitAddMember(
+      userId,
+      username,
+      otherUsername,
+      chatId,
+      token,
+      socket,
+      setOtherUsername,
+    );
+  };
+
   useEffect(() => {
     if (showAddChatMember) {
       inputRef.current?.focus();
@@ -67,20 +79,16 @@ export default function AddChatMember({
                 maxLength={30}
                 onChange={(e) => setOtherUsername(e.target.value)}
                 className="h-9 rounded-md px-2 outline-none focus:ring-2 focus:ring-blue-400"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    submitAddMemberHandler();
+                  }
+                }}
                 ref={inputRef}
               />
 
               <button
-                onClick={() =>
-                  submitAddMember(
-                    userId,
-                    username,
-                    otherUsername,
-                    chatId,
-                    token,
-                    socket,
-                  )
-                }
+                onClick={submitAddMemberHandler}
                 className="h-9 rounded-md bg-blue-500 px-2 transition-colors duration-200 hover:bg-blue-600
                   active:bg-blue-700"
               >
