@@ -1,3 +1,5 @@
+import { ForwardedRef, forwardRef } from 'react';
+
 interface InputProps {
   labelValue: string;
   accessibilityValue: string;
@@ -8,26 +10,36 @@ interface InputProps {
   classNameWrapper?: string;
 }
 
-export default function Input({
-  labelValue,
-  accessibilityValue,
-  isRequired = true,
-  value,
-  setValue,
-  className,
-  classNameWrapper,
-}: InputProps) {
-  return (
-    <div className={classNameWrapper}>
-      <label htmlFor={`${accessibilityValue}`}>{labelValue}</label>
-      <input
-        type="text"
-        id={`${accessibilityValue}`}
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        required={isRequired}
-        className={`${className} outline-none focus:ring-2 focus:ring-blue-400`}
-      />
-    </div>
-  );
-}
+const Input = forwardRef(
+  (
+    {
+      labelValue,
+      accessibilityValue,
+      isRequired = true,
+      value,
+      setValue,
+      className,
+      classNameWrapper,
+    }: InputProps,
+    ref: ForwardedRef<HTMLInputElement>,
+  ) => {
+    return (
+      <div className={classNameWrapper}>
+        <label htmlFor={`${accessibilityValue}`}>{labelValue}</label>
+        <input
+          type="text"
+          id={`${accessibilityValue}`}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          required={isRequired}
+          className={`${className} outline-none focus:ring-2 focus:ring-blue-400`}
+          ref={ref}
+        />
+      </div>
+    );
+  },
+);
+
+Input.displayName = 'Input';
+
+export default Input;
