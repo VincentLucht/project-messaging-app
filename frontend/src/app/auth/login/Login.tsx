@@ -1,21 +1,21 @@
 import { FormEvent, useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/hooks/useAuth';
+import { useAuth } from '@/app/auth/context/hooks/useAuth';
 
-import { InputWithErrors } from '../../components/InputWithErrors';
-import handleLogin from './api/handleLogin';
-import ShowValidationErrors from '../../components/ShowValidationError';
-import convertExpressErrors from '../../components/ts/convertExpressErrors';
+import { InputWithErrors } from '@/app/components/InputWithErrors';
+import handleLogin from '@/app/auth/login/api/handleLogin';
+import ShowValidationErrors from '@/app/components/ShowValidationError';
+import convertExpressErrors from '@/app/components/ts/convertExpressErrors';
 
 import { toast } from 'react-toastify';
-import toastUpdateOptions from '../../components/ts/toastUpdateObject';
+import toastUpdateOptions from '@/app/components/ts/toastUpdateObject';
 
 export interface ValidationError {
   type?: string;
   value?: string;
   msg: string;
   message?: string;
-  path?: 'name' | 'password';
+  path?: 'name' | 'password' | 'confirm_password';
   location?: 'body';
 }
 
@@ -38,13 +38,19 @@ function Login() {
   }, [errors]);
 
   // handle form submission
-  const onSubmit = async (e: FormEvent) => {
+  const onSubmit = async (
+    e: FormEvent,
+    usernameParam?: string,
+    passwordParam?: string,
+  ) => {
     e.preventDefault();
     const toastId = toast.loading('Signing In...');
+    const usernameToUse = usernameParam ?? username;
+    const passwordToUse = passwordParam ?? password;
 
     try {
       // Handle successful login here
-      const response = await handleLogin(username, password);
+      const response = await handleLogin(usernameToUse, passwordToUse);
       login(response.token);
       toast.update(toastId, toastUpdateOptions('Login successful!', 'success'));
       navigate('/');
@@ -70,7 +76,6 @@ function Login() {
           setErrors(convertExpressErrors(validationError.errors));
         } else {
           // other errors
-          console.error(error);
           toast.update(
             toastId,
             toastUpdateOptions(
@@ -143,9 +148,10 @@ function Login() {
               <Link
                 to="/sign-up"
                 onClick={(e) => {
-                  e.preventDefault(); // Prevent navigation
+                  e.preventDefault();
                   setUsername('Guest');
-                  setPassword('guest');
+                  setPassword('pass123');
+                  void onSubmit(e, 'Guest', 'pass123');
                 }}
               >
                 Sign In as Guest
