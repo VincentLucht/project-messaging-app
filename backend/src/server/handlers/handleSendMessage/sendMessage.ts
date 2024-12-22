@@ -29,6 +29,12 @@ export default async function sendMessage(
       }
     }
 
+    if (encryptedMessage.length > 10000) {
+      throw new Error(
+        `Message is too long by ${encryptedMessage.length - 10000} characters`,
+      );
+    }
+
     const newMessage = await db.message.createMessage(
       userId,
       chatId,
