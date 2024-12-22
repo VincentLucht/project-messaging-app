@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, useLocation } from 'react-router-dom';
 
 import Login from '@/app/auth/login/Login';
+import SignUp from '@/app/auth/sign-up/SignUp';
 import { useAuth } from '@/app/auth/context/hooks/useAuth';
 
 import Home from '@/app/middle/Home/Home';
@@ -13,17 +14,19 @@ export const API_URL = 'http://localhost:3005';
 
 export default function App() {
   const { isLoggedIn, logout } = useAuth();
+  const location = useLocation();
 
   useEffect(() => {
-    if (!isLoggedIn) {
+    if (!isLoggedIn && location.pathname !== '/sign-up') {
       logout();
     }
-  }, [isLoggedIn, logout]);
+  }, [isLoggedIn, logout, location.pathname]);
 
   return (
     <div className="cursor-default select-none">
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/sign-up" element={<SignUp />} />
         <Route path="/*" element={<Home />} />
       </Routes>
 
