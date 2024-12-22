@@ -44,7 +44,7 @@ export default function ChangeName({ user, token, logout }: ChangeNameProps) {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="text-left font-bold">Your Description:</div>
+      <div className="text-left font-bold">Your Alias:</div>
 
       <div className="flex justify-between">
         {isEditActive ? (
