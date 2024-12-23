@@ -28,6 +28,7 @@ export default async function addUserToChat(
     chatId,
     userId,
     username,
+    null,
     encryptedMessage,
     iv,
     true,

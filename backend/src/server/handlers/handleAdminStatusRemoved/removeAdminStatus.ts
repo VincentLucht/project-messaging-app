@@ -31,6 +31,7 @@ export default async function removeAdminStatus(
       chatId,
       removerUserId,
       removerUsername,
+      null,
       encryptedMessage,
       iv,
       true,

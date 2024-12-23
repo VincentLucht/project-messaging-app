@@ -12,7 +12,7 @@ export default async function sendMessage(
   chatId: string,
   userId: string,
   username: string,
-  profilePictureUrl: string,
+  profilePictureUrl: string | null,
   encryptedMessage: string,
   iv: string,
   isSystemMessage: boolean,

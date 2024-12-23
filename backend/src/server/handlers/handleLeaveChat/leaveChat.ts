@@ -22,6 +22,7 @@ export default async function leaveChat(
     chatId,
     userId,
     username,
+    null,
     encryptedMessage,
     iv,
     true,

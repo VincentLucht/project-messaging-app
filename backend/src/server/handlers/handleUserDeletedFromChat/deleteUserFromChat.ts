@@ -28,6 +28,7 @@ export default async function deleteUserFromChat(
     chatId,
     removerUserId,
     removerUsername,
+    null,
     encryptedMessage,
     iv,
     true,
