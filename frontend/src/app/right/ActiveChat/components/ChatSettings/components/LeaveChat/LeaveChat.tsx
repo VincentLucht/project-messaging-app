@@ -26,6 +26,8 @@ export default function LeaveChat({
       const toastId = toast.loading('Leaving Chat...');
       leaveChat(chatId, userId, token)
         .then(() => {
+          socket?.emit('stopped-typing', { chatId, username });
+
           socket?.emit('user-left-chat', chatId, userId, username);
 
           toast.update(
@@ -36,7 +38,7 @@ export default function LeaveChat({
             ),
           );
         })
-        .catch((error) => {
+        .catch((error: { message: string }) => {
           toast.update(
             toastId,
             toastUpdateOptions(`${error.message}`, 'error'),
