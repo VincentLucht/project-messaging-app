@@ -14,8 +14,9 @@ export default function handleSendMessage(
   return async ({
     chatId,
     userId,
-    encryptedMessage,
     username,
+    encryptedMessage,
+    profilePictureUrl,
     iv,
     isSystemMessage = false,
   }: {
@@ -23,6 +24,7 @@ export default function handleSendMessage(
     userId: string;
     username: string;
     encryptedMessage: string;
+    profilePictureUrl: string;
     iv: string;
     isSystemMessage: boolean;
   }) => {
@@ -32,6 +34,7 @@ export default function handleSendMessage(
       chatId,
       userId,
       username,
+      profilePictureUrl,
       encryptedMessage,
       iv,
       isSystemMessage,

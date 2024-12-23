@@ -323,6 +323,7 @@ export default function Home() {
           setChats={setChats}
           userId={user.id}
           username={user.username}
+          profilePictureUrl={user.profile_picture_url}
           token={token}
           socket={socket.current}
           typingUsers={typingUsers}

@@ -28,6 +28,7 @@ interface ActiveChatProps {
   setChats: Dispatch<SetStateAction<DBChatWithMembers[] | null>>;
   userId: string;
   username: string;
+  profilePictureUrl: string | null | undefined;
   token: string;
   socket: Socket | null;
   typingUsers: TypingUsers;
@@ -44,6 +45,7 @@ export default function ActiveChat({
   setChats,
   userId,
   username,
+  profilePictureUrl,
   token,
   socket,
   typingUsers,
@@ -158,6 +160,7 @@ export default function ActiveChat({
           username={username}
           loadMoreMessages={loadMoreMessages}
           hasMore={hasMore}
+          isGroupChat={chat.is_group_chat}
         />
 
         {/* TODO: Actually style this */}
@@ -169,6 +172,7 @@ export default function ActiveChat({
           chatName={chat.name}
           userId={userId}
           username={username}
+          profilePictureUrl={profilePictureUrl}
         />
       </div>
 

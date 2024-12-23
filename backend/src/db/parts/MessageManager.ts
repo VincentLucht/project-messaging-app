@@ -60,6 +60,7 @@ export default class MessageManager {
           select: {
             id: true,
             username: true,
+            profile_picture_url: true,
           },
         },
         MessageRead: true,

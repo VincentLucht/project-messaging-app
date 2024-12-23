@@ -11,6 +11,7 @@ interface SendMessageFormProps {
   chatName: string;
   userId: string;
   username: string;
+  profilePictureUrl: string | null | undefined;
 }
 
 export default function SendMessageForm({
@@ -19,6 +20,7 @@ export default function SendMessageForm({
   chatName,
   userId,
   username,
+  profilePictureUrl,
 }: SendMessageFormProps) {
   const [message, setMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -65,6 +67,8 @@ export default function SendMessageForm({
         username,
         encryptedMessage,
         iv,
+        false,
+        profilePictureUrl,
       );
 
       setMessage('');

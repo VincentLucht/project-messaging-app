@@ -20,6 +20,7 @@ export default function handleNewMessages(
       content: string;
       iv: string;
       username: string;
+      profilePictureUrl: string;
       activeChatMembers: Map<string, { username: string; userId: string }>;
       isSystemMessage: boolean;
     }) => {
@@ -35,6 +36,7 @@ export default function handleNewMessages(
         chat_id: chatId,
         user: {
           username: data.username,
+          profile_picture_url: data.profilePictureUrl,
         },
         MessageRead: createTempMessageRead(
           data.username,

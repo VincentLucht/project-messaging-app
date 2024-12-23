@@ -8,11 +8,13 @@ export default function sendEncryptedMessage(
   encryptedMessage: string,
   iv: string,
   isSystemMessage = false,
+  profilePictureUrl: string | null | undefined = null,
 ) {
   socket.emit('send-message', {
     chatId,
     userId,
     username,
+    profilePictureUrl,
     encryptedMessage,
     iv,
     isSystemMessage,

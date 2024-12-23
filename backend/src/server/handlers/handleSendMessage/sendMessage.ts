@@ -12,6 +12,7 @@ export default async function sendMessage(
   chatId: string,
   userId: string,
   username: string,
+  profilePictureUrl: string,
   encryptedMessage: string,
   iv: string,
   isSystemMessage: boolean,
@@ -49,6 +50,7 @@ export default async function sendMessage(
       content: encryptedMessage,
       iv,
       username,
+      profilePictureUrl,
       activeChatMembers: Object.fromEntries(activeChatMembers),
       isSystemMessage,
     });
