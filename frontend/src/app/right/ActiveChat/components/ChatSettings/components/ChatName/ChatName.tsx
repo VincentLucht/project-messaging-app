@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
 import EditButton from '@/app/components/EditButton';
 import editGroupChatName from '@/app/right/ActiveChat/components/ChatSettings/components/ChatName/api/editGroupChatName';
-import sendMessage from '@/app/right/ActiveChat/components/ChatSettings/components/util/sendMessage';
 
 import { toast } from 'react-toastify';
 import toastUpdateOptions from '@/app/components/ts/toastUpdateObject';

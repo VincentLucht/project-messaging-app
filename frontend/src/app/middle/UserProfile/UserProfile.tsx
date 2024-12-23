@@ -2,8 +2,7 @@ import { useAuth } from '@/app/auth/context/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 
 import ChangeName from '@/app/middle/UserProfile/components/ChangeName/ChangeName';
-import ChangeDescription from '@/app/middle/UserProfile/components/ChangeDescription/changeDescription';
-
+import ChangeDescription from '@/app/middle/UserProfile/components/ChangeDescription/ChangeDescription';
 import { toast } from 'react-toastify';
 
 export default function UserProfile() {

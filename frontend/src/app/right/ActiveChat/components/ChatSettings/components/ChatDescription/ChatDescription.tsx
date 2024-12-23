@@ -4,7 +4,6 @@ import TextareaAutosize from 'react-textarea-autosize';
 import EditButton from '@/app/components/EditButton';
 
 import editChatDescription from '@/app/right/ActiveChat/components/ChatSettings/components/ChatDescription/api/editChatDescription';
-import sendMessage from '@/app/right/ActiveChat/components/ChatSettings/components/util/sendMessage';
 
 import { toast } from 'react-toastify';
 import toastUpdateOptions from '@/app/components/ts/toastUpdateObject';
@@ -117,7 +116,7 @@ export default function ChatDescription({
 
   return (
     <div>
-      <div className="flex justify-center gap-2">
+      <div className={`flex justify-center ${isUserAdmin && 'gap-2'}`}>
         {isEditActive ? (
           <TextareaAutosize
             value={newChatDescription ? newChatDescription : ''}
@@ -151,7 +150,7 @@ export default function ChatDescription({
           </div>
         )}
 
-        <div className="-mr-[28px] -mt-[12px]">
+        <div className={`${isUserAdmin && '-mr-[28px]'} -mt-[12px]`}>
           <EditButton
             isUserAdmin={isUserAdmin}
             isEditActive={isEditActive}
