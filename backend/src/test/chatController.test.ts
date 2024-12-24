@@ -29,6 +29,7 @@ describe('Chat Routes', () => {
     name: 'Test Chat',
     createdAt: new Date(),
     userId: basicMockUser.id,
+    is_group_chat: true,
   };
 
   describe('POST /chat', () => {
@@ -190,11 +191,8 @@ describe('Chat Routes', () => {
 
     describe('Success cases', () => {
       it('should successfully rename a chat', async () => {
-        // mock chat existing
         mockDB.chat.getChatById.mockResolvedValueOnce(mockChat);
-        // mock user existing and being an admin
         mockDB.chatAdmin.isChatAdminById.mockResolvedValueOnce(true);
-        // mock changing chat name
         mockDB.chat.changeChatName.mockResolvedValueOnce(null);
 
         const response = await sendRequest({
@@ -212,6 +210,24 @@ describe('Chat Routes', () => {
     });
 
     describe('Error cases', () => {
+      it("should not allow to change a One on One Chat's name", async () => {
+        mockDB.chat.getChatById.mockResolvedValueOnce({ ...mockChat, is_group_chat: false });
+        mockDB.chatAdmin.isChatAdminById.mockResolvedValueOnce(true);
+        mockDB.chat.changeChatName.mockResolvedValueOnce(null);
+
+        const response = await sendRequest({
+          chat_id: mockChat.id,
+          user_id: basicMockUser.id,
+          new_chat_name: 'Test changed name',
+        });
+
+        expect(response.status).toBe(400);
+        expect(response.body.message).toBe('Not allowed in One on One chat');
+
+        // verify that the chat was renamed
+        expect(mockDB.chat.changeChatName).not.toHaveBeenCalled();
+      });
+
       it('should handle chat name being too long', async () => {
         // mock chat existing
         mockDB.chat.getChatById.mockResolvedValueOnce(mockChat);
@@ -315,7 +331,7 @@ describe('Chat Routes', () => {
 
     describe('Success cases', () => {
       it('should successfully handle a name change', async () => {
-        mockDB.chat.getChatById.mockResolvedValue(true);
+        mockDB.chat.getChatById.mockResolvedValue(mockChat);
         mockDB.chatAdmin.isChatAdminById.mockResolvedValue(true);
         mockDB.chat.changeDescription.mockResolvedValue(null);
 
@@ -330,7 +346,7 @@ describe('Chat Routes', () => {
       });
 
       it('should accept an empty string for the new chat description', async () => {
-        mockDB.chat.getChatById.mockResolvedValue(true);
+        mockDB.chat.getChatById.mockResolvedValue(mockChat);
         mockDB.chatAdmin.isChatAdminById.mockResolvedValue(true);
         mockDB.chat.changeDescription.mockResolvedValue(null);
 
@@ -371,7 +387,7 @@ describe('Chat Routes', () => {
       });
 
       it('should handle an user not being an admin/existing', async () => {
-        mockDB.chat.getChatById.mockResolvedValue(true);
+        mockDB.chat.getChatById.mockResolvedValue(mockChat);
         mockDB.chatAdmin.isChatAdminById.mockResolvedValue(false);
 
         const response = await sendRequest({
@@ -391,7 +407,7 @@ describe('Chat Routes', () => {
       });
 
       it('should handle db error', async () => {
-        mockDB.chat.getChatById.mockResolvedValue(true);
+        mockDB.chat.getChatById.mockResolvedValue(mockChat);
         mockDB.chatAdmin.isChatAdminById.mockResolvedValue(true);
 
         mockDB.chat.changeDescription.mockRejectedValueOnce(new Error('Database error'));
@@ -424,7 +440,7 @@ describe('Chat Routes', () => {
 
     describe('Success cases', () => {
       it('should successfully delete a chat', async () => {
-        mockDB.chat.getChatById.mockResolvedValue({ owner_id: basicMockUser.id });
+        mockDB.chat.getChatById.mockResolvedValue({ ...mockChat, owner_id: basicMockUser.id });
 
         const response = await sendRequest({
           chat_id: mockChat.id,
@@ -450,7 +466,7 @@ describe('Chat Routes', () => {
       });
 
       it('should handle user not being the owner', async () => {
-        mockDB.chat.getChatById.mockResolvedValue({ owner_id: basicMockUser.id });
+        mockDB.chat.getChatById.mockResolvedValue({ ...mockChat, owner_id: basicMockUser.id });
 
         const response = await sendRequest({
           chat_id: mockChat.id,
@@ -468,7 +484,7 @@ describe('Chat Routes', () => {
       });
 
       it('should handle db error', async () => {
-        mockDB.chat.getChatById.mockResolvedValue({ owner_id: basicMockUser.id });
+        mockDB.chat.getChatById.mockResolvedValue({ ...mockChat, owner_id: basicMockUser.id });
         mockDB.chat.deleteChat.mockRejectedValue(new Error('Database error'));
 
         const response = await sendRequest({

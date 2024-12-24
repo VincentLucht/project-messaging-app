@@ -24,6 +24,14 @@ app.use('', router);
 
 import mockDB from '@/test/mocks/mockDb';
 
+const mockChat = {
+  id: '123',
+  name: 'Test Chat',
+  createdAt: new Date(),
+  userId: basicMockUser.id,
+  is_group_chat: true,
+};
+
 // prettier-ignore
 describe('UserChats routes', () => {
   beforeEach(() => {
@@ -199,9 +207,9 @@ describe('UserChats routes', () => {
 
     describe('Success cases', () => {
       it('should successfully remove an user from a chat', async () => {
+        mockDB.chat.getChatById.mockResolvedValue(mockChat);
         mockDB.chatAdmin.isChatAdminById.mockResolvedValue(true);
         mockDB.userChats.isUserInsideChat.mockResolvedValue(true);
-        mockDB.chat.getOwnerById.mockResolvedValue(false);
 
         const response = await sendRequest({
           chat_id: 'realId',
@@ -215,24 +223,37 @@ describe('UserChats routes', () => {
 
     describe('Error cases', () => {
       it('should not allow to remove the owner', async () => {
+        mockDB.chat.getChatById.mockResolvedValue({ ...mockChat, owner_id: 'chatOwner' });
         mockDB.chatAdmin.isChatAdminById.mockResolvedValue(true);
         mockDB.userChats.isUserInsideChat.mockResolvedValue(true);
-        mockDB.chat.getOwnerById.mockResolvedValue(true);
 
         const response = await sendRequest({
-          chat_id: 'realId',
+          chat_id: mockChat.id,
           user_id: 'user',
-          user_id_to_delete: 'userToDelete',
+          user_id_to_delete: 'chatOwner',
         });
 
         expect(response.status).toBe(403);
         expect(response.body.message).toBe("You can't remove the chat owner");
       });
 
+      it('should not allow to remove someone on a one on one chat', async () => {
+        mockDB.chat.getChatById.mockResolvedValue({ ...mockChat, is_group_chat: false });
+
+        const response = await sendRequest({
+          chat_id: mockChat.id,
+          user_id: 'user',
+          user_id_to_delete: 'chatOwner',
+        });
+
+        expect(response.status).toBe(400);
+        expect(response.body.message).toBe("You can't remove someone in a One on One chat");
+      });
+
       it('should not allow user to remove themselves', async () => {
+        mockDB.chat.getChatById.mockResolvedValue({ ...mockChat, owner_id: 'chatOwner' });
         mockDB.chatAdmin.isChatAdminById.mockResolvedValue(true);
         mockDB.userChats.isUserInsideChat.mockResolvedValue(true);
-        mockDB.chat.getOwnerById.mockResolvedValue(false);
 
         const response = await sendRequest({
           chat_id: 'realId',
@@ -245,6 +266,7 @@ describe('UserChats routes', () => {
       });
 
       it('should handle user not being an admin', async () => {
+        mockDB.chat.getChatById.mockResolvedValue({ ...mockChat, owner_id: 'chatOwner' });
         mockDB.chatAdmin.isChatAdminById.mockResolvedValue(false);
 
         const response = await sendRequest({
@@ -264,7 +286,7 @@ describe('UserChats routes', () => {
       });
 
       it('should handle db error', async () => {
-        mockDB.chatAdmin.isChatAdminById.mockRejectedValue(new Error('Database error'));
+        mockDB.chat.getChatById.mockRejectedValue(new Error('Database error'));
 
         const response = await sendRequest({
           chat_id: 'realId',
@@ -289,12 +311,12 @@ describe('UserChats routes', () => {
 
     describe('Success cases', () => {
       it('should handle a user leaving successfully', async () => {
+        mockDB.chat.getChatById.mockResolvedValue({ ...mockChat, owner_id: 'ownerUser' });
         mockDB.user.getUserById.mockResolvedValue(true);
         mockDB.chat.getAllChatMembers.mockResolvedValue([]);
-        mockDB.chat.getOwnerById.mockResolvedValue(false);
 
         const response = await sendRequest({
-          chat_id: 'id',
+          chat_id: mockChat.id,
           user_id: 'userId',
         });
 
@@ -302,35 +324,33 @@ describe('UserChats routes', () => {
       });
 
       it('should handle deleting the chat after the owner leaves', async () => {
-        mockDB.user.getUserById.mockResolvedValue({ id: 'ownerUser', name: 'Owner' }); // User exists
-        mockDB.chat.getAllChatMembers.mockResolvedValue([{ id: 'ownerUser', name: 'Owner' }]); // Only one member
-        mockDB.chat.getOwnerById.mockResolvedValue({ owner_id: 'ownerUser' }); // User is the owner
-        mockDB.userChats.deleteUserFromChat.mockResolvedValue(true); // User deletion
-        mockDB.chat.deleteChat.mockResolvedValue(true); // Chat deletion
+        mockDB.user.getUserById.mockResolvedValue({ id: 'ownerUser', name: 'Owner' });
+        mockDB.chat.getChatById.mockResolvedValue({ ...mockChat, owner_id: 'ownerUser' });
+        mockDB.chat.getAllChatMembers.mockResolvedValue([{ id: 'ownerUser', name: 'Owner' }]);
+        mockDB.userChats.deleteUserFromChat.mockResolvedValue(true);
+        mockDB.chat.deleteChat.mockResolvedValue(true);
 
         const response = await sendRequest({
-          chat_id: 'chat_with_owner',
+          chat_id: mockChat.id,
           user_id: 'ownerUser',
         });
 
-        expect(response.status).toBe(204);
-        expect(mockDB.user.getUserById).toHaveBeenCalledWith('ownerUser');
-        expect(mockDB.chat.getAllChatMembers).toHaveBeenCalledWith('chat_with_owner');
-        expect(mockDB.chat.getOwnerById).toHaveBeenCalledWith('chat_with_owner', 'ownerUser');
-        expect(mockDB.userChats.deleteUserFromChat).toHaveBeenCalledWith('chat_with_owner', 'ownerUser');
-        expect(mockDB.chat.deleteChat).toHaveBeenCalledWith('chat_with_owner', 'ownerUser');
+        expect(response.status).toBe(200);
+        expect(response.body.message).toBe('Chat deleted successfully');
+        expect(mockDB.chat.deleteChatIfEmpty).toHaveBeenCalledWith(mockChat.id);
       });
     });
 
     describe('Error cases', () => {
       it('should not allow user to leave chat when they are not last person', async () => {
+        mockDB.chat.getChatById.mockResolvedValue({ ...mockChat, owner_id: 'ownerUser' });
         mockDB.user.getUserById.mockResolvedValue({ id: 'ownerUser', name: 'Owner' });
         mockDB.chat.getAllChatMembers.mockResolvedValue([{ id: 'ownerUser', name: 'Owner' }, { id: 'otherUser', name: 'other' }]); // 2 members
         mockDB.chat.getOwnerById.mockResolvedValue({ owner_id: 'ownerUser' }); // User is the owner
         mockDB.userChats.deleteUserFromChat.mockResolvedValue(true);
 
         const response = await sendRequest({
-          chat_id: 'chat_with_owner',
+          chat_id: mockChat.id,
           user_id: 'ownerUser',
         });
 

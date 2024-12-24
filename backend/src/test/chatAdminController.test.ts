@@ -24,6 +24,14 @@ app.use('', router);
 
 import mockDB from '@/test/mocks/mockDb';
 
+const mockChat = {
+  id: '123',
+  name: 'Test Chat',
+  createdAt: new Date(),
+  userId: basicMockUser.id,
+  is_group_chat: true,
+};
+
 // prettier-ignore
 describe('ChatAdmin Routes', () => {
   beforeEach(() => {
@@ -138,18 +146,20 @@ describe('ChatAdmin Routes', () => {
 
     describe('Success cases', () => {
       it('should successfully remove admin status', async () => {
+        mockDB.chat.getChatById.mockResolvedValue(mockChat);
         mockDB.user.getUserByUsername.mockResolvedValue({ id: 'otherUser' });
         mockDB.chatAdmin.isChatAdminById.mockResolvedValue(true);
         mockDB.userChats.isUserInsideChatByUsername.mockResolvedValue(true);
         mockDB.chatAdmin.isChatAdminByUsername.mockResolvedValue(true);
         mockDB.chatAdmin.makeUserAdminByUsername.mockResolvedValue(true);
-        mockDB.chat.getOwnerById.mockResolvedValue(false);
 
         const response = await sendRequest({
           user_id: basicMockUser.id,
           other_username: 'other_user',
           chat_id: basicMockChats[0].id,
         });
+
+        console.log(response.body);
 
         expect(response.status).toBe(200);
         expect(response.body.message).toBe('Successfully removed admin status from other_user');
@@ -158,7 +168,7 @@ describe('ChatAdmin Routes', () => {
 
     describe('Error cases', () => {
       it('should handle other user not existing', async () => {
-        // mock user not existing
+        mockDB.chat.getChatById.mockResolvedValue(mockChat);
         mockDB.user.getUserByUsername.mockResolvedValue(false);
 
         const response = await sendRequest({
@@ -172,11 +182,11 @@ describe('ChatAdmin Routes', () => {
       });
 
       it('should handle other user being the chat owner', async() => {
+        mockDB.chat.getChatById.mockResolvedValue(mockChat);
         mockDB.user.getUserByUsername.mockResolvedValue(true);
         mockDB.chatAdmin.isChatAdminById.mockResolvedValue(true);
         mockDB.userChats.isUserInsideChatByUsername.mockResolvedValue(true);
         mockDB.chatAdmin.isChatAdminByUsername.mockResolvedValue(true);
-        mockDB.chat.getOwnerById.mockResolvedValue(true);
 
         const response = await sendRequest({
           user_id: basicMockUser.id,
@@ -189,6 +199,7 @@ describe('ChatAdmin Routes', () => {
       });
 
       it('should handle other user not being an admin', async () => {
+        mockDB.chat.getChatById.mockResolvedValue(mockChat);
         mockDB.user.getUserByUsername.mockResolvedValue(true);
         mockDB.userChats.isUserInsideChatByUsername.mockResolvedValue(true);
         mockDB.chatAdmin.isChatAdminById.mockResolvedValue(true);
@@ -205,6 +216,7 @@ describe('ChatAdmin Routes', () => {
       });
 
       it('should handle user not being an admin', async () => {
+        mockDB.chat.getChatById.mockResolvedValue(mockChat);
         mockDB.user.getUserByUsername.mockResolvedValue(true);
         mockDB.userChats.isUserInsideChatByUsername.mockResolvedValue(true);
         mockDB.chatAdmin.isChatAdminById.mockResolvedValue(false);
@@ -230,7 +242,7 @@ describe('ChatAdmin Routes', () => {
       });
 
       it('should handle db error', async () => {
-        mockDB.user.getUserByUsername.mockRejectedValue(new Error('Database error'));
+        mockDB.chat.getChatById.mockRejectedValue(new Error('Database error'));
 
         const response = await sendRequest({
           user_id: basicMockUser.id,
