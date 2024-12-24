@@ -1,8 +1,6 @@
 import { Dispatch, SetStateAction } from 'react';
-import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
+import { DBChatWithMembers } from '@/app/middle/Home/components/ChatSection/AllChatsList/api/fetchAllUserChats';
 import { Socket } from 'socket.io-client';
-
-import { toast } from 'react-toastify';
 
 export default function handleLeaveChat(
   socket: React.RefObject<Socket> | null,
@@ -18,10 +16,6 @@ export default function handleLeaveChat(
     'left-chat',
     (data: { chatId: string; userId: string }) => {
       const { chatId, userId: userIdThatLeft } = data;
-
-      // ! handle stop typing??
-
-      // TODO: ? toast?
 
       setChats((prevChats) => {
         if (!prevChats) return prevChats;
