@@ -13,6 +13,7 @@ const mockDB = {
     changeDescription: jest.fn(),
     getOwnerById: jest.fn(),
     deleteChat: jest.fn(),
+    deleteChatIfEmpty: jest.fn(),
   },
   message: {
     getMessageById: jest.fn(),
