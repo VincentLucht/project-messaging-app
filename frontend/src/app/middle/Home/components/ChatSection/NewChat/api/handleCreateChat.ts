@@ -1,5 +1,5 @@
 import { API_URL } from '@/App';
-import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
+import { DBChatWithMembers } from '@/app/middle/Home/components/ChatSection/AllChatsList/api/fetchAllUserChats';
 import { ExpressErrors } from '@/app/interfaces/express-validator-errors';
 
 interface HandleCreateChatResponse {

@@ -1,15 +1,17 @@
 import { API_URL } from '@/App';
 import { DBChat, DBMessageWithUser } from '@/app/interfaces/databaseSchema';
 
+export interface ChatMember {
+  id: string;
+  name: string;
+  username: string;
+  profile_picture_url?: string;
+  user_description: string;
+}
+
 export interface DBChatWithMembers extends DBChat {
   UserChats: {
-    user: {
-      id: string;
-      name: string;
-      username: string;
-      profile_picture_url?: string;
-      user_description: string;
-    };
+    user: ChatMember;
   }[];
   ChatAdmins: { user_id: string }[];
   unreadCount: number;

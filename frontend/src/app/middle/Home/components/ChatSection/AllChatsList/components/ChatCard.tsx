@@ -1,9 +1,9 @@
 import { TypingUsersChat } from '@/app/interfaces/TypingUsers';
-import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
+import { DBChatWithMembers } from '@/app/middle/Home/components/ChatSection/AllChatsList/api/fetchAllUserChats';
 import displayChatName from '@/app/right/ActiveChat/components/ChatSettings/components/ChatName/components/DisplayChatName';
 
 import LazyLoadImage from '@/app/components/LazyLoadImage';
-import DisplayTypingUsers from '@/app/middle/AllChatsList/components/util/DisplayTypingUsers';
+import DisplayTypingUsers from '@/app/middle/Home/components/ChatSection/AllChatsList/components/util/DisplayTypingUsers';
 
 import dayjs from 'dayjs';
 

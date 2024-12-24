@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Dispatch, SetStateAction } from 'react';
-import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
-import ChatCard from '@/app/middle/AllChatsList/components/ChatCard';
-import LoadingChatCards from '@/app/middle/AllChatsList/components/LoadingChatCards';
+import { DBChatWithMembers } from '@/app/middle/Home/components/ChatSection/AllChatsList/api/fetchAllUserChats';
+import ChatCard from '@/app/middle/Home/components/ChatSection/AllChatsList/components/ChatCard';
+import LoadingChatCards from '@/app/middle/Home/components/ChatSection/AllChatsList/components/LoadingChatCards';
 import { TypingUsers } from '@/app/interfaces/TypingUsers';
 import './css/typingDots.css';
 
