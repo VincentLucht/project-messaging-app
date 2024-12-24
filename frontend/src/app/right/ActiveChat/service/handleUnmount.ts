@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction } from 'react';
-import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
+import { DBChatWithMembers } from '@/app/middle/Home/components/ChatSection/AllChatsList/api/fetchAllUserChats';
 import { DBMessageWithUser } from '@/app/interfaces/databaseSchema';
 
 export default function handleUnmount(

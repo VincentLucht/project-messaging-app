@@ -1,11 +1,10 @@
-import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
+import { DBChatWithMembers } from '@/app/middle/Home/components/ChatSection/AllChatsList/api/fetchAllUserChats';
 import {
   DBChatWithAdmins,
   DBMessageWithUser,
 } from '@/app/interfaces/databaseSchema';
 import { Dispatch, SetStateAction } from 'react';
 import { Socket } from 'socket.io-client';
-import parseUsername from '@/app/right/ActiveChat/components/util/ParseUsername';
 
 export default function handleBeingAddedToChat(
   socket: React.RefObject<Socket> | null,
@@ -13,7 +12,6 @@ export default function handleBeingAddedToChat(
   setChats: Dispatch<SetStateAction<DBChatWithMembers[] | null>>,
 ) {
   if (!socket || !username) return;
-
   socket.current?.on(
     'added-to-chat',
     (
@@ -32,7 +30,7 @@ export default function handleBeingAddedToChat(
     ) => {
       const editedNewMessage: DBMessageWithUser = {
         ...newMessage,
-        content: `added ${parseUsername(newMessage.content, username, 'last-message') as string} to the chat`,
+        content: newMessage.content,
         user: { username: adderUsername },
         is_system_message: true,
       };

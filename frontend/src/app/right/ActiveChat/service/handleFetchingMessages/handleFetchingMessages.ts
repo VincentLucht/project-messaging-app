@@ -4,7 +4,7 @@ import toastUpdateOptions from '@/app/components/ts/toastUpdateObject';
 import fetchChatMessages from '@/app/right/ActiveChat/service/handleFetchingMessages/api/fetchChatMessages';
 import { Dispatch, SetStateAction } from 'react';
 import { DBMessageWithUser } from '@/app/interfaces/databaseSchema';
-import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
+import { DBChatWithMembers } from '@/app/middle/Home/components/ChatSection/AllChatsList/api/fetchAllUserChats';
 import { decryptMessage } from '@/app/secure/cryptoUtils';
 
 export default function handleFetchingMessages(

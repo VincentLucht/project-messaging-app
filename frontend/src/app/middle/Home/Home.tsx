@@ -3,7 +3,7 @@ import { useAuth } from '@/app/auth/context/hooks/useAuth';
 import useIsMobile from '@/app/components/hooks/useIsMobile';
 import { JwtPayload } from 'jwt-decode';
 
-import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
+import { DBChatWithMembers } from '@/app/middle/Home/components/ChatSection/AllChatsList/api/fetchAllUserChats';
 import { Socket, io } from 'socket.io-client';
 import { TypingUsers } from '@/app/interfaces/TypingUsers';
 import { Location } from '@/app/interfaces/location';

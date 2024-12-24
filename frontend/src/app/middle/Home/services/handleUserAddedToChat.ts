@@ -1,6 +1,6 @@
 import { Dispatch, SetStateAction } from 'react';
 import { DBUser } from '@/app/interfaces/databaseSchema';
-import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
+import { DBChatWithMembers } from '@/app/middle/Home/components/ChatSection/AllChatsList/api/fetchAllUserChats';
 import generateTempId from '@/app/right/ActiveChat/util/generateTempId';
 import { Socket } from 'socket.io-client';
 

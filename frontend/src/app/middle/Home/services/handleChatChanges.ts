@@ -2,7 +2,7 @@ import { Dispatch, SetStateAction } from 'react';
 import { Socket } from 'socket.io-client';
 
 import { DBMessage } from '@/app/interfaces/databaseSchema';
-import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
+import { DBChatWithMembers } from '@/app/middle/Home/components/ChatSection/AllChatsList/api/fetchAllUserChats';
 import { User } from '@/app/middle/Home/Home';
 
 export default function handleChatChanges(

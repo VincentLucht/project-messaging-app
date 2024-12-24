@@ -1,8 +1,8 @@
 import { Socket } from 'socket.io-client';
-import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
+import { DBChatWithMembers } from '@/app/middle/Home/components/ChatSection/AllChatsList/api/fetchAllUserChats';
 import { User } from '@/app/middle/Home/Home';
 
-import fetchAllUserChats from '@/app/middle/AllChatsList/api/fetchAllUserChats';
+import fetchAllUserChats from '@/app/middle/Home/components/ChatSection/AllChatsList/api/fetchAllUserChats';
 import addUnreadMessagesToChat from '@/app/middle/Home/services/fetchChats/util/addUnreadMessagesToChat';
 import { UnreadMessage } from '@/app/middle/Home/services/fetchChats/util/addUnreadMessagesToChat';
 import { toast } from 'react-toastify';
