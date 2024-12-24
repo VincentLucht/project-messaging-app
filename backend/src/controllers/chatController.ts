@@ -87,10 +87,16 @@ class ChatController {
           .json({ message: 'New chat name exceeds the 100 character limit' });
       }
 
-      // check if chat exists
-      const doesChatExist = await db.chat.getChatById(chat_id);
-      if (!doesChatExist) {
+      // check if chat exists1
+      const chat = await db.chat.getChatById(chat_id);
+      if (!chat) {
         return res.status(404).json({ message: 'Chat does not exist' });
+      }
+
+      if (!chat.is_group_chat) {
+        return res
+          .status(400)
+          .json({ message: 'Not allowed in One on One chat' });
       }
 
       // check if the user exists and is an admin
@@ -118,9 +124,15 @@ class ChatController {
 
     try {
       // check if chat exists
-      const doesChatExist = await db.chat.getChatById(chat_id);
-      if (!doesChatExist) {
+      const chat = await db.chat.getChatById(chat_id);
+      if (!chat) {
         return res.status(404).json({ message: 'Chat does not exist' });
+      }
+
+      if (!chat.is_group_chat) {
+        return res
+          .status(400)
+          .json({ message: 'Not allowed in One on One chat' });
       }
 
       // check if the user exists and is an admin
@@ -158,6 +170,12 @@ class ChatController {
         return res.status(404).json({ message: 'Chat does not exist' });
       }
 
+      if (!chat.is_group_chat) {
+        return res
+          .status(400)
+          .json({ message: 'Not allowed in One on One chat' });
+      }
+
       // check if is admin
       const isUserAdmin = await db.chatAdmin.isChatAdminById(chat_id, user_id);
       if (!isUserAdmin) {
@@ -187,6 +205,11 @@ class ChatController {
       const chat = await db.chat.getChatById(chat_id);
       if (!chat) {
         return res.status(404).json({ message: 'Chat does not exist' });
+      }
+      if (!chat.is_group_chat) {
+        return res
+          .status(400)
+          .json({ message: "You can't delete a One on One chat" });
       }
 
       if (user_id !== chat.owner_id) {

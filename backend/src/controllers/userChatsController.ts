@@ -112,6 +112,16 @@ class UserChatsController {
     const { chat_id, user_id, user_id_to_delete } = req.body;
 
     try {
+      const chat = await db.chat.getChatById(chat_id);
+      if (!chat) {
+        return res.status(404).json({ message: 'Chat not found' });
+      }
+      if (!chat.is_group_chat) {
+        return res
+          .status(400)
+          .json({ message: "You can't remove someone in a One on One chat" });
+      }
+
       const isAdmin = await db.chatAdmin.isChatAdminById(chat_id, user_id);
       if (!isAdmin) {
         return res.status(403).json({ message: 'You are not an admin' });
@@ -122,18 +132,7 @@ class UserChatsController {
         return res.status(409).json({ message: "You can't remove yourself" });
       }
 
-      const otherUserInChat = await db.userChats.isUserInsideChat(
-        chat_id,
-        user_id,
-      );
-      if (!otherUserInChat) {
-        return res
-          .status(404)
-          .json({ message: 'Other user is not inside of the chat' });
-      }
-
-      const chatOwner = await db.chat.getOwnerById(chat_id, user_id_to_delete);
-      if (chatOwner) {
+      if (chat.owner_id === user_id_to_delete) {
         return res
           .status(403)
           .json({ message: "You can't remove the chat owner" });
@@ -162,25 +161,25 @@ class UserChatsController {
         return res.status(404).json({ message: 'User does not exist' });
       }
 
-      const chat = await db.chat.getAllChatMembers(chat_id);
-      if (!chat || !Array.isArray(chat)) {
+      const chat = await db.chat.getChatById(chat_id);
+      const chatMembers = await db.chat.getAllChatMembers(chat_id);
+      if (!chatMembers || !Array.isArray(chatMembers) || !chat) {
         return res.status(404).json({ message: 'Chat not found' });
       }
 
-      const chatOwner = await db.chat.getOwnerById(chat_id, user_id);
-      const isOwner = chatOwner?.owner_id === user_id;
-      if (isOwner) {
-        if (chat.length > 1) {
-          return res.status(403).json({
-            message:
-              "As the owner, you can't leave the chat until you are the last person",
-          });
-        }
+      // Owner restriction only on group chats
+      const isOwner = chat.owner_id === user_id;
+      if (chat.is_group_chat && isOwner && chatMembers.length > 1) {
+        return res.status(403).json({
+          message:
+            "As the owner, you can't leave the group chat until you are the last person",
+        });
       }
 
       await db.userChats.deleteUserFromChat(chat_id, user_id);
-      if (isOwner) {
-        await db.chat.deleteChat(chat_id, user_id);
+      if (chatMembers.length === 1) {
+        await db.chat.deleteChatIfEmpty(chat_id);
+        return res.status(200).json({ message: 'Chat deleted successfully' });
       }
 
       return res.status(204).send();

@@ -63,6 +63,13 @@ class ChatAdminController {
     const { user_id, other_username, chat_id } = req.body;
 
     try {
+      const chat = await db.chat.getChatById(chat_id);
+      if (!chat?.is_group_chat) {
+        return res.status(400).json({
+          message: "You can't make another user an admin to one-on-one chat",
+        });
+      }
+
       const otherUser = await db.user.getUserByUsername(other_username);
       if (!otherUser) {
         return res
