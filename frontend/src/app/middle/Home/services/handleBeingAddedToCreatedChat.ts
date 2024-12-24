@@ -1,6 +1,6 @@
 import { Dispatch, SetStateAction } from 'react';
 import { Socket } from 'socket.io-client';
-import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
+import { DBChatWithMembers } from '@/app/middle/Home/components/ChatSection/AllChatsList/api/fetchAllUserChats';
 import { DBMessageWithUser } from '@/app/interfaces/databaseSchema';
 
 export default function handleBeingAddedToCreatedChat(
@@ -19,7 +19,7 @@ export default function handleBeingAddedToCreatedChat(
         return [
           {
             ...newChat,
-            unreadCount: 0,
+            unreadCount: 1,
             last_message: newMessage,
             messages: [
               { ...newMessage, user: { username: newMessage.user.username } },
