@@ -89,6 +89,17 @@ export default class ChatManager {
     chatDescription: string,
     profilePictureUrl: string,
   ) {
+    let otherUserId = '';
+    if (!isGroupChat) {
+      const otherUser = await this.prisma.user.findUnique({
+        where: { username: otherUsernames[0] },
+      });
+
+      if (otherUser) {
+        otherUserId = otherUser.id;
+      }
+    }
+
     const chat = await this.prisma.chat.create({
       data: {
         UserChats: {
@@ -106,9 +117,12 @@ export default class ChatManager {
           ],
         },
         ChatAdmins: {
-          create: {
-            user_id: userId,
-          },
+          create: [
+            {
+              user_id: userId,
+            },
+            ...(otherUserId ? [{ user_id: otherUserId }] : []),
+          ],
         },
         owner_id: userId,
         is_group_chat: isGroupChat,
@@ -195,6 +209,14 @@ export default class ChatManager {
       where: {
         id: chatId,
         owner_id: userId,
+      },
+    });
+  }
+
+  async deleteChatIfEmpty(chatId: string) {
+    await this.prisma.chat.delete({
+      where: {
+        id: chatId,
       },
     });
   }
