@@ -47,6 +47,15 @@ export default function NewChat({
   const { user, token } = useAuth();
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const reset = () => {
+    setIsGroupChat(false);
+    setOtherUsernames('');
+    setProfilePictureUrl('');
+    setChatName('');
+    setChatDescription('');
+    setErrors('');
+    setIncorrectUsers([]);
+  };
   useEffect(() => {
     if (inputRef.current && showCreateChat) {
       inputRef.current.focus();
@@ -95,6 +104,7 @@ export default function NewChat({
           ]);
 
           setShowCreateChat(false);
+          reset();
 
           // Send signal to backend
           socket?.emit('create-new-chat', user.id, user.username, newChat);
