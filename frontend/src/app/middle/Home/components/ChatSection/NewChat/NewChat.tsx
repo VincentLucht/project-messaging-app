@@ -11,14 +11,14 @@ import { useAuth } from '@/app/auth/context/hooks/useAuth';
 import { toast } from 'react-toastify';
 import toastUpdateOptions from '@/app/components/ts/toastUpdateObject';
 
-import handleCreateChat from '@/app/middle/NewChat/api/handleCreateChat';
-import convertUsernames from '@/app/middle/NewChat/util/convertUsernames';
+import handleCreateChat from '@/app/middle/Home/components/ChatSection/NewChat/api/handleCreateChat';
+import convertUsernames from '@/app/middle/Home/components/ChatSection/NewChat/util/convertUsernames';
 
 import Input from '@/app/components/Input';
 import Checkbox from '@/app/components/Checkbox';
 
 import './css/NewChat.css';
-import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
+import { DBChatWithMembers } from '@/app/middle/Home/components/ChatSection/AllChatsList/api/fetchAllUserChats';
 import { Socket } from 'socket.io-client';
 import generateTempId from '@/app/right/ActiveChat/util/generateTempId';
 import { encryptMessage } from '@/app/secure/cryptoUtils';
@@ -56,6 +56,7 @@ export default function NewChat({
     setErrors('');
     setIncorrectUsers([]);
   };
+
   useEffect(() => {
     if (inputRef.current && showCreateChat) {
       inputRef.current.focus();
@@ -135,10 +136,7 @@ export default function NewChat({
 
   return (
     <div>
-      <form
-        onSubmit={onSubmit}
-        className="mb-4 flex-col gap-4 border-t-2 pt-4 df"
-      >
+      <form onSubmit={onSubmit} className="mb-4 flex-col gap-4 df">
         <h2 className="text-2xl font-bold">Create New Chat</h2>
 
         {/* Display errors */}
@@ -230,14 +228,16 @@ export default function NewChat({
         )}
 
         {/* Submit */}
-        <button
-          type="submit"
-          className="rounded-md border-2 border-white px-4 py-2 font-bold transition-colors
-            duration-200 ease-in-out hover:bg-white hover:text-blue-500
-            active:border-slate-200 active:bg-slate-200"
-        >
-          Create Chat
-        </button>
+        <div className="w-full px-[2px]">
+          <button
+            type="submit"
+            className="w-full rounded-md border-2 border-white py-2 font-bold transition-colors
+              duration-200 ease-in-out hover:bg-white hover:text-blue-500
+              active:border-slate-200 active:bg-slate-200"
+          >
+            Create Chat
+          </button>
+        </div>
       </form>
     </div>
   );
