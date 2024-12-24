@@ -24,11 +24,19 @@ export default function LeaveChat({
   const onLeave = () => {
     if (confirm('Are you sure you want to leave the chat?')) {
       const toastId = toast.loading('Leaving Chat...');
+
       leaveChat(chatId, userId, token)
-        .then(() => {
+        .then((response) => {
           socket?.emit('stopped-typing', { chatId, username });
 
-          socket?.emit('user-left-chat', chatId, userId, username);
+          const shouldSendMessage = response ? false : true;
+          socket?.emit(
+            'user-left-chat',
+            chatId,
+            userId,
+            username,
+            shouldSendMessage,
+          );
 
           toast.update(
             toastId,

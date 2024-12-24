@@ -1,6 +1,10 @@
 import { API_URL } from '@/App';
 import { ExpressErrors } from '@/app/interfaces/express-validator-errors';
 
+interface LeaveChatResponse {
+  message: string;
+}
+
 export default async function leaveChat(
   chatId: string,
   userId: string,
@@ -22,4 +26,10 @@ export default async function leaveChat(
     const errorObject = (await response.json()) as ExpressErrors;
     throw errorObject;
   }
+
+  if (response.status === 204) {
+    return null;
+  }
+
+  return (await response.json()) as LeaveChatResponse;
 }

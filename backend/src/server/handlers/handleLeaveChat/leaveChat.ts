@@ -14,21 +14,24 @@ export default async function leaveChat(
   username: string,
   activeChatMembers: ActiveChatMembers,
   typingUsers: TypingUsers,
+  shouldSendMessage: boolean,
 ) {
-  const { encryptedMessage, iv } = encryptMessage('left the Chat');
-  await sendMessage(
-    io,
-    socket,
-    chatId,
-    userId,
-    username,
-    null,
-    encryptedMessage,
-    iv,
-    true,
-    activeChatMembers,
-    typingUsers,
-  );
+  if (shouldSendMessage) {
+    const { encryptedMessage, iv } = encryptMessage('left the Chat');
+    await sendMessage(
+      io,
+      socket,
+      chatId,
+      userId,
+      username,
+      null,
+      encryptedMessage,
+      iv,
+      true,
+      activeChatMembers,
+      typingUsers,
+    );
+  }
 
   const isUserAdmin = await db.chatAdmin.isChatAdminById(chatId, userId);
   if (isUserAdmin) {

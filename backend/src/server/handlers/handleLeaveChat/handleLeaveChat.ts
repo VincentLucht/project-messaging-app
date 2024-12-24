@@ -11,7 +11,12 @@ export default function handleLeaveChat(
   chatRooms: ChatRooms,
   typingUsers: TypingUsers,
 ) {
-  return async (chatId: string, userId: string, username: string) => {
+  return async (
+    chatId: string,
+    userId: string,
+    username: string,
+    shouldSendMessage: boolean,
+  ) => {
     const activeChatMembers = getActiveChatMembers(chatRooms, chatId)!;
     leaveChat(
       io,
@@ -21,6 +26,7 @@ export default function handleLeaveChat(
       username,
       activeChatMembers,
       typingUsers,
+      shouldSendMessage,
     );
   };
 }
