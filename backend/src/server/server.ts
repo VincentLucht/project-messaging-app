@@ -15,6 +15,7 @@ import handleAdminStatusAdded from '@/server/handlers/handleAdminStatusAdded/han
 import handleAdminStatusRemoved from '@/server/handlers/handleAdminStatusRemoved/handleAdminStatusRemoved';
 import handleLeaveChat from '@/server/handlers/handleLeaveChat/handleLeaveChat';
 import handleDeleteChat from '@/server/handlers/handleDeleteChat/handleDeleteChat';
+import handleLeaveOneOnOneChat from '@/server/handlers/handleLeaveOneOnOneChat/handleLeaveOneOnOneChat';
 
 import getActiveChatMembers from '@/server/util/getActiveChatMembers';
 
@@ -213,10 +214,14 @@ export function setupSocketIO(httpServer: any) {
     // ! OWNER DELETES CHAT
     socket.on('user-deleted-chat', handleDeleteChat(io));
 
+    // ! USER LEAVES CHAT
     socket.on(
       'user-left-chat',
       handleLeaveChat(io, socket, chatRooms, typingUsers),
     );
+
+    // ! USER LEAVES ONE ON ONE CHAT
+    socket.on('left-one-on-one-chat', handleLeaveOneOnOneChat(io));
 
     // ! MAKE USER ADMIN
     socket.on(

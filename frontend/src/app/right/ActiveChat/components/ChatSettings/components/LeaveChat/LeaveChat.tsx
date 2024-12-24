@@ -29,6 +29,8 @@ export default function LeaveChat({
         .then((response) => {
           socket?.emit('stopped-typing', { chatId, username });
 
+          socket?.emit('left-one-on-one-chat', chatId, username);
+
           const shouldSendMessage = response ? false : true;
           socket?.emit(
             'user-left-chat',
