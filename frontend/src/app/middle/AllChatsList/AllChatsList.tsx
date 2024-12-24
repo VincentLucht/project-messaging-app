@@ -11,6 +11,7 @@ interface AllChatsListProps {
   setChats: (chats: DBChatWithMembers[] | null) => void;
   activeChat: DBChatWithMembers | null;
   setActiveChat: Dispatch<SetStateAction<DBChatWithMembers | null>>;
+  userId: string;
   username: string;
   typingUsers: TypingUsers;
   isMobile: boolean;
@@ -21,6 +22,7 @@ export default function AllChatsList({
   setChats,
   activeChat,
   setActiveChat,
+  userId,
   username,
   typingUsers,
   isMobile,
@@ -46,14 +48,19 @@ export default function AllChatsList({
 
   if (chats.length === 0) {
     return (
-      <div className="pt-2 font-bold df">
-        It&apos;s quiet here
-        <div className="typing-dots ml-[2px] mr-2 df">
-          <span className="dot"></span>
-          <span className="dot"></span>
-          <span className="dot"></span>
+      <div
+        className="flex min-h-[40px] flex-wrap items-center justify-center gap-2 pt-2 text-center
+          font-bold"
+      >
+        <div className="flex items-center">
+          It&apos;s quiet here
+          <div className="typing-dots ml-[2px] flex">
+            <span className="dot"></span>
+            <span className="dot"></span>
+            <span className="dot"></span>
+          </div>
         </div>
-        Why not message a friend?
+        <div>Why not message a friend?</div>
       </div>
     );
   }
@@ -93,6 +100,7 @@ export default function AllChatsList({
             <hr />
             <ChatCard
               chat={chat}
+              userId={userId}
               username={username}
               key={chat.id}
               isMobile={isMobile}

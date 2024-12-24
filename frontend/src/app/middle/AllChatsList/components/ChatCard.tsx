@@ -1,5 +1,6 @@
 import { TypingUsersChat } from '@/app/interfaces/TypingUsers';
 import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
+import displayChatName from '@/app/right/ActiveChat/components/ChatSettings/components/ChatName/components/DisplayChatName';
 
 import LazyLoadImage from '@/app/components/LazyLoadImage';
 import DisplayTypingUsers from '@/app/middle/AllChatsList/components/util/DisplayTypingUsers';
@@ -8,6 +9,7 @@ import dayjs from 'dayjs';
 
 interface ChatCardProps {
   chat: DBChatWithMembers;
+  userId: string;
   username: string;
   isMobile: boolean;
   activeChat: DBChatWithMembers | null;
@@ -16,6 +18,7 @@ interface ChatCardProps {
 
 export default function ChatCard({
   chat,
+  userId,
   username,
   isMobile,
   activeChat,
@@ -62,7 +65,12 @@ export default function ChatCard({
       {/* Chat name */}
       <div className="overflow-hidden">
         <div className="overflow-hidden overflow-ellipsis whitespace-nowrap text-left text-lg font-bold">
-          {chat.name}
+          {displayChatName(
+            chat.name,
+            chat.is_group_chat,
+            chat.UserChats,
+            userId,
+          )}
         </div>
 
         {/* Typing Users / Last message */}
@@ -81,9 +89,14 @@ export default function ChatCard({
         {/* Time sent */}
         <div>{formattedTime}</div>
         {/* Unread messages count */}
-        <div>
+        <div className="df">
           {chat.unreadCount !== 0 && (
-            <div>{chat.unreadCount > 10 ? '10+' : chat.unreadCount}</div>
+            <div
+              className="mt-[3px] h-full max-h-[25px] w-full max-w-[25px] rounded-full border-[1.5px]
+                border-blue-400 bg-blue-400 text-center df"
+            >
+              <div>{chat.unreadCount > 10 ? '10+' : chat.unreadCount}</div>
+            </div>
           )}
         </div>
       </div>

@@ -13,6 +13,7 @@ interface ChatSectionProps {
   setActiveChat: Dispatch<SetStateAction<DBChatWithMembers | null>>;
   showCreateChat: boolean;
   setShowCreateChat: Dispatch<SetStateAction<boolean>>;
+  userId: string;
   username: string;
   typingUsers: TypingUsers;
   socket: Socket | null;
@@ -26,6 +27,7 @@ export default function ChatSection({
   setActiveChat,
   showCreateChat,
   setShowCreateChat,
+  userId,
   username,
   typingUsers,
   socket,
@@ -68,6 +70,7 @@ export default function ChatSection({
         setChats={setChats}
         setActiveChat={setActiveChat}
         isMobile={isMobile}
+        userId={userId}
         username={username}
         typingUsers={typingUsers}
         activeChat={activeChat}

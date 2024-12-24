@@ -297,6 +297,7 @@ export default function Home() {
               setActiveChat={setActiveChat}
               showCreateChat={showCreateChat}
               setShowCreateChat={setShowCreateChat}
+              userId={user.id}
               username={user.username}
               typingUsers={typingUsers}
               socket={socket.current}
