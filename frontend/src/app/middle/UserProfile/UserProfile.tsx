@@ -16,7 +16,7 @@ export default function UserProfile() {
   }
 
   return (
-    <div className="flex h-full flex-col justify-between px-4 pt-3">
+    <div className="flex h-full flex-col justify-between overflow-y-auto px-4 pt-3">
       <div>
         <h2 className="text-left text-2xl font-bold">Profile</h2>
 
@@ -35,7 +35,21 @@ export default function UserProfile() {
         </div>
       </div>
 
-      <div className="pb-1 text-[15px] text-secondary-gray">
+      <div className="pb-2 text-[15px] text-secondary-gray">
+        <div className="px-[12px]">
+          <button
+            type="submit"
+            className="mb-2 w-full rounded-md border-2 border-red-500 py-2 font-bold text-red-500
+              transition-colors duration-200 ease-in-out hover:border-red-500 hover:bg-red-500
+              hover:text-white active:border-red-600 active:bg-red-600"
+            onClick={() => {
+              toast.success('Successfully logged out');
+              logout();
+            }}
+          >
+            Logout
+          </button>
+        </div>
         <span className="text-red-500">Info:</span> Changing your Information
         requires you to log in again
       </div>
