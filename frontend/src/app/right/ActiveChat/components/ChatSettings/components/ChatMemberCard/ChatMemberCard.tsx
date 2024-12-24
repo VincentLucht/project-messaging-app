@@ -18,6 +18,7 @@ interface ChatMemberCard {
   isUserSelf: boolean;
   isAdmin: boolean;
   isOwner: boolean;
+  isGroupChat: boolean;
   isUserAdmin: boolean;
   token: string;
   openAdminPanelId: string | null;
@@ -34,6 +35,7 @@ export default function ChatMemberCard({
   isUserSelf,
   isAdmin,
   isOwner,
+  isGroupChat,
   isUserAdmin,
   token,
   openAdminPanelId,
@@ -82,14 +84,14 @@ export default function ChatMemberCard({
           )}
 
           {/* Member is owner */}
-          {isOwner && (
+          {isOwner && isGroupChat && (
             <div className="rounded-full bg-purple-100 px-3 py-1 text-xs font-medium text-purple-800">
               Owner
             </div>
           )}
 
           {/* Member role */}
-          {isAdmin && (
+          {isAdmin && isGroupChat && (
             <div className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800">
               Admin
             </div>
@@ -97,19 +99,21 @@ export default function ChatMemberCard({
         </div>
 
         {/* User Admin options */}
-        <UserAdminOptions
-          socket={socket}
-          chatId={chatId}
-          chatName={chatName}
-          userId={userId}
-          username={username}
-          isUserSelfAdmin={isUserAdmin}
-          user={user}
-          isOtherUserAdmin={isAdmin}
-          token={token}
-          openAdminPanelId={openAdminPanelId}
-          setOpenAdminPanelId={setOpenAdminPanelId}
-        />
+        {isGroupChat && (
+          <UserAdminOptions
+            socket={socket}
+            chatId={chatId}
+            chatName={chatName}
+            userId={userId}
+            username={username}
+            isUserSelfAdmin={isUserAdmin}
+            user={user}
+            isOtherUserAdmin={isAdmin}
+            token={token}
+            openAdminPanelId={openAdminPanelId}
+            setOpenAdminPanelId={setOpenAdminPanelId}
+          />
+        )}
       </div>
     </div>
   );

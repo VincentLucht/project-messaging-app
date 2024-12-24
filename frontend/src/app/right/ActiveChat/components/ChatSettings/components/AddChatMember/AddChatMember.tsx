@@ -10,6 +10,7 @@ interface AddChatMemberProps {
   username: string;
   token: string;
   chatId: string;
+  isGroupChat: boolean;
   isUserAdmin: boolean;
   socket: Socket | null;
 }
@@ -19,6 +20,7 @@ export default function AddChatMember({
   username,
   token,
   chatId,
+  isGroupChat,
   isUserAdmin,
   socket,
 }: AddChatMemberProps) {
@@ -44,7 +46,7 @@ export default function AddChatMember({
     }
   }, [showAddChatMember]);
 
-  if (!isUserAdmin) return;
+  if (!isUserAdmin || !isGroupChat) return;
 
   return (
     <div

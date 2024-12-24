@@ -7,6 +7,7 @@ interface DeleteChatProps {
   socket: Socket | null;
   chatId: string;
   chatName: string;
+  isGroupChat: boolean;
   userId: string;
   token: string;
   isOwner: boolean;
@@ -16,11 +17,12 @@ export default function DeleteChat({
   socket,
   chatId,
   chatName,
+  isGroupChat,
   userId,
   token,
   isOwner,
 }: DeleteChatProps) {
-  if (!isOwner) return;
+  if (!isOwner || !isGroupChat) return;
 
   const onDelete = () => {
     if (!confirm('Are you sure you want to delete the Chat?')) return;

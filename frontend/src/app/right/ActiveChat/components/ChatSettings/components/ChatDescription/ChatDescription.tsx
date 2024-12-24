@@ -13,6 +13,7 @@ import { encryptMessage } from '@/app/secure/cryptoUtils';
 
 interface ChatDescriptionProps {
   chatId: string;
+  isGroupChat: boolean;
   userId: string;
   username: string;
   token: string;
@@ -23,6 +24,7 @@ interface ChatDescriptionProps {
 
 export default function ChatDescription({
   chatId,
+  isGroupChat,
   userId,
   username,
   token,
@@ -116,8 +118,10 @@ export default function ChatDescription({
 
   return (
     <div>
-      <div className={`flex justify-center ${isUserAdmin && 'gap-2'}`}>
-        {isEditActive ? (
+      <div
+        className={`flex justify-center ${isUserAdmin && isGroupChat && 'gap-2'}`}
+      >
+        {isEditActive && isGroupChat ? (
           <TextareaAutosize
             value={newChatDescription ? newChatDescription : ''}
             onChange={(e) => setNewChatDescription(e.target.value)}
@@ -150,14 +154,18 @@ export default function ChatDescription({
           </div>
         )}
 
-        <div className={`${isUserAdmin && '-mr-[28px]'} -mt-[12px]`}>
-          <EditButton
-            isUserAdmin={isUserAdmin}
-            isEditActive={isEditActive}
-            setIsEditActive={setIsEditActive}
-            confirmSetterFunc={setChangeChatDescription}
-          />
-        </div>
+        {isGroupChat && (
+          <div
+            className={`${isUserAdmin && isGroupChat && '-mr-[28px]'} -mt-[12px]`}
+          >
+            <EditButton
+              isUserAdmin={isUserAdmin}
+              isEditActive={isEditActive}
+              setIsEditActive={setIsEditActive}
+              confirmSetterFunc={setChangeChatDescription}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

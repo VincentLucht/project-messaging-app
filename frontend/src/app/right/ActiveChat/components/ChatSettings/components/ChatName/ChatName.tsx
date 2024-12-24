@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
 import EditButton from '@/app/components/EditButton';
+import displayChatName from '@/app/right/ActiveChat/components/ChatSettings/components/ChatName/components/DisplayChatName';
 import editGroupChatName from '@/app/right/ActiveChat/components/ChatSettings/components/ChatName/api/editGroupChatName';
 
 import { toast } from 'react-toastify';
 import toastUpdateOptions from '@/app/components/ts/toastUpdateObject';
 import { Socket } from 'socket.io-client';
+import { ChatMember } from '@/app/middle/Home/components/ChatSection/AllChatsList/api/fetchAllUserChats';
 import sendEncryptedMessage from '@/app/secure/sendEncryptedMessage';
 import { encryptMessage } from '@/app/secure/cryptoUtils';
 
@@ -15,6 +17,8 @@ interface ChatNameProps {
   username: string;
   chatId: string;
   chatName: string;
+  chatMembers: { user: ChatMember }[];
+  isGroupChat: boolean;
   token: string;
   socket: Socket | null;
 }
@@ -25,6 +29,8 @@ export default function ChatName({
   username,
   chatId,
   chatName,
+  chatMembers,
+  isGroupChat,
   token,
   socket,
 }: ChatNameProps) {
@@ -119,9 +125,11 @@ export default function ChatName({
   };
 
   return (
-    <div className={`flex justify-center gap-2 ${isUserAdmin && '-mr-[28px]'}`}>
+    <div
+      className={`flex justify-center gap-2 ${isUserAdmin && isGroupChat && '-mr-[28px]'}`}
+    >
       {/* Change group name input */}
-      {isEditActive ? (
+      {isEditActive && isGroupChat ? (
         <TextareaAutosize
           value={newChatName}
           onChange={(e) => setNewChatName(e.target.value)}
@@ -139,18 +147,22 @@ export default function ChatName({
           spellCheck={false}
         />
       ) : (
-        <h3 className="text-2xl font-bold">{chatName}</h3>
+        <h3 className="text-2xl font-bold">
+          {displayChatName(chatName, isGroupChat, chatMembers, userId)}
+        </h3>
       )}
 
       {/* Activate Edit mode => Edit chat name  */}
-      <EditButton
-        isUserAdmin={isUserAdmin}
-        isEditActive={isEditActive}
-        setIsEditActive={setIsEditActive}
-        confirmSetterFunc={setChangeChatName}
-        handleSubmit={handleSubmit}
-        isDisabled={newChatName.length === 0}
-      />
+      {isGroupChat && (
+        <EditButton
+          isUserAdmin={isUserAdmin}
+          isEditActive={isEditActive}
+          setIsEditActive={setIsEditActive}
+          confirmSetterFunc={setChangeChatName}
+          handleSubmit={handleSubmit}
+          isDisabled={newChatName.length === 0}
+        />
+      )}
     </div>
   );
 }
