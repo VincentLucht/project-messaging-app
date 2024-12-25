@@ -30,8 +30,6 @@ import chatAdminController from '@/controllers/chatAdminController';
 
 const router = express.Router();
 
-// ? USER routes
-
 // ! CHAT
 // create chat
 router.post(
@@ -174,8 +172,6 @@ router.delete(
 );
 
 // ! USER
-// sign up
-
 // change name
 router.put(
   '/user/name',
