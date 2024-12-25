@@ -2,7 +2,7 @@ import { Dispatch, SetStateAction } from 'react';
 
 interface CloseButtonProps {
   className?: string;
-  setterFunction: Dispatch<SetStateAction<boolean>>;
+  setterFunction?: Dispatch<SetStateAction<boolean>>;
 }
 
 export default function CloseButton({
@@ -13,7 +13,9 @@ export default function CloseButton({
     <button
       className={`cursor-pointer text-2xl font-medium transition-all hover:scale-110
         hover:text-red-600 active:scale-90 ${className}`}
-      onClick={() => setterFunction(false)}
+      onClick={() => {
+        if (setterFunction) setterFunction(false);
+      }}
       aria-label="Close Group Info"
     >
       &times;
