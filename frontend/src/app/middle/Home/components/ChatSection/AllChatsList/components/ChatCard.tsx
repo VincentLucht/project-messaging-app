@@ -29,10 +29,6 @@ export default function ChatCard({
     : dayjs(chat.time_created).format('HH:mm'); // ? show creation date of chat
 
   const getProfilePicture = () => {
-    if (!chat?.UserChats) {
-      return './placeholderPFP.jpg';
-    }
-
     let urlPath = '';
 
     if (chat.is_group_chat) {
@@ -49,8 +45,8 @@ export default function ChatCard({
 
   return (
     <div
-      className={`grid h-[86px] cursor-pointer grid-cols-[1.5fr_8fr_1fr] gap-4 transition-colors
-        duration-150 ${isMobile ? 'p-2' : 'p-4'}
+      className={`grid h-[86px] cursor-pointer grid-cols-[1.5fr_8fr_1fr] place-content-center
+        gap-4 p-4 transition-colors duration-150
         ${activeChat?.id === chat.id ? 'bg-gray-strong' : 'hover:bg-gray-light'} `}
     >
       {/* PFP */}
