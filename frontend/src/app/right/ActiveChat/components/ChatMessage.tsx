@@ -122,7 +122,7 @@ export default function ChatMessage({
               <img
                 src={isMessageRead() ? deliveredTick : sentTick}
                 alt={altMessage}
-                className="translate-y-[2px]"
+                className="-mb-[2px]"
               />
             </div>
           )}
