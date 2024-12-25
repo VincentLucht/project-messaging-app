@@ -6,6 +6,7 @@ import AllChatsList from '@/app/middle/Home/components/ChatSection/AllChatsList/
 import { DBChatWithMembers } from '@/app/middle/Home/components/ChatSection/AllChatsList/api/fetchAllUserChats';
 import { TypingUsers } from '@/app/interfaces/TypingUsers';
 import { Socket } from 'socket.io-client';
+import OpenUserProfileButton from '@/app/left/OpenUserProfileButton';
 
 interface ChatSectionProps {
   chats: DBChatWithMembers[] | null;
@@ -14,8 +15,11 @@ interface ChatSectionProps {
   setActiveChat: Dispatch<SetStateAction<DBChatWithMembers | null>>;
   showCreateChat: boolean;
   setShowCreateChat: Dispatch<SetStateAction<boolean>>;
+  location: 'home' | 'user';
+  setLocation: Dispatch<SetStateAction<'home' | 'user'>>;
   userId: string;
   username: string;
+  profilePictureUrl: string | null | undefined;
   typingUsers: TypingUsers;
   socket: Socket | null;
   isMobile: boolean;
@@ -28,8 +32,11 @@ export default function ChatSection({
   setActiveChat,
   showCreateChat,
   setShowCreateChat,
+  location,
+  setLocation,
   userId,
   username,
+  profilePictureUrl,
   typingUsers,
   socket,
   isMobile,
@@ -48,7 +55,7 @@ export default function ChatSection({
   }, [showSearchBar, query, chats]);
 
   return (
-    <div className="flex h-full flex-col">
+    <div className={`flex h-full flex-col ${!isMobile ? 'border-x' : ''}`}>
       <div className="bg-blue-500 px-5 py-2">
         <div
           className={`flex items-center justify-between ${showCreateChat ? 'mb-4' : ''}`}
@@ -81,6 +88,16 @@ export default function ChatSection({
                 <img src="./newChat.svg" alt="new chat icon" />
               </button>
             </div>
+
+            {isMobile && (
+              <div className="origin-center scale-[85%]">
+                <OpenUserProfileButton
+                  location={location}
+                  setLocation={setLocation}
+                  imgUrl={profilePictureUrl}
+                />
+              </div>
+            )}
           </div>
         </div>
 

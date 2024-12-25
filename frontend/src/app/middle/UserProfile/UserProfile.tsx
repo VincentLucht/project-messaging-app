@@ -1,11 +1,21 @@
+import { Dispatch, SetStateAction } from 'react';
 import { useAuth } from '@/app/auth/context/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 
 import ChangeName from '@/app/middle/UserProfile/components/ChangeName/ChangeName';
 import ChangeDescription from '@/app/middle/UserProfile/components/ChangeDescription/ChangeDescription';
+import CloseButton from '@/app/components/CloseButton';
 import { toast } from 'react-toastify';
 
-export default function UserProfile() {
+interface UserProfileProps {
+  setLocation: Dispatch<SetStateAction<'home' | 'user'>>;
+  isMobile: boolean;
+}
+
+export default function UserProfile({
+  setLocation,
+  isMobile,
+}: UserProfileProps) {
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -18,7 +28,17 @@ export default function UserProfile() {
   return (
     <div className="flex h-full flex-col justify-between overflow-y-auto px-4 pt-3">
       <div>
-        <h2 className="text-left text-2xl font-bold">Profile</h2>
+        {isMobile ? (
+          <div className="flex justify-between">
+            <h2 className="text-left text-2xl font-bold">Profile</h2>
+
+            <div onClick={() => setLocation('home')}>
+              <CloseButton className="h-4 w-4" />
+            </div>
+          </div>
+        ) : (
+          <h2 className="text-left text-2xl font-bold">Profile</h2>
+        )}
 
         <div>
           Welcome,
@@ -36,7 +56,7 @@ export default function UserProfile() {
       </div>
 
       <div className="pb-2 text-[15px] text-secondary-gray">
-        <div className="px-[12px]">
+        <div className="px-3">
           <button
             type="submit"
             className="mb-2 w-full rounded-md border-2 border-red-500 py-2 font-bold text-red-500
@@ -50,8 +70,11 @@ export default function UserProfile() {
             Logout
           </button>
         </div>
-        <span className="text-red-500">Info:</span> Changing your Information
-        requires you to log in again
+
+        <div className="px-3 pb-2">
+          <span className="text-red-500">Info:</span> Changing your Information
+          requires you to log in again
+        </div>
       </div>
     </div>
   );

@@ -7,7 +7,7 @@ import {
 } from 'react';
 import { Socket } from 'socket.io-client';
 
-import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
+import { DBChatWithMembers } from '@/app/middle/Home/components/ChatSection/AllChatsList/api/fetchAllUserChats';
 import { DBMessageWithUser } from '@/app/interfaces/databaseSchema';
 
 import handleNewMessages from '@/app/right/ActiveChat/service/handleNewMessages';
@@ -26,6 +26,7 @@ import { TypingUsers } from '@/app/interfaces/TypingUsers';
 interface ActiveChatProps {
   chat: DBChatWithMembers;
   setChats: Dispatch<SetStateAction<DBChatWithMembers[] | null>>;
+  setActiveChat: Dispatch<SetStateAction<DBChatWithMembers | null>>;
   userId: string;
   username: string;
   profilePictureUrl: string | null | undefined;
@@ -43,6 +44,7 @@ interface ActiveChatProps {
 export default function ActiveChat({
   chat,
   setChats,
+  setActiveChat,
   userId,
   username,
   profilePictureUrl,
@@ -137,21 +139,25 @@ export default function ActiveChat({
 
   return (
     <div
-      className={`${showChatSettings ? 'grid grid-cols-[5.5fr_4.5fr] md:grid-cols-[0%_100%]' : ''}`}
+      className={`overflow-hidden
+        ${showChatSettings ? 'grid grid-cols-[5.5fr_4.5fr] md:grid-cols-[0%_100%]' : ''}`}
     >
-      <div className="grid h-[100dvh] grid-rows-[auto_1fr_auto] border-l">
+      <div className="grid h-[100dvh] max-w-[100dvw] grid-rows-[auto_1fr_auto]">
         <ChatHeader
           showChatSettings={showChatSettings}
           setShowChatSettings={setShowChatSettings}
+          setActiveChat={setActiveChat}
           typingUsers={typingUsers}
           chatId={chat.id}
           chatName={chat.name}
+          chatMembers={chat.UserChats}
+          userId={userId}
           username={username}
           isGroupChat={chat.is_group_chat}
           lastChatMessage={chat.last_message}
+          isMobile={isMobile}
         />
 
-        {/* TODO: Actually style this! */}
         <hr />
 
         <AllChatMessages
@@ -163,7 +169,6 @@ export default function ActiveChat({
           isGroupChat={chat.is_group_chat}
         />
 
-        {/* TODO: Actually style this */}
         <hr />
 
         <SendMessageForm
@@ -173,18 +178,23 @@ export default function ActiveChat({
           userId={userId}
           username={username}
           profilePictureUrl={profilePictureUrl}
+          isMobile={isMobile}
         />
       </div>
 
-      <ChatSettings
-        setShowChatSettings={setShowChatSettings}
-        showChatSettings={showChatSettings}
-        chat={chat}
-        userId={userId}
-        username={username}
-        token={token}
-        socket={socket}
-      />
+      <div
+        className={`${isMobile && showChatSettings ? 'absolute min-h-[100dvh] w-full overflow-y-auto' : ''}`}
+      >
+        <ChatSettings
+          setShowChatSettings={setShowChatSettings}
+          showChatSettings={showChatSettings}
+          chat={chat}
+          userId={userId}
+          username={username}
+          token={token}
+          socket={socket}
+        />
+      </div>
     </div>
   );
 }

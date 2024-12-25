@@ -258,27 +258,24 @@ export default function Home() {
   }, [isLoggedIn, user, token, logout]);
 
   if (!isLoggedIn || !user || !token) {
-    // ? TODO: navigate to login??
     return <div>You are not logged in</div>;
   }
 
   return (
     <div
-      className={`grid min-h-[100dvh]
-        ${isMobile ? 'grid-cols-[30%_50%]' : 'grid-cols-[58px_3.5fr_6.5fr]'}`}
+      className={`grid min-h-[100dvh] ${isMobile ? '' : 'grid-cols-[58px_3.5fr_6.5fr]'}`}
     >
       {/* LEFT SIDE */}
-      <nav
-        className={`flex flex-col gap-4
-          ${isMobile ? 'order-last' : 'order-first p-3 secondary-gray'}`}
-      >
-        <OpenChatsButton location={location} setLocation={setLocation} />
-        <OpenUserProfileButton
-          imgUrl={user?.profile_picture_url}
-          location={location}
-          setLocation={setLocation}
-        />
-      </nav>
+      {!isMobile && (
+        <nav className="order-first flex flex-col gap-4 p-3 secondary-gray">
+          <OpenChatsButton location={location} setLocation={setLocation} />
+          <OpenUserProfileButton
+            imgUrl={user?.profile_picture_url}
+            location={location}
+            setLocation={setLocation}
+          />
+        </nav>
+      )}
 
       {/* MIDDLE */}
       <main className="relative min-w-0 overflow-hidden bg-blue-900/20">
@@ -297,8 +294,11 @@ export default function Home() {
               setActiveChat={setActiveChat}
               showCreateChat={showCreateChat}
               setShowCreateChat={setShowCreateChat}
+              location={location}
+              setLocation={setLocation}
               userId={user.id}
               username={user.username}
+              profilePictureUrl={user.profile_picture_url}
               typingUsers={typingUsers}
               socket={socket.current}
               isMobile={isMobile}
@@ -312,7 +312,7 @@ export default function Home() {
                 : 'pointer-events-none translate-y-[100%] opacity-0'
             }`}
           >
-            <UserProfile />
+            <UserProfile setLocation={setLocation} isMobile={isMobile} />
           </div>
         </div>
       </main>
@@ -322,6 +322,7 @@ export default function Home() {
         <ActiveChat
           chat={activeChat}
           setChats={setChats}
+          setActiveChat={setActiveChat}
           userId={user.id}
           username={user.username}
           profilePictureUrl={user.profile_picture_url}
@@ -331,7 +332,7 @@ export default function Home() {
           isMobile={isMobile}
         />
       ) : (
-        <CoverPage setterFunc={setShowCreateChat} />
+        !isMobile && <CoverPage setterFunc={setShowCreateChat} />
       )}
     </div>
   );
