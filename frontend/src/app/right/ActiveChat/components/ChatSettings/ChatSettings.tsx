@@ -1,5 +1,5 @@
 import { useState, Dispatch, SetStateAction } from 'react';
-import { DBChatWithMembers } from '@/app/middle/AllChatsList/api/fetchAllUserChats';
+import { DBChatWithMembers } from '@/app/middle/Home/components/ChatSection/AllChatsList/api/fetchAllUserChats';
 
 import ChatPFP from '@/app/right/ActiveChat/components/ChatSettings/components/ChatPFP/ChatPFP';
 import ChatName from '@/app/right/ActiveChat/components/ChatSettings/components/ChatName/ChatName';
@@ -37,6 +37,8 @@ export default function ChatSettings({
   const [openAdminPanelId, setOpenAdminPanelId] = useState<string | null>(null);
 
   const memberAmount = chat.UserChats.length;
+  const memberCount =
+    memberAmount === 1 ? `${memberAmount} member` : `${memberAmount} members`;
   const formattedDate = dayjs(chat.time_created).format('DD/MM/YY');
   const formattedTime = dayjs(chat.time_created).format('HH:MM');
   const chatAdmins = new Set(chat.ChatAdmins.map((user) => user.user_id));
@@ -59,6 +61,7 @@ export default function ChatSettings({
         {/* Group PFP */}
         <ChatPFP
           chatId={chat.id}
+          isGroupChat={chat.is_group_chat}
           userId={userId}
           username={username}
           token={token}
@@ -74,6 +77,8 @@ export default function ChatSettings({
           username={username}
           chatName={chat.name}
           chatId={chat.id}
+          chatMembers={chat.UserChats}
+          isGroupChat={chat.is_group_chat}
           token={token}
           socket={socket}
         />
@@ -81,7 +86,7 @@ export default function ChatSettings({
         <div className="mb-4">
           {chat.is_group_chat && (
             <div className="text-secondary-gray">
-              <span>Group</span> - <span>{memberAmount} members</span>
+              <span>Group</span> - <span>{memberCount}</span>
             </div>
           )}
         </div>
@@ -94,6 +99,7 @@ export default function ChatSettings({
         {/* Chat Description */}
         <ChatDescription
           chatId={chat.id}
+          isGroupChat={chat.is_group_chat}
           userId={userId}
           username={username}
           token={token}
@@ -110,13 +116,14 @@ export default function ChatSettings({
 
       {/* Section 3 */}
       <div>
-        <div>{memberAmount} members</div>
+        <div className="mt-4 font-bold">{memberCount}</div>
 
         <AddChatMember
           userId={userId}
           username={username}
           token={token}
           chatId={chat.id}
+          isGroupChat={chat.is_group_chat}
           isUserAdmin={isUserAdmin}
           socket={socket}
         />
@@ -134,6 +141,7 @@ export default function ChatSettings({
               isUserSelf={userId === chatMember.user.id}
               isAdmin={chatAdmins.has(chatMember.user.id)}
               isOwner={chat.owner.id === chatMember.user.id}
+              isGroupChat={chat.is_group_chat}
               isUserAdmin={isUserAdmin}
               token={token}
               openAdminPanelId={openAdminPanelId}
@@ -156,6 +164,7 @@ export default function ChatSettings({
           userId={userId}
           chatId={chat.id}
           chatName={chat.name}
+          isGroupChat={chat.is_group_chat}
           token={token}
           isOwner={chat.owner.id === userId}
         />
