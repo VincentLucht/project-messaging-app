@@ -12,6 +12,7 @@ interface SendMessageFormProps {
   userId: string;
   username: string;
   profilePictureUrl: string | null | undefined;
+  isMobile: boolean;
 }
 
 export default function SendMessageForm({
@@ -21,6 +22,7 @@ export default function SendMessageForm({
   userId,
   username,
   profilePictureUrl,
+  isMobile,
 }: SendMessageFormProps) {
   const [message, setMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -92,7 +94,7 @@ export default function SendMessageForm({
 
   return (
     <div>
-      <form className="gap-4 p-4 df" onSubmit={sendMessage}>
+      <form className="max-w-[100dvw] gap-4 p-4 df" onSubmit={sendMessage}>
         <TextareaAutosize
           value={message}
           onChange={(e) => {
@@ -121,7 +123,7 @@ export default function SendMessageForm({
             active:border-gray-200 active:bg-gray-200"
           type="submit"
         >
-          Send message
+          {isMobile ? 'Send' : 'Send Message'}
         </button>
       </form>
     </div>
