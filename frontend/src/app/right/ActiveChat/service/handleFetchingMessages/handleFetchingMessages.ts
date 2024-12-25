@@ -1,5 +1,4 @@
 import { toast } from 'react-toastify';
-import toastUpdateOptions from '@/app/components/ts/toastUpdateObject';
 
 import fetchChatMessages from '@/app/right/ActiveChat/service/handleFetchingMessages/api/fetchChatMessages';
 import { Dispatch, SetStateAction } from 'react';
@@ -16,8 +15,6 @@ export default function handleFetchingMessages(
   setChats: Dispatch<SetStateAction<DBChatWithMembers[] | null>>,
   setHasMore: Dispatch<SetStateAction<boolean>>,
 ) {
-  const toastId = toast.loading('Loading messages...');
-
   fetchChatMessages(userId, token, chatId, messagePage)
     .then((response) => {
       setMessages((prevMessages) => [
@@ -39,7 +36,7 @@ export default function handleFetchingMessages(
               ...prevChat,
               messages: [
                 ...(prevChat.messages ?? []),
-                ...response.allMessages.messages, // ? TODO: Change here?
+                ...response.allMessages.messages,
               ],
               page: messagePage,
               hasMore: response.allMessages.hasMore,
@@ -48,16 +45,8 @@ export default function handleFetchingMessages(
           return prevChat;
         });
       });
-
-      toast.update(
-        toastId,
-        toastUpdateOptions('Successfully fetched messages', 'success'),
-      );
     })
-    .catch(() => {
-      toast.update(
-        toastId,
-        toastUpdateOptions('Failed to load messages', 'error'),
-      );
+    .catch((error) => {
+      toast.error(`Failed to load messages: ${error}`);
     });
 }
