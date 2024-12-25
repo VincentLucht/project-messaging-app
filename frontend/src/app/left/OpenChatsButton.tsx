@@ -4,10 +4,12 @@ import { Dispatch, SetStateAction } from 'react';
 interface OpenChatsButtonProps {
   location: Location;
   setLocation: Dispatch<SetStateAction<Location>>;
+  className?: string;
 }
 export default function OpenChatsButton({
   location,
   setLocation,
+  className,
 }: OpenChatsButtonProps) {
   let imgPath;
   if (location === 'home') {
@@ -18,7 +20,7 @@ export default function OpenChatsButton({
 
   return (
     <button onClick={() => setLocation('home')}>
-      <img src={imgPath} alt="Go to chats" />
+      <img src={imgPath} alt="Go to chats" className={`${className}`} />
     </button>
   );
 }
