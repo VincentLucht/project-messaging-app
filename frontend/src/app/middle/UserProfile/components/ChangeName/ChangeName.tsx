@@ -46,7 +46,7 @@ export default function ChangeName({ user, token, logout }: ChangeNameProps) {
     <div className="flex flex-col gap-2">
       <div className="text-left font-bold">Your Alias:</div>
 
-      <div className="flex justify-between">
+      <div className="flex justify-between break-all">
         {isEditActive ? (
           <input
             maxLength={30}
@@ -67,7 +67,7 @@ export default function ChangeName({ user, token, logout }: ChangeNameProps) {
       </div>
 
       <div className="break-words text-justify text-sm text-secondary-gray">
-        Note: This is not your username, it&apos;s your shown name, it is
+        Note: This is not your username, it&apos;s your shown name, which is
         visible when viewing your profile. Your username is unchangeable.
       </div>
     </div>
