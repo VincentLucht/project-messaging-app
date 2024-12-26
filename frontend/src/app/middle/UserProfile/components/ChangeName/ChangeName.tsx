@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import EditButton from '@/app/components/EditButton';
 import { User } from '@/app/auth/context/AuthProvider';
 import { toast } from 'react-toastify';
@@ -14,6 +14,14 @@ interface ChangeNameProps {
 export default function ChangeName({ user, token, logout }: ChangeNameProps) {
   const [name, setName] = useState(user.name);
   const [isEditActive, setIsEditActive] = useState(false);
+  const input = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (input.current && isEditActive) {
+      input.current.focus();
+      input.current.selectionStart = input.current.selectionEnd = name.length;
+    }
+  }, [isEditActive, name]);
 
   const handleSubmit = () => {
     const toastId = toast.loading('Changing Name...');
@@ -46,24 +54,33 @@ export default function ChangeName({ user, token, logout }: ChangeNameProps) {
     <div className="flex flex-col gap-2">
       <div className="text-left font-bold">Your Alias:</div>
 
-      <div className="flex justify-between break-all">
+      <div className="flex items-center justify-between">
         {isEditActive ? (
           <input
             maxLength={30}
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="mr-1 w-full rounded px-1"
+            ref={input}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleSubmit();
+              }
+            }}
           />
         ) : (
-          <div>{user.name}</div>
+          <div className="break-all pr-1">{user.name}</div>
         )}
 
-        <EditButton
-          isUserAdmin={true}
-          isEditActive={isEditActive}
-          setIsEditActive={setIsEditActive}
-          handleSubmit={handleSubmit}
-        />
+        <div className="mb-2">
+          <EditButton
+            isUserAdmin={true}
+            isEditActive={isEditActive}
+            setIsEditActive={setIsEditActive}
+            handleSubmit={handleSubmit}
+          />
+        </div>
       </div>
 
       <div className="break-words text-justify text-sm text-secondary-gray">

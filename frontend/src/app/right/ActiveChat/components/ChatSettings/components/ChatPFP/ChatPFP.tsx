@@ -52,6 +52,8 @@ export default function ChatPFP({
   }, [isEditActive, groupPFP]);
 
   useEffect(() => {
+    if (changePFP && !groupPFP) toast.warning('Please add an URL');
+
     if (changePFP && groupPFP) {
       const toastId = toast.loading('Changing Profile Picture...');
 
@@ -75,6 +77,7 @@ export default function ChatPFP({
           );
 
           setChangePFP(false);
+          setIsEditActive(false);
           toast.update(
             toastId,
             toastUpdateOptions(
@@ -93,7 +96,16 @@ export default function ChatPFP({
           );
         });
     }
-  }, [changePFP, groupPFP, chatId, userId, username, token, socket]);
+  }, [
+    changePFP,
+    groupPFP,
+    chatId,
+    userId,
+    username,
+    token,
+    socket,
+    profilePictureUrl,
+  ]);
 
   return (
     <>
@@ -127,6 +139,12 @@ export default function ChatPFP({
             className='"h-2 focus:ring-blue-400" min-w-[212px] max-w-[300px] resize-none rounded-lg p-1
               text-center outline-none focus:ring-2'
             ref={input}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                setChangePFP(true);
+              }
+            }}
           />
 
           <div className="-mr-[20px] -mt-2 ml-2">

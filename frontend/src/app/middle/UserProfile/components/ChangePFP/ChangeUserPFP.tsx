@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import EditButton from '@/app/components/EditButton';
 import TextareaAutosize from 'react-textarea-autosize';
 import { User } from '@/app/auth/context/AuthProvider';
@@ -22,6 +22,15 @@ export default function ChangeUserPFP({
 }: ChangeUserPFP) {
   const [pfp, setPfp] = useState(user.profile_picture_url ?? '');
   const [isEditActive, setIsEditActive] = useState(false);
+  const textArea = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (textArea.current && isEditActive) {
+      textArea.current.focus();
+      textArea.current.selectionStart = textArea.current.selectionEnd =
+        pfp.length;
+    }
+  }, [isEditActive, pfp]);
 
   const onSubmit = () => {
     const toastId = toast.loading('Changing Profile Picture');
@@ -64,7 +73,7 @@ export default function ChangeUserPFP({
       </div>
 
       {isEditActive ? (
-        <div className={`max-h-[100px] flex-col df ${isMobile ? '' : ''}`}>
+        <div className="max-h-[100px] flex-col df">
           <TextareaAutosize
             value={pfp}
             onChange={(e) => setPfp(e.target.value)}
@@ -72,6 +81,7 @@ export default function ChangeUserPFP({
               focus:ring-blue-400"
             placeholder="Enter new URL..."
             maxRows={4}
+            ref={textArea}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
@@ -80,7 +90,7 @@ export default function ChangeUserPFP({
             }}
           />
 
-          <div className="-ml-4">
+          <div className={`-ml-4 ${!isMobile && 'mt-2'}`}>
             <EditButton
               isUserAdmin={true}
               isEditActive={isEditActive}
