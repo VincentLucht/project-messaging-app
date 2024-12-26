@@ -71,7 +71,7 @@ class MessageController {
           .json({ message: 'User is not a member of this chat' });
       }
 
-      await db.message.createMessage(user_id, chat_id, content);
+      await db.message.createMessage(user_id, chat_id, content, 'FAKE_IV');
       return res.status(201).json({ message: 'Successfully created message' });
     } catch (error) {
       return res.status(500).json({
