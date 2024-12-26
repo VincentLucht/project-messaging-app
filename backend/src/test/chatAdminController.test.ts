@@ -159,8 +159,6 @@ describe('ChatAdmin Routes', () => {
           chat_id: basicMockChats[0].id,
         });
 
-        console.log(response.body);
-
         expect(response.status).toBe(200);
         expect(response.body.message).toBe('Successfully removed admin status from other_user');
       });
