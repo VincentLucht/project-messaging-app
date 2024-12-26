@@ -14,6 +14,17 @@ class UserValidator {
     ];
   }
 
+  changePFPRules() {
+    return [
+      body('user_id').trim()
+        .notEmpty()
+        .withMessage('User ID is required'),
+
+      body('new_profile_picture_url').trim()
+        .optional(),
+    ];
+  }
+
   changeDescriptionRules() {
     return [
       body('user_id').trim()

@@ -61,7 +61,7 @@ class UserController {
   changePFP = asyncHandler(async (req: Request, res: Response) => {
     if (checkValidationError(req, res)) return;
 
-    const { user_id, new_name } = req.body;
+    const { user_id, new_profile_picture_url } = req.body;
 
     try {
       const user = await db.user.getUserById(user_id);
@@ -69,12 +69,14 @@ class UserController {
         return res.status(404).json({ message: 'User not found' });
       }
 
-      await db.user.changeName(user_id, new_name);
+      await db.user.changePFP(user_id, new_profile_picture_url || null);
 
-      return res.status(200).json({ message: 'Successfully changed name' });
+      return res
+        .status(200)
+        .json({ message: 'Successfully changed Profile Picture' });
     } catch (error) {
       return res.status(500).json({
-        message: 'Failed to change name',
+        message: 'Failed to change Profile Picture',
         error: (error as Error).message,
       });
     }

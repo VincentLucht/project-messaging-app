@@ -182,6 +182,13 @@ router.put(
 );
 
 // change pfp
+router.put(
+  '/user/pfp',
+  token.extract,
+  token.verify,
+  userValidator.changePFPRules(),
+  userController.changePFP,
+);
 
 // change user description
 router.put(
