@@ -23,7 +23,7 @@ export default function App() {
   }, [isLoggedIn, logout, location.pathname]);
 
   return (
-    <div className="cursor-default select-none">
+    <div className="mx-auto max-w-[1600px] cursor-default select-none">
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/sign-up" element={<SignUp />} />
