@@ -3,6 +3,7 @@ import { useAuth } from '@/app/auth/context/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 
 import ChangeName from '@/app/middle/UserProfile/components/ChangeName/ChangeName';
+import ChangeUserPFP from '@/app/middle/UserProfile/components/ChangePFP/ChangeUserPFP';
 import ChangeDescription from '@/app/middle/UserProfile/components/ChangeDescription/ChangeDescription';
 import CloseButton from '@/app/components/CloseButton';
 import { toast } from 'react-toastify';
@@ -40,12 +41,21 @@ export default function UserProfile({
           <h2 className="text-left text-2xl font-bold">Profile</h2>
         )}
 
-        <div>
-          Welcome,
-          <br />
-          <span className="text-lg font-bold">{user.username}</span>
-          <br />
-          this is your user Profile!
+        <div className={`gap-4 df ${isMobile && 'py-4'}`}>
+          <div>
+            Welcome,
+            <br />
+            <span className="break-all text-lg font-bold">{user.username}</span>
+            <br />
+            this is your user Profile!
+          </div>
+
+          <ChangeUserPFP
+            user={user}
+            token={token}
+            logout={logout}
+            isMobile={isMobile}
+          />
         </div>
 
         <div className="flex flex-col gap-5 p-3 pt-5 text-left">
@@ -55,7 +65,7 @@ export default function UserProfile({
         </div>
       </div>
 
-      <div className="pb-2 text-[15px] text-secondary-gray">
+      <div className="pb-2 pt-6 text-[15px] text-secondary-gray">
         <div className="px-3">
           <button
             type="submit"
