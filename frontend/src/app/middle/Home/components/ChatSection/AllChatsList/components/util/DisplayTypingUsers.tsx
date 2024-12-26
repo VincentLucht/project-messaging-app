@@ -9,6 +9,7 @@ export default function DisplayTypingUsers(
   lastChatMessage: DBMessage | null,
   isGroupChat: boolean,
   mode: 'overview' | 'precise',
+  isMobile = false,
 ) {
   if (!lastChatMessage) return null;
   const lastMessageWriter =
@@ -56,7 +57,7 @@ export default function DisplayTypingUsers(
     );
   }
 
-  if (mode === 'overview' || typingUsersLength > 3) {
+  if (mode === 'overview' || typingUsersLength > 3 || isMobile) {
     return `${typingUsersLength} people are typing...`;
   }
 

@@ -76,7 +76,8 @@ export default function ChatHeader({
 
         {/* activity indicator */}
         <div
-          className={`absolute pl-4 pt-4 transition-all
+          className={`absolute max-w-[80dvw] overflow-hidden overflow-ellipsis whitespace-nowrap pl-4
+            pt-4 italic transition-all
             ${hasTypingUsers ? 'translate-y-[8px] opacity-100' : 'opacity-0'}`}
         >
           {hasTypingUsers &&
@@ -86,6 +87,7 @@ export default function ChatHeader({
               lastChatMessage,
               isGroupChat,
               'precise',
+              isMobile,
             )}
         </div>
       </div>
