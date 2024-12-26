@@ -91,7 +91,13 @@ export default function ChatCard({
               className="mt-[3px] h-full max-h-[25px] w-full max-w-[25px] rounded-full border-[1.5px]
                 border-blue-400 bg-blue-400 text-center df"
             >
-              <div>{chat.unreadCount > 10 ? '10+' : chat.unreadCount}</div>
+              <div>
+                {chat.unreadCount > 10 ? (
+                  <span className="text-sm">10+</span>
+                ) : (
+                  chat.unreadCount
+                )}
+              </div>
             </div>
           )}
         </div>
