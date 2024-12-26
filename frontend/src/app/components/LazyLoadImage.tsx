@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 
 interface LazyLoadImageProps {
-  src: string | undefined;
+  src: string | undefined | null;
   alt: string | undefined;
   className?: string;
 }
