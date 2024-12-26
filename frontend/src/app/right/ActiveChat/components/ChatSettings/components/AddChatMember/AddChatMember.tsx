@@ -13,6 +13,7 @@ interface AddChatMemberProps {
   isGroupChat: boolean;
   isUserAdmin: boolean;
   socket: Socket | null;
+  isMobile: boolean;
 }
 
 export default function AddChatMember({
@@ -23,6 +24,7 @@ export default function AddChatMember({
   isGroupChat,
   isUserAdmin,
   socket,
+  isMobile,
 }: AddChatMemberProps) {
   const [otherUsername, setOtherUsername] = useState('');
   const [showAddChatMember, setShowAddChatMember] = useState(false);
@@ -80,7 +82,8 @@ export default function AddChatMember({
                 value={otherUsername}
                 maxLength={30}
                 onChange={(e) => setOtherUsername(e.target.value)}
-                className="h-9 rounded-md px-2 outline-none focus:ring-2 focus:ring-blue-400"
+                className="h-9 w-full max-w-[300px] rounded-md px-2 outline-none focus:ring-2
+                  focus:ring-blue-400"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     submitAddMemberHandler();
@@ -94,7 +97,7 @@ export default function AddChatMember({
                 className="h-9 rounded-md bg-blue-500 px-2 transition-colors duration-200 hover:bg-blue-600
                   active:bg-blue-700"
               >
-                Add User
+                {isMobile ? 'Add' : 'Add User'}
               </button>
             </div>
 

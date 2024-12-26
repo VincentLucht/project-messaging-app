@@ -10,6 +10,7 @@ interface AllChatMessagesProps {
   loadMoreMessages: () => void;
   hasMore: boolean;
   isGroupChat: boolean;
+  isMobile: boolean;
 }
 
 // ! TODO: Add virtual scrolling!
@@ -20,6 +21,7 @@ export default function AllChatMessages({
   loadMoreMessages,
   hasMore,
   isGroupChat,
+  isMobile,
 }: AllChatMessagesProps) {
   const spinner = useRef(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -68,6 +70,7 @@ export default function AllChatMessages({
           isCurrentUser={username === message.user.username}
           isGroupChat={isGroupChat}
           key={index}
+          isMobile={isMobile}
         />
       ))}
 

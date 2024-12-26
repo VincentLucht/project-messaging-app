@@ -9,6 +9,7 @@ interface ChatMessageProps {
   username: string;
   isCurrentUser: boolean;
   isGroupChat: boolean;
+  isMobile: boolean;
 }
 
 export default function ChatMessage({
@@ -18,6 +19,7 @@ export default function ChatMessage({
   username,
   isCurrentUser,
   isGroupChat,
+  isMobile,
 }: ChatMessageProps) {
   const sentTick = './doubleTickSent.svg';
   const deliveredTick = './doubleTickRead.svg';
@@ -64,8 +66,8 @@ export default function ChatMessage({
   return message.is_system_message ? (
     <div className="flex justify-center">
       <div
-        className="max-w-[60%] rounded-lg bg-gray-300 px-4 py-2 text-center text-sm italic
-          text-gray-800"
+        className={`rounded-lg bg-gray-300 px-4 py-2 text-center text-sm italic text-gray-800
+          ${!isMobile && 'max-w-[60%]'}`}
       >
         <span className="font-bold">
           {isCurrentUser && message.is_system_message

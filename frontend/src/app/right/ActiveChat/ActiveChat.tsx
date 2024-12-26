@@ -167,6 +167,7 @@ export default function ActiveChat({
           loadMoreMessages={loadMoreMessages}
           hasMore={hasMore}
           isGroupChat={chat.is_group_chat}
+          isMobile={isMobile}
         />
 
         <hr />
@@ -193,6 +194,7 @@ export default function ActiveChat({
           username={username}
           token={token}
           socket={socket}
+          isMobile={isMobile}
         />
       </div>
     </div>

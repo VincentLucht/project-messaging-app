@@ -23,6 +23,7 @@ interface ChatSettingsProps {
   username: string;
   token: string;
   socket: Socket | null;
+  isMobile: boolean;
 }
 
 export default function ChatSettings({
@@ -33,6 +34,7 @@ export default function ChatSettings({
   username,
   token,
   socket,
+  isMobile,
 }: ChatSettingsProps) {
   const [openAdminPanelId, setOpenAdminPanelId] = useState<string | null>(null);
 
@@ -126,6 +128,7 @@ export default function ChatSettings({
           isGroupChat={chat.is_group_chat}
           isUserAdmin={isUserAdmin}
           socket={socket}
+          isMobile={isMobile}
         />
 
         <div className="flex flex-col">
@@ -146,6 +149,7 @@ export default function ChatSettings({
               token={token}
               openAdminPanelId={openAdminPanelId}
               setOpenAdminPanelId={setOpenAdminPanelId}
+              isMobile={isMobile}
             />
           ))}
         </div>

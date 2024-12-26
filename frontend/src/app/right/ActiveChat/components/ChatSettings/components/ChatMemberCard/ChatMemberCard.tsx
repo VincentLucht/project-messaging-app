@@ -23,6 +23,7 @@ interface ChatMemberCard {
   token: string;
   openAdminPanelId: string | null;
   setOpenAdminPanelId: Dispatch<SetStateAction<string | null>>;
+  isMobile: boolean;
 }
 
 export default function ChatMemberCard({
@@ -40,13 +41,14 @@ export default function ChatMemberCard({
   token,
   openAdminPanelId,
   setOpenAdminPanelId,
+  isMobile,
 }: ChatMemberCard) {
   const { user } = chatMember;
 
   return (
     <div
-      className="-mx-2 flex min-h-[50px] cursor-pointer items-center justify-between px-2 py-3
-        text-left transition-colors hover:rounded-md hover:bg-gray-strong"
+      className="-mx-2 flex min-h-[50px] cursor-pointer items-center justify-between break-all
+        px-2 py-3 text-left transition-colors hover:rounded-md hover:bg-gray-strong"
     >
       <div className="flex items-center gap-4">
         {/* Member PFP */}
@@ -78,22 +80,31 @@ export default function ChatMemberCard({
         <div className="flex cursor-default gap-2">
           {/* Member is user */}
           {isUserSelf && (
-            <div className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-800">
-              You
+            <div
+              className={`rounded-full bg-emerald-100 py-1 text-xs font-medium text-emerald-800
+              ${isMobile ? 'px-1' : 'px-3'}`}
+            >
+              {isMobile ? 'Y' : 'You'}
             </div>
           )}
 
           {/* Member is owner */}
           {isOwner && isGroupChat && (
-            <div className="rounded-full bg-purple-100 px-3 py-1 text-xs font-medium text-purple-800">
-              Owner
+            <div
+              className={`rounded-full bg-purple-100 py-1 text-xs font-medium text-purple-800
+              ${isMobile ? 'px-1' : 'px-3'}`}
+            >
+              {isMobile ? 'O' : 'Owner'}
             </div>
           )}
 
           {/* Member role */}
           {isAdmin && isGroupChat && (
-            <div className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800">
-              Admin
+            <div
+              className={`rounded-full bg-blue-100 py-1 text-xs font-medium text-blue-800
+              ${isMobile ? 'px-1' : 'px-3'}`}
+            >
+              {isMobile ? 'A' : 'Admin'}
             </div>
           )}
         </div>
