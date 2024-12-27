@@ -138,7 +138,6 @@ export default function ChatSection({
             chats={filteredChats?.length ? filteredChats : chats}
             setChats={setChats}
             setActiveChat={setActiveChat}
-            isMobile={isMobile}
             userId={userId}
             username={username}
             typingUsers={typingUsers}

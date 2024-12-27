@@ -14,7 +14,6 @@ interface AllChatsListProps {
   userId: string;
   username: string;
   typingUsers: TypingUsers;
-  isMobile: boolean;
 }
 
 export default function AllChatsList({
@@ -25,7 +24,6 @@ export default function AllChatsList({
   userId,
   username,
   typingUsers,
-  isMobile,
 }: AllChatsListProps) {
   const [loaded, setLoaded] = useState(false);
 
@@ -103,7 +101,6 @@ export default function AllChatsList({
               userId={userId}
               username={username}
               key={chat.id}
-              isMobile={isMobile}
               typingUsers={typingUsers[chat.id]}
               activeChat={activeChat}
             />

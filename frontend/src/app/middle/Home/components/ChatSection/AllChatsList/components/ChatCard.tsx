@@ -11,7 +11,6 @@ interface ChatCardProps {
   chat: DBChatWithMembers;
   userId: string;
   username: string;
-  isMobile: boolean;
   activeChat: DBChatWithMembers | null;
   typingUsers: TypingUsersChat;
 }
@@ -20,7 +19,6 @@ export default function ChatCard({
   chat,
   userId,
   username,
-  isMobile,
   activeChat,
   typingUsers,
 }: ChatCardProps) {
