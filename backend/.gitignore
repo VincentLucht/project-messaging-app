@@ -1,6 +1,5 @@
 node_modules
 todo.txt
 .env
-prisma/migrations
 sql.sql
 todo.md
