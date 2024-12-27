@@ -10,7 +10,7 @@ import Home from '@/app/middle/Home/Home';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-export const API_URL = 'http://localhost:3005';
+export const API_URL = import.meta.env.VITE_API_URL as string;
 
 export default function App() {
   const { isLoggedIn, logout } = useAuth();
