@@ -8,7 +8,7 @@
     "db": "npx ts-node -r tsconfig-paths/register ./src/scripts/script.ts",
     "postinstall": "prisma generate",
     "build": "npx prisma migrate deploy && tsc && tsc-alias",
-    "start": "node -r tsconfig-paths/register/dist dist/app.js"
+    "start": "node -r tsconfig-paths/register dist/app.js"
   },
   "keywords": [],
   "author": "",
