@@ -4,7 +4,6 @@ import useIsMobile from '@/app/components/hooks/useIsMobile';
 import { JwtPayload } from 'jwt-decode';
 
 import { DBChatWithMembers } from '@/app/middle/Home/components/ChatSection/AllChatsList/api/fetchAllUserChats';
-import { Socket, io } from 'socket.io-client';
 import { TypingUsers } from '@/app/interfaces/TypingUsers';
 import { Location } from '@/app/interfaces/location';
 
@@ -20,6 +19,9 @@ import handleAdminStatusAdded from '@/app/middle/Home/services/handleAdminStatus
 import handleAdminStatusRemoved from '@/app/middle/Home/services/handleAdminStatusRemoved';
 import handleLeaveChat from '@/app/middle/Home/services/handleLeaveChat';
 import handleChatDeletion from '@/app/middle/Home/services/handleChatDeletion';
+
+// Custom Hooks
+import useSocketConnection from '@/app/middle/Home/hooks/useSocketConnection';
 
 // Left Components
 import OpenChatsButton from '@/app/left/OpenChatsButton';
@@ -45,7 +47,6 @@ export default function Home() {
   const [chats, setChats] = useState<DBChatWithMembers[] | null>(null);
   const [activeChat, setActiveChat] = useState<DBChatWithMembers | null>(null);
   const [typingUsers, setTypingUsers] = useState<TypingUsers>({});
-  const socket = useRef<Socket | null>(null);
   const joinedChats = useRef<Set<string>>(new Set());
   const [location, setLocation] = useState<Location>('home');
   const [showCreateChat, setShowCreateChat] = useState(false);
@@ -53,20 +54,7 @@ export default function Home() {
   const { user, token, isLoggedIn, logout } = useAuth();
   const isMobile = useIsMobile();
 
-  // Establish connection with socket
-  useEffect(() => {
-    if (!isLoggedIn || !user) return;
-
-    socket.current = io('ws://localhost:3005');
-    socket.current.emit('user-connected', {
-      username: user.username,
-    });
-
-    return () => {
-      socket.current?.disconnect();
-      socket.current = null;
-    };
-  }, [isLoggedIn, user]);
+  const socket = useSocketConnection(isLoggedIn, user);
 
   // join all chat rooms (no fetching, only notifications)
   useEffect(() => {
@@ -99,7 +87,7 @@ export default function Home() {
         }
       });
     };
-  }, [chats, isLoggedIn, user]);
+  }, [chats, isLoggedIn, user, socket]);
 
   // Handle being added to a chat
   useEffect(() => {
@@ -108,7 +96,7 @@ export default function Home() {
     return () => {
       socket.current?.off('added-to-chat');
     };
-  }, [user]);
+  }, [user, socket]);
 
   // Handle being added to a newly created chat
   useEffect(() => {
@@ -117,7 +105,7 @@ export default function Home() {
     return () => {
       socket.current?.off('added-to-created-chat');
     };
-  }, [user]);
+  }, [user, socket]);
 
   // Handle other users being added to a chat
   useEffect(() => {
@@ -126,7 +114,7 @@ export default function Home() {
     return () => {
       socket.current?.off('new-user-added-to-chat');
     };
-  }, [activeChat, chats]);
+  }, [activeChat, chats, socket]);
 
   // Handle user being deleted from chat
   useEffect(() => {
@@ -141,7 +129,7 @@ export default function Home() {
     return () => {
       socket.current?.off('deleted-user-from-chat');
     };
-  }, [activeChat, chats]);
+  }, [activeChat, chats, socket]);
 
   // Handle being deleted from chat
   useEffect(() => {
@@ -157,7 +145,7 @@ export default function Home() {
     return () => {
       socket.current?.off('deleted-from-chat');
     };
-  }, [activeChat, chats, user?.username]);
+  }, [activeChat, chats, user?.username, socket]);
 
   // Handle chat deletion
   useEffect(() => {
@@ -173,7 +161,7 @@ export default function Home() {
     return () => {
       socket.current?.off('deleted-chat');
     };
-  }, [chats, activeChat, user?.id]);
+  }, [chats, activeChat, user?.id, socket]);
 
   // Handle user leaving chat
   useEffect(() => {
@@ -189,7 +177,7 @@ export default function Home() {
     return () => {
       socket.current?.off('left-chat');
     };
-  }, [chats, activeChat, user?.id]);
+  }, [chats, activeChat, user?.id, socket]);
 
   // Handle typing users
   useEffect(() => {
@@ -198,7 +186,7 @@ export default function Home() {
     return () => {
       socket.current?.off('typing-users');
     };
-  }, [user]);
+  }, [user, socket]);
 
   // Handle admin status being added
   useEffect(() => {
@@ -213,7 +201,7 @@ export default function Home() {
     return () => {
       socket.current?.off('admin-status-added');
     };
-  }, [activeChat, user?.id]);
+  }, [activeChat, user?.id, socket]);
 
   // Handle admin status being removed
   useEffect(() => {
@@ -228,7 +216,7 @@ export default function Home() {
     return () => {
       socket.current?.off('admin-status-removed');
     };
-  }, [activeChat, user?.id]);
+  }, [activeChat, user?.id, socket]);
 
   // handle notifications
   useEffect(() => {
@@ -246,7 +234,7 @@ export default function Home() {
       socket.current?.off('chat-name-changed');
       socket.current?.off('chat-description-changed');
     };
-  }, [chats, user, activeChat]);
+  }, [chats, user, activeChat, socket]);
 
   // fetch all user chats and unread messages
   useEffect(() => {
@@ -255,7 +243,7 @@ export default function Home() {
     return () => {
       socket.current?.off('receiveUnreadMessages');
     };
-  }, [isLoggedIn, user, token, logout]);
+  }, [isLoggedIn, user, token, logout, socket]);
 
   if (!isLoggedIn || !user || !token) {
     return <div>You are not logged in</div>;
