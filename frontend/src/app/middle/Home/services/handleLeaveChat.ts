@@ -30,6 +30,9 @@ export default function handleLeaveChat(
                 UserChats: chat.UserChats.filter(
                   (member) => member.user.id !== userIdThatLeft,
                 ),
+                ChatAdmins: chat.ChatAdmins.filter(
+                  (admin) => admin.user_id !== userIdThatLeft,
+                ),
               };
             } else {
               return chat;
