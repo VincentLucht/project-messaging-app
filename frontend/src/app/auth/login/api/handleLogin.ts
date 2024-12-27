@@ -1,10 +1,12 @@
-import { API_URL } from '../../../../App';
+import { API_URL } from '@/App';
 
 interface LoginResponse {
   token: string;
 }
 
 export default async function handleLogin(username: string, password: string) {
+  console.log(API_URL);
+
   const response = await fetch(`${API_URL}/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -13,6 +15,7 @@ export default async function handleLogin(username: string, password: string) {
 
   if (!response.ok) {
     const errorObject = (await response.json()) as LoginResponse;
+    console.log(errorObject);
     throw errorObject;
   }
 
