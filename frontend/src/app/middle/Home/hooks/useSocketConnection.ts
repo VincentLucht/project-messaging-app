@@ -3,6 +3,9 @@ import { Socket, io } from 'socket.io-client';
 import { User } from '@/app/middle/Home/Home';
 import { API_URL } from '@/App';
 
+/**
+ * Establishes the connection to the socket.io backend server and returns a ref of that socket
+ */
 export default function useSocketConnection(
   isLoggedIn: boolean,
   user: User | null,

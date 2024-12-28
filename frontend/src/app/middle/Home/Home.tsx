@@ -1,27 +1,21 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/app/auth/context/hooks/useAuth';
 import useIsMobile from '@/app/components/hooks/useIsMobile';
 import { JwtPayload } from 'jwt-decode';
 
 import { DBChatWithMembers } from '@/app/middle/Home/components/ChatSection/AllChatsList/api/fetchAllUserChats';
-import { TypingUsers } from '@/app/interfaces/TypingUsers';
 import { Location } from '@/app/interfaces/location';
-
-// useEffect function
-import handleChatChanges from '@/app/middle/Home/services/handleChatChanges';
-import fetchChats from '@/app/middle/Home/services/fetchChats/fetchChats';
-import handleTypingUsers from '@/app/middle/Home/services/handleTypingUsers';
-import handleUserAddedToChat from '@/app/middle/Home/services/handleUserAddedToChat';
-import handleBeingAddedToChat from '@/app/middle/Home/services/handleBeingAddedToChat';
-import handleUserBeingDeletedFromChat from '@/app/middle/Home/services/handleUserBeingDeletedFromChat';
-import handleBeingDeletedFromChat from '@/app/middle/Home/services/handleBeingDeletedFromChat';
-import handleAdminStatusAdded from '@/app/middle/Home/services/handleAdminStatusAdded';
-import handleAdminStatusRemoved from '@/app/middle/Home/services/handleAdminStatusRemoved';
-import handleLeaveChat from '@/app/middle/Home/services/handleLeaveChat';
-import handleChatDeletion from '@/app/middle/Home/services/handleChatDeletion';
 
 // Custom Hooks
 import useSocketConnection from '@/app/middle/Home/hooks/useSocketConnection';
+import useHandleNotificationRooms from '@/app/middle/Home/hooks/useHandleNotificationRooms';
+import useAddedToChat from '@/app/middle/Home/hooks/useAddedToChat';
+import useDeletedFromChat from '@/app/middle/Home/hooks/useDeletedFromChat';
+import useHandleLeaveChat from '@/app/middle/Home/hooks/useHandleLeaveChat';
+import useAdminStatusChanges from '@/app/middle/Home/hooks/useAdminStatusChanges';
+import useGetTypingUsers from '@/app/middle/Home/hooks/useGetTypingUsers';
+import useChatNotifications from '@/app/middle/Home/hooks/useChatNotifications';
+import useGetChats from '@/app/middle/Home/hooks/useGetChats';
 
 // Left Components
 import OpenChatsButton from '@/app/left/OpenChatsButton';
@@ -34,7 +28,6 @@ import UserProfile from '@/app/middle/UserProfile/UserProfile';
 // Right Components
 import CoverPage from '@/app/middle/Home/components/CoverPage/CoverPage';
 import ActiveChat from '@/app/right/ActiveChat/ActiveChat';
-import handleBeingAddedToCreatedChat from '@/app/middle/Home/services/handleBeingAddedToCreatedChat';
 
 export interface User extends JwtPayload {
   id: string;
@@ -46,8 +39,6 @@ export interface User extends JwtPayload {
 export default function Home() {
   const [chats, setChats] = useState<DBChatWithMembers[] | null>(null);
   const [activeChat, setActiveChat] = useState<DBChatWithMembers | null>(null);
-  const [typingUsers, setTypingUsers] = useState<TypingUsers>({});
-  const joinedChats = useRef<Set<string>>(new Set());
   const [location, setLocation] = useState<Location>('home');
   const [showCreateChat, setShowCreateChat] = useState(false);
 
@@ -55,195 +46,21 @@ export default function Home() {
   const isMobile = useIsMobile();
 
   const socket = useSocketConnection(isLoggedIn, user);
-
-  // join all chat rooms (no fetching, only notifications)
-  useEffect(() => {
-    if (!chats || !isLoggedIn || !socket.current) return;
-
-    const joinedChatsRef = joinedChats.current;
-
-    // Join only new chats
-    chats.forEach((chat) => {
-      if (!joinedChats.current.has(chat.id)) {
-        socket.current?.emit('joinChatNotifications', {
-          chatId: chat.id,
-          userId: user?.id,
-        });
-        joinedChatsRef.add(chat.id);
-      }
-    });
-
-    // Cleanup: leave chats only if they are removed from the list
-    return () => {
-      const currentChatIds = new Set(chats.map((chat) => chat.id));
-
-      joinedChatsRef.forEach((chatId) => {
-        if (!currentChatIds.has(chatId)) {
-          socket.current?.emit('leaveChatNotifications', {
-            chatId,
-            userId: user?.id,
-          });
-          joinedChatsRef.delete(chatId);
-        }
-      });
-    };
-  }, [chats, isLoggedIn, user, socket]);
-
-  // Handle being added to a chat
-  useEffect(() => {
-    handleBeingAddedToChat(socket, user?.username, setChats);
-
-    return () => {
-      socket.current?.off('added-to-chat');
-    };
-  }, [user, socket]);
-
-  // Handle being added to a newly created chat
-  useEffect(() => {
-    handleBeingAddedToCreatedChat(socket, setChats);
-
-    return () => {
-      socket.current?.off('added-to-created-chat');
-    };
-  }, [user, socket]);
-
-  // Handle other users being added to a chat
-  useEffect(() => {
-    handleUserAddedToChat(socket, chats, setChats, activeChat, setActiveChat);
-
-    return () => {
-      socket.current?.off('new-user-added-to-chat');
-    };
-  }, [activeChat, chats, socket]);
-
-  // Handle user being deleted from chat
-  useEffect(() => {
-    handleUserBeingDeletedFromChat(
-      socket,
-      chats,
-      setChats,
-      activeChat,
-      setActiveChat,
-    );
-
-    return () => {
-      socket.current?.off('deleted-user-from-chat');
-    };
-  }, [activeChat, chats, socket]);
-
-  // Handle being deleted from chat
-  useEffect(() => {
-    handleBeingDeletedFromChat(
-      socket,
-      user?.username,
-      chats,
-      setChats,
-      activeChat,
-      setActiveChat,
-    );
-
-    return () => {
-      socket.current?.off('deleted-from-chat');
-    };
-  }, [activeChat, chats, user?.username, socket]);
-
-  // Handle chat deletion
-  useEffect(() => {
-    handleChatDeletion(
-      socket,
-      chats,
-      setChats,
-      activeChat,
-      setActiveChat,
-      user?.id,
-    );
-
-    return () => {
-      socket.current?.off('deleted-chat');
-    };
-  }, [chats, activeChat, user?.id, socket]);
-
-  // Handle user leaving chat
-  useEffect(() => {
-    handleLeaveChat(
-      socket,
-      user?.id,
-      chats,
-      setChats,
-      activeChat,
-      setActiveChat,
-    );
-
-    return () => {
-      socket.current?.off('left-chat');
-    };
-  }, [chats, activeChat, user?.id, socket]);
-
-  // Handle typing users
-  useEffect(() => {
-    handleTypingUsers(socket, setTypingUsers, user?.username);
-
-    return () => {
-      socket.current?.off('typing-users');
-    };
-  }, [user, socket]);
-
-  // Handle admin status being added
-  useEffect(() => {
-    handleAdminStatusAdded(
-      user?.id,
-      setChats,
-      activeChat,
-      setActiveChat,
-      socket,
-    );
-
-    return () => {
-      socket.current?.off('admin-status-added');
-    };
-  }, [activeChat, user?.id, socket]);
-
-  // Handle admin status being removed
-  useEffect(() => {
-    handleAdminStatusRemoved(
-      user?.id,
-      setChats,
-      activeChat,
-      setActiveChat,
-      socket,
-    );
-
-    return () => {
-      socket.current?.off('admin-status-removed');
-    };
-  }, [activeChat, user?.id, socket]);
-
-  // handle notifications
-  useEffect(() => {
-    handleChatChanges(
-      chats,
-      setChats,
-      activeChat,
-      setActiveChat,
-      user,
-      socket?.current,
-    );
-
-    return () => {
-      socket.current?.off('newMessageNotification');
-      socket.current?.off('chat-name-changed');
-      socket.current?.off('chat-description-changed');
-    };
-  }, [chats, user, activeChat, socket]);
-
-  // fetch all user chats and unread messages
-  useEffect(() => {
-    void fetchChats(isLoggedIn, user, token, socket.current, logout, setChats);
-
-    return () => {
-      socket.current?.off('receiveUnreadMessages');
-    };
-  }, [isLoggedIn, user, token, logout, socket]);
+  const typingUsers = useGetTypingUsers(socket, user);
+  useHandleNotificationRooms(socket, chats, user);
+  useAddedToChat(socket, chats, setChats, activeChat, setActiveChat, user);
+  useDeletedFromChat(socket, chats, setChats, activeChat, setActiveChat, user);
+  useHandleLeaveChat(socket, chats, setChats, activeChat, setActiveChat, user);
+  useAdminStatusChanges(socket, setChats, activeChat, setActiveChat, user);
+  useChatNotifications(
+    socket,
+    chats,
+    setChats,
+    activeChat,
+    setActiveChat,
+    user,
+  );
+  useGetChats(socket, setChats, user, isLoggedIn, logout, token);
 
   if (!isLoggedIn || !user || !token) {
     return <div>You are not logged in</div>;
