@@ -27,7 +27,6 @@ export default function handleUserJoiningChat(
       const activeChatMembers = new Map(Object.entries(data.usersInChat));
       activeChatMembers.delete(username);
 
-      // ! TODO: Put this into a func in util
       setMessages((prevMessages) =>
         prevMessages.map((message) => {
           const messageRead = message.MessageRead;

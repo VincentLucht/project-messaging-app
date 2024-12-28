@@ -13,7 +13,6 @@ interface AllChatMessagesProps {
   isMobile: boolean;
 }
 
-// ! TODO: Add virtual scrolling!
 export default function AllChatMessages({
   messages,
   chatMembersLength,

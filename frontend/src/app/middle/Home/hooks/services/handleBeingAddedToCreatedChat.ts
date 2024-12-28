@@ -9,8 +9,6 @@ export default function handleBeingAddedToCreatedChat(
 ) {
   if (!socket) return;
 
-  // ! TODO: too much: sent owner obj has too many properties??
-
   socket.current?.on(
     'added-to-created-chat',
     (newChat: DBChatWithMembers, newMessage: DBMessageWithUser) => {

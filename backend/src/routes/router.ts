@@ -86,7 +86,6 @@ router.get(
   messageController.getAllChatMessages,
 );
 
-// ! TODO: Remove? Not used, http server handles messages real time
 // create a message
 router.post(
   '/chat/message',

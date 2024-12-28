@@ -301,7 +301,6 @@ describe('UserChats routes', () => {
   });
 
   describe('DELETE /chat/user/leave', () => {
-    // ! TODO:
     const sendRequest = (body: any) => {
       return request(app)
         .delete('/chat/user/leave')

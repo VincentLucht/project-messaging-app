@@ -1,5 +1,4 @@
 export default function parseUsername(content: string, username: string) {
-  // ! TODO: Rename to parseUsername and replace all old calls
   const message = content.split(' ');
 
   if (message[0] === 'added') {
