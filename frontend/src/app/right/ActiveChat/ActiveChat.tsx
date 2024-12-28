@@ -184,7 +184,8 @@ export default function ActiveChat({
       </div>
 
       <div
-        className={`${isMobile && showChatSettings ? 'absolute min-h-[100dvh] w-full overflow-y-auto' : ''}`}
+        className={`z-50
+          ${isMobile && showChatSettings ? 'absolute min-h-[100dvh] w-full overflow-y-auto' : ''}`}
       >
         <ChatSettings
           setShowChatSettings={setShowChatSettings}
