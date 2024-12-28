@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "dev": "npx ts-node-dev --respawn -r tsconfig-paths/register --max-old-space-size=1024 src/app.ts",
+    "dev": "npx ts-node-dev --respawn -r tsconfig-paths/register src/app.ts",
     "db": "npx ts-node -r tsconfig-paths/register ./src/scripts/script.ts",
     "postinstall": "prisma generate",
     "build": "npx prisma migrate deploy && tsc && tsc-alias",
