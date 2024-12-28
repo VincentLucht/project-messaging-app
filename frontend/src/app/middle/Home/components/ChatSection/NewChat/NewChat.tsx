@@ -1,18 +1,5 @@
-import {
-  FormEvent,
-  useState,
-  useEffect,
-  useRef,
-  Dispatch,
-  SetStateAction,
-} from 'react';
+import { useState, useEffect, useRef, Dispatch, SetStateAction } from 'react';
 import { useAuth } from '@/app/auth/context/hooks/useAuth';
-
-import { toast } from 'react-toastify';
-import toastUpdateOptions from '@/app/components/ts/toastUpdateObject';
-
-import handleCreateChat from '@/app/middle/Home/components/ChatSection/NewChat/api/handleCreateChat';
-import convertUsernames from '@/app/middle/Home/components/ChatSection/NewChat/util/convertUsernames';
 
 import Input from '@/app/components/Input';
 import Checkbox from '@/app/components/Checkbox';
@@ -20,8 +7,8 @@ import Checkbox from '@/app/components/Checkbox';
 import './css/NewChat.css';
 import { DBChatWithMembers } from '@/app/middle/Home/components/ChatSection/AllChatsList/api/fetchAllUserChats';
 import { Socket } from 'socket.io-client';
-import generateTempId from '@/app/right/ActiveChat/util/generateTempId';
-import { encryptMessage } from '@/app/secure/cryptoUtils';
+
+import onChatCreateSubmit from '@/app/middle/Home/components/ChatSection/NewChat/util/onChatCreateSubmit';
 
 interface NewChatProps {
   socket: Socket | null;
@@ -63,80 +50,29 @@ export default function NewChat({
     }
   }, [showCreateChat]);
 
-  // ! TODO: Put into different file??
-  const onSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    if (!user || !token) {
-      return;
-    }
-
-    const toastId = toast.loading('Creating Chat...');
-    handleCreateChat(
-      user?.id,
-      token,
-      isGroupChat,
-      convertUsernames(otherUsernames, isGroupChat),
-      chatName,
-      profilePictureUrl,
-      chatDescription,
-    )
-      .then((response) => {
-        if (response.newChat) {
-          // Add unread count
-          const { newChat } = response;
-
-          const { encryptedMessage, iv } = encryptMessage('created the Chat');
-          setChats((prevChats) => [
-            {
-              ...newChat,
-              unreadCount: 0,
-              last_message: {
-                chat_id: generateTempId(),
-                content: encryptedMessage,
-                iv,
-                id: generateTempId(),
-                is_system_message: true,
-                time_created: new Date().toISOString(),
-                user: { username: user.username },
-                user_id: user.id,
-              },
-            },
-            ...(prevChats ?? []),
-          ]);
-
-          setShowCreateChat(false);
-          reset();
-
-          // Send signal to backend
-          socket?.emit('create-new-chat', user.id, user.username, newChat);
-        }
-
-        setIncorrectUsers([]);
-        setErrors('');
-        toast.update(
-          toastId,
-          toastUpdateOptions('Successfully created new Chat', 'success'),
-        );
-      })
-      .catch((error: { message: string; incorrectUsers?: string[] }) => {
-        setIncorrectUsers([]);
-        setErrors('');
-
-        if (error.incorrectUsers) {
-          setIncorrectUsers(error.incorrectUsers);
-        } else {
-          setErrors(error.message);
-        }
-        toast.update(
-          toastId,
-          toastUpdateOptions('Failed to create the Chat', 'error'),
-        );
-      });
-  };
-
   return (
     <div>
-      <form onSubmit={onSubmit} className="mb-4 flex-col gap-4 df">
+      <form
+        onSubmit={(e) =>
+          onChatCreateSubmit(
+            e,
+            user,
+            token,
+            isGroupChat,
+            otherUsernames,
+            chatName,
+            profilePictureUrl,
+            chatDescription,
+            setChats,
+            setShowCreateChat,
+            reset,
+            socket,
+            setIncorrectUsers,
+            setErrors,
+          )
+        }
+        className="mb-4 flex-col gap-4 df"
+      >
         <h2 className="text-2xl font-bold">Create New Chat</h2>
 
         {/* Display errors */}
