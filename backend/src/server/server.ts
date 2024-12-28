@@ -1,5 +1,8 @@
 import { Server, Socket } from 'socket.io';
+import { Server as HTTPServer } from 'http';
 import db from '@/db/db';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 import typingUsers from '@/server/typingUsers/typingUsers';
 
@@ -33,16 +36,24 @@ const userSessions = new Map();
 const onlineUsers = new Map<string, Set<string>>(); // username => socket id/s
 const socketToUser = new Map<string, Set<string>>(); // socket id => username
 
+const frontendUrl = process.env.FRONTEND_URL;
+
 /**
  * Allows real time communication via socket.io.
  *
  * Checks if a user joined a chat, left a chat, if they are typing or not
  */
-export function setupSocketIO(httpServer: any) {
+export function setupSocketIO(httpServer: HTTPServer) {
   const io = new Server(httpServer, {
     cors: {
-      origin: '*', // ! TODO: change for prod
+      origin: `${frontendUrl ? frontendUrl : 'http://localhost:3005'}`,
+      methods: ['GET', 'POST', 'PUT', 'DELETE'],
+      credentials: true,
+      allowedHeaders: ['Authorization', 'Content-Type'],
     },
+    transports: ['websocket', 'polling'],
+    pingTimeout: 60000,
+    pingInterval: 25000,
   });
 
   io.on('connection', (socket: Socket) => {

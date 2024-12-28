@@ -13,12 +13,15 @@ const app = express();
 const httpServer = createServer(app);
 setupSocketIO(httpServer);
 
+const frontendUrl = process.env.FRONTEND_URL;
+console.log(frontendUrl);
+
 // Configure CORS globally
 app.use(
   cors({
-    origin: '*', // ! allow for portfolio showcase
+    origin: `${frontendUrl ? frontendUrl : 'http://localhost:3005'}`,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true, // ! allow for portfolio showcase
+    credentials: true,
   }),
 );
 app.use(express.json()); // ? parse JSON bodies
