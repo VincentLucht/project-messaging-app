@@ -3,8 +3,8 @@ import { DBChatWithMembers } from '@/app/middle/Home/components/ChatSection/AllC
 import { User } from '@/app/middle/Home/Home';
 
 import fetchAllUserChats from '@/app/middle/Home/components/ChatSection/AllChatsList/api/fetchAllUserChats';
-import addUnreadMessagesToChat from '@/app/middle/Home/services/fetchChats/util/addUnreadMessagesToChat';
-import { UnreadMessage } from '@/app/middle/Home/services/fetchChats/util/addUnreadMessagesToChat';
+import addUnreadMessagesToChat from '@/app/middle/Home/hooks/services/fetchChats/util/addUnreadMessagesToChat';
+import { UnreadMessage } from '@/app/middle/Home/hooks/services/fetchChats/util/addUnreadMessagesToChat';
 import { toast } from 'react-toastify';
 
 export default async function fetchChats(
