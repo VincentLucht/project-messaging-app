@@ -11,7 +11,6 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 export const API_URL = import.meta.env.VITE_API_URL as string;
-console.log(API_URL);
 
 export default function App() {
   const { isLoggedIn, logout } = useAuth();

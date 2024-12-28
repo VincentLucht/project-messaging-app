@@ -12,13 +12,7 @@ export default function useSocketConnection(
   useEffect(() => {
     if (!isLoggedIn || !user) return;
 
-    console.log('Connecting to:', API_URL);
     socket.current = io(API_URL);
-
-    socket.current.on('connect_error', (error) => {
-      console.error('Socket connection error:', error);
-    });
-
     socket.current.emit('user-connected', {
       username: user.username,
     });
