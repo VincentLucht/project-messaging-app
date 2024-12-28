@@ -11,6 +11,7 @@ import tracker from '@/server/controllers/Tracker';
 import createChat from '@/server/controllers/createChat';
 
 // Handlers
+import handleJoinChat from '@/server/handlers/handleJoinChat/handleJoinChat';
 import handleSendMessage from '@/server/handlers/handleSendMessage/handleSendMessage';
 import handleUserAddedToChat from '@/server/handlers/handleUserAddedToChat/handleUserAddedToChat';
 import handleUserDeletedFromChat from '@/server/handlers/handleUserDeletedFromChat/handleUserDeletedFromChat';
@@ -104,48 +105,7 @@ export function setupSocketIO(httpServer: HTTPServer) {
     );
 
     // ! JOINING CHAT (user connects to room)
-    // ! TODO: Create handler
-    socket.on(
-      'join-chat',
-      async (chatId: string, username: string, userId: string) => {
-        try {
-          // add socket and data for tracking data on disconnect
-          userSessions.set(socket.id, { chatId, username });
-
-          // create chatroom if there is not one
-          if (!chatRooms.has(chatId)) {
-            chatRooms.set(chatId, new Map());
-          }
-
-          // get users map from chat ID
-          const usersInChat = getActiveChatMembers(chatRooms, chatId);
-          if (!usersInChat) throw new Error(`Chat ID ${chatId} not found`);
-
-          // add user to userInChat map
-          usersInChat.set(username, {
-            username,
-            userId,
-          });
-
-          // emit signal that you joined
-          io.to(chatId).emit('user-joined', {
-            userId,
-            username,
-            usersInChat: Object.fromEntries(usersInChat),
-          });
-
-          // mark message as read
-          await db.messageRead.userReadAllMessages(chatId, [userId]);
-
-          socket.join(chatId);
-
-          // console.log(chatRooms);
-        } catch (error) {
-          console.error('Error joining chat:', error);
-          socket.emit('error', 'Failed to join chat');
-        }
-      },
-    );
+    socket.on('join-chat', handleJoinChat(io, socket, userSessions, chatRooms));
 
     // ! LEAVING CHAT (user disconnects from room)
     socket.on('leave-chat', async (chatId: string, username: string) => {
