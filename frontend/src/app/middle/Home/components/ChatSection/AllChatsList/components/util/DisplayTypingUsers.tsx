@@ -21,15 +21,6 @@ export default function DisplayTypingUsers(
     lastChatMessage.iv,
   );
 
-  // Chat message on newly created chat
-  if (
-    lastChatMessage.is_system_message &&
-    decryptedMessage === 'created the Chat' &&
-    mode === 'overview'
-  ) {
-    return `${lastMessageWriter} created the Chat`;
-  }
-
   if (!typingUsers && mode === 'overview') {
     const lastMessageContent = decryptedMessage;
 
