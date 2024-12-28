@@ -10,8 +10,8 @@ import { Socket } from 'socket.io-client';
 import { DBChatWithMembers } from '@/app/middle/Home/components/ChatSection/AllChatsList/api/fetchAllUserChats';
 import { DBMessageWithUser } from '@/app/interfaces/databaseSchema';
 
-import handleNewMessages from '@/app/right/ActiveChat/service/handleNewMessages';
-import handleUserJoiningChat from '@/app/right/ActiveChat/service/handleUserJoiningChat';
+import useConnectToChat from '@/app/right/ActiveChat/hooks/useConnectToChat';
+import useGetNewMessages from '@/app/right/ActiveChat/hooks/useGetNewMessages';
 import handleFetchingMessages from '@/app/right/ActiveChat/service/handleFetchingMessages/handleFetchingMessages';
 import handleUnmount from '@/app/right/ActiveChat/service/handleUnmount';
 
@@ -20,7 +20,6 @@ import ChatSettings from '@/app/right/ActiveChat/components/ChatSettings/ChatSet
 import AllChatMessages from '@/app/right/ActiveChat/components/AllChatMessages/AllChatMessages';
 import SendMessageForm from '@/app/right/ActiveChat/components/ChatMessageForm/SendMessageForm';
 
-import { toast } from 'react-toastify';
 import { TypingUsers } from '@/app/interfaces/TypingUsers';
 
 interface ActiveChatProps {
@@ -58,32 +57,8 @@ export default function ActiveChat({
   const [messagePage, setMessagePage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
-  // socket events for active chat
-  useEffect(() => {
-    if (!socket) return;
-
-    handleUserJoiningChat(socket, chat.id, userId, username, setMessages);
-
-    socket.on('error', (error: string) => {
-      toast.error(`Socket error: ${error}`);
-    });
-
-    return () => {
-      socket.emit('leave-chat', chat.id, username);
-      socket.off('user-typing');
-      socket.off('user-stopped-typing');
-      socket.off('error');
-    };
-  }, [socket, chat.id, userId, username]);
-
-  // New Messages
-  useEffect(() => {
-    handleNewMessages(socket, chat.id, setMessages);
-
-    return () => {
-      socket?.off('new-message');
-    };
-  }, [socket, chat.id, setChats]);
+  useConnectToChat(socket, chat.id, userId, username, setMessages);
+  useGetNewMessages(socket, chat.id, setMessages);
 
   const loadInitialMessages = useCallback(() => {
     handleFetchingMessages(
