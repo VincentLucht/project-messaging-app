@@ -1,4 +1,4 @@
-class Tracker {
+export class Tracker {
   saveOnlineUsers(
     socketId: string,
     username: string,
