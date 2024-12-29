@@ -20,8 +20,8 @@ import handleAdminStatusRemoved from '@/server/handlers/handleAdminStatusRemoved
 import handleLeaveChat from '@/server/handlers/handleLeaveChat/handleLeaveChat';
 import handleDeleteChat from '@/server/handlers/handleDeleteChat/handleDeleteChat';
 import handleLeaveOneOnOneChat from '@/server/handlers/handleLeaveOneOnOneChat/handleLeaveOneOnOneChat';
-
-import getActiveChatMembers from '@/server/util/getActiveChatMembers';
+import handleChatDisconnect from '@/server/handlers/handleChatDisconnect/handleChatDisconnect';
+import handleDisconnect from '@/server/handlers/handleDisconnect/handleDisconnect';
 
 // Types
 import { ChatRooms } from '@/server/interfaces/commonTypes';
@@ -108,23 +108,7 @@ export function setupSocketIO(httpServer: HTTPServer) {
     socket.on('join-chat', handleJoinChat(io, socket, userSessions, chatRooms));
 
     // ! LEAVING CHAT (user disconnects from room)
-    socket.on('leave-chat', async (chatId: string, username: string) => {
-      try {
-        // remove user from room
-        const room = getActiveChatMembers(chatRooms, chatId);
-        if (!room) throw new Error('Room does not exist');
-
-        room.delete(username);
-        // delete if empty
-        if (room.size === 0) {
-          chatRooms.delete(chatId);
-        }
-        socket.leave(chatId);
-      } catch (error) {
-        console.error('Error joining chat:', error);
-        socket.emit('error', 'Failed to join chat');
-      }
-    });
+    socket.on('leave-chat', handleChatDisconnect(chatRooms, socket));
 
     // ! CREATING CHAT
     socket.on(
@@ -226,32 +210,19 @@ export function setupSocketIO(httpServer: HTTPServer) {
     );
 
     // ! TODO: Create handler
-    socket.on('disconnect', () => {
-      // Fetch user session info on disconnect
-      const session = userSessions.get(socket.id); // Get user's chat details by socket.id
-      if (session) {
-        const { chatId, username } = session;
-        const room = chatRooms.get(chatId);
-        if (room) {
-          room.delete(username);
-          if (room.size === 0) {
-            chatRooms.delete(chatId); // Clean up empty room
-          }
-        }
-        // Remove the user's session data after disconnect
-        userSessions.delete(socket.id);
-
-        // remove typing indicator on disconnect
-        typingUsers.deleteUsername(chatId, username);
-        typingUsers.emit(chatId, socket);
-        typingUsers.clearTypingStatus(chatId, username);
-      }
-
-      // remove from online users
-      tracker.deleteOnlineUsers(socket.id, onlineUsers, socketToUser);
-
-      cleanupEventListeners();
-    });
+    socket.on(
+      'disconnect',
+      handleDisconnect(
+        chatRooms,
+        socket,
+        userSessions,
+        typingUsers,
+        tracker,
+        onlineUsers,
+        socketToUser,
+        cleanupEventListeners,
+      ),
+    );
   });
 
   return io;
