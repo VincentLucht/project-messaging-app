@@ -19,7 +19,7 @@ Das Backend für die [Echtzeit Messaging App](https://github.com/VincentLucht/pr
 
 ## 🧰 Installation & Einrichtung
 ### ‼️ Voraussetzungen
-Du <u>benötigst</u> diese environment variables:
+Du <u>benötigst</u> diese Environment Variablen:
 
 `DATABASE_URL_LOCAL`
 
