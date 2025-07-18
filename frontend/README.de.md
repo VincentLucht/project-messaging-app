@@ -44,10 +44,5 @@ Starte den Server:
 npm run dev
 ```
 
-Führe das Seed Skript aus (optional):
-```bash
-npm run db
-```
-
 ## ⚡️ Tech Stack
 [![Tech Stack](https://skillicons.dev/icons?i=ts,react,tailwind,vite)](https://skillicons.dev)
