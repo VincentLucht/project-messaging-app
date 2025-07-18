@@ -64,5 +64,10 @@ Führe das Seed Skript aus (optional):
 npm run db
 ```
 
+Tests ausführen (optional):
+```bash
+npm test
+```
+
 ## ⚡️ Tech Stack
 [![Tech Stack](https://skillicons.dev/icons?i=ts,nodejs,express,prisma,postgresql,socketio)](https://skillicons.dev)
