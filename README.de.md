@@ -18,6 +18,7 @@ Eine full-stack Messaging Plattform, die Eichzeit-Kommunikation zuwischen Benutz
 
 ## 🚀 Live Anwendung
 - [Live Projekt ansehen](https://project-messaging-app-fawn.vercel.app)
+
 ![Demo](./demo.gif)
 
 ## 🔗 Verwandte Repositories (für weitere Details)

@@ -18,6 +18,7 @@ A full-stack messaging platform enabling real-time communication between users, 
 
 ## 🚀 Live Application
 - [View live project](https://project-messaging-app-fawn.vercel.app)
+
 ![Demo](./demo.gif)
 
 ## 🔗 Related Repositories (for more details)
