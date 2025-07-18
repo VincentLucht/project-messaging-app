@@ -5,7 +5,7 @@
 # Real-Time Messaging App
 A full-stack messaging platform enabling real-time communication between users, built with TypeScript. Built as part of the [Odin Project Curriculum](https://www.theodinproject.com).
 
-## Key Features
+## ✨ Key Features
 **Real-time Communication:** Full-featured chat application with Socket.IO for instant messaging, typing indicators, online user tracking, and live notifications 
 
 **Advanced Socket Management:** Complex event handling system managing chat rooms, user sessions, connection cleanup, and real-time user presence across multiple socket connections 
@@ -16,20 +16,20 @@ A full-stack messaging platform enabling real-time communication between users, 
 
 **Security & Validation:** AES-256 message encryption with random IV generation, JWT-based authentication, input validation, CORS configuration, and secure real-time event handling 
 
-## Live Demo 🚀
+## 🚀 Live Demo
 [View Live Demo](https://project-messaging-app-fawn.vercel.app)
 
-## Related Repositories (for more details)
+## 🔗 Related Repositories (for more details)
 - [Frontend Code](https://github.com/VincentLucht/project-messaging-app/tree/main/frontend)
 - [Backend Code](https://github.com/VincentLucht/project-messaging-app/tree/main/backend)
 
-## Tech Stack
+## ⚡️ Tech Stack
 ### Frontend:
 [![Tech Stack](https://skillicons.dev/icons?i=ts,react,tailwind,vite)](https://skillicons.dev)
 ### Backend:
 [![Tech Stack](https://skillicons.dev/icons?i=ts,nodejs,express,postgres,prisma)](https://skillicons.dev)
 
-## What I learned
+## 📚 What I learned
 ### The importance of planning
 - Insufficient planning lead to backtracking and adding new features - thoroughly planning and laying everything out in the beginning would have made everything easier
 
