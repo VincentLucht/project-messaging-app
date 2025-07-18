@@ -16,8 +16,9 @@ Eine full-stack Messaging Plattform, die Eichzeit-Kommunikation zuwischen Benutz
 
 **Sicherheit & Validierung:** AES-256 Nachrichtenverschlüsselung mit zufälliger IV-Generierung, JWT-basierte Authentifizierung, Eingabevalidierung, CORS-Konfiguration und sichere Echtzeit Event Behandlung 
 
-## 🚀 Live Demo
-[Zur Live Demo](https://project-messaging-app-fawn.vercel.app)
+## 🚀 Live Anwendung
+- [Live Projekt ansehen](https://project-messaging-app-fawn.vercel.app)
+![Demo](./demo.gif)
 
 ## 🔗 Verwandte Repositories (für weitere Details)
 - [Frontend Code](https://github.com/VincentLucht/project-messaging-app/tree/main/frontend)
