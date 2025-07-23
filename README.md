@@ -1,5 +1,5 @@
-[![en](https://img.shields.io/badge/lang-en-red.svg)](README.md)
-[![de](https://img.shields.io/badge/lang-de-blue.svg)](README.de.md)
+[![de](https://img.shields.io/badge/lang-de-blue.svg)](README.md)
+[![en](https://img.shields.io/badge/lang-en-red.svg)](README.en.md)
 
 
 # Echtzeit Messaging App

@@ -1,5 +1,5 @@
-[![en](https://img.shields.io/badge/lang-en-red.svg)](README.md)
-[![de](https://img.shields.io/badge/lang-de-blue.svg)](README.de.md)
+[![de](https://img.shields.io/badge/lang-de-blue.svg)](README.md)
+[![en](https://img.shields.io/badge/lang-en-red.svg)](README.en.md)
 
 # Frontend - Echtzeit Messaging App
 Das Frontend für die [Echtzeit Messaging App](https://github.com/VincentLucht/project-messaging-app), entwickelt mit React und TypeScript. Bietet Echtzeit-Chats über Socket.IO und ein responsives Design bis zu 360px mithilfe von Tailwind CSS.

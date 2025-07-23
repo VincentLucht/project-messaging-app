@@ -1,5 +1,5 @@
-[![en](https://img.shields.io/badge/lang-en-red.svg)](README.md)
-[![de](https://img.shields.io/badge/lang-de-blue.svg)](README.de.md)
+[![de](https://img.shields.io/badge/lang-de-blue.svg)](README.md)
+[![en](https://img.shields.io/badge/lang-en-red.svg)](README.en.md)
 
 # Backend - Real-Time Messaging App
 The Backend for the [real-time messaging app](https://github.com/VincentLucht/project-messaging-app) built with Node.js, TypeScript, and Socket.IO. Features a REST API with real-time Socket.IO integration, JWT authentication, and PostgreSQL database with Prisma ORM.

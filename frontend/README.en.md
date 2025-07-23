@@ -1,5 +1,5 @@
-[![en](https://img.shields.io/badge/lang-en-red.svg)](README.md)
-[![de](https://img.shields.io/badge/lang-de-blue.svg)](README.de.md)
+[![de](https://img.shields.io/badge/lang-de-blue.svg)](README.md)
+[![en](https://img.shields.io/badge/lang-en-red.svg)](README.en.md)
 
 # Frontend - Real-Time Messaging App
 The Frontend for the [real-time messaging app](https://github.com/VincentLucht/project-messaging-app) built with React and TypeScript. Features real-time chats via Socket.IO and a responsive design down to 360px via Tailwind CSS.

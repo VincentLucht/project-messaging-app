@@ -1,5 +1,5 @@
-[![en](https://img.shields.io/badge/lang-en-red.svg)](README.md)
-[![de](https://img.shields.io/badge/lang-de-blue.svg)](README.de.md)
+[![de](https://img.shields.io/badge/lang-de-blue.svg)](README.md)
+[![en](https://img.shields.io/badge/lang-en-red.svg)](README.en.md)
 
 # Backend - Echtzeit Messaging App
 Das Backend für die [Echtzeit Messaging App](https://github.com/VincentLucht/project-messaging-app), entwickelt mit Node.js, TypeScript und Socket.IO. Bietet eine REST API mit Echtzeit Socket.IO Integration, JWT-Authentifizierung und PostgreSQL Datenbank mit Prisma ORM.
