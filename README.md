@@ -2,26 +2,26 @@
 [![de](https://img.shields.io/badge/lang-de-blue.svg)](README.de.md)
 
 
-# Real-Time Messaging App
-A full-stack messaging platform enabling real-time communication between users, built with TypeScript. Built as part of the [Odin Project Curriculum](https://www.theodinproject.com).
+# Echtzeit Messaging App
+Eine full-stack Messaging Plattform, die Eichzeit-Kommunikation zuwischen Benutzern ermöglich, entwickelt mit TypeScript. Erstellt als Teil des [Odin Project Curriculums](https://www.theodinproject.com).
 
-## ✨ Key Features
-**Real-time Communication:** Full-featured chat application with Socket.IO for instant messaging, typing indicators, online user tracking, and live notifications 
+## ✨ Features
+**Echtzeit-Kommunikation:** Vollständige Chat Anwendung mit Socket.IO für Sofortnachrichten, Tipp-Indikatoren, Online-Benutzer-Tracking und Live-Benachrichtigungen 
 
-**Advanced Socket Management:** Complex event handling system managing chat rooms, user sessions, connection cleanup, and real-time user presence across multiple socket connections 
+**Erweiterte Socket Verwaltung:** Komplexes Event-Handling zur Verwaltung von Chat-Räumen, Benutzersitzungen, Verbindungstermination und Echtzeit-Benutzerpräsenz über mehrere Socket-Verbindungen 
 
-**Comprehensive Chat Features:** Group chats with admin controls, one-on-one messaging, message read status tracking, unread message counts, and chat management  
+**Umfassende Chat Features:** Gruppenchats mit Admin Kontrollen, Einzelchats, Nachrichtenstatus Tracking, ungelesene Nachrichtenzähler und Chat Verwaltung 
 
-**Backend Architecture:** TypeScript-based REST API with Socket.IO HTTP server integration, JWT authentication, and PostgreSQL database with Prisma ORM 
+**Backend Architektur:** TypeScript basierte REST API mit Socket.IO HTTP Server Integration, JWT-Authentifizierung und PostgreSQL Datenbank mit Prisma ORM 
 
-**Security & Validation:** AES-256 message encryption with random IV generation, JWT-based authentication, input validation, CORS configuration, and secure real-time event handling 
+**Sicherheit & Validierung:** AES-256 Nachrichtenverschlüsselung mit zufälliger IV-Generierung, JWT-basierte Authentifizierung, Eingabevalidierung, CORS-Konfiguration und sichere Echtzeit Event Behandlung 
 
-## 🚀 Live Application
-- [View live project](https://project-messaging-app-fawn.vercel.app)
+## 🚀 Live Anwendung
+- [Live Projekt ansehen](https://project-messaging-app-fawn.vercel.app)
 
 ![Demo](./demo.gif)
 
-## 🔗 Related Repositories (for more details)
+## 🔗 Verwandte Repositories (für weitere Details)
 - [Frontend Code](https://github.com/VincentLucht/project-messaging-app/tree/main/frontend)
 - [Backend Code](https://github.com/VincentLucht/project-messaging-app/tree/main/backend)
 
@@ -31,11 +31,11 @@ A full-stack messaging platform enabling real-time communication between users, 
 ### Backend:
 [![Tech Stack](https://skillicons.dev/icons?i=ts,nodejs,express,postgres,prisma)](https://skillicons.dev)
 
-## 📚 What I learned
-### The importance of planning
-- Insufficient planning lead to backtracking and adding new features - thoroughly planning and laying everything out in the beginning would have made everything easier
+## 📚 Was ich gelernt habe
+### Die Wichtigkeit der Planung
+- Unzureichende Planung führte zu Rückschritten und dem Hinzufügen neuer Features - eine gründliche Planung und das Ausarbeiten aller Details am Anfang hätte alles einfacher gemacht
 
-### Creating a large-full stack project from scratch
-- Gained deep understanding of creating a full-stack project from scratch
-- Learned how to use a technology that was alien to me (socket.io) to create something fully functional
-- Got the hang of fully deploying a project
+### Ein großes Full-Stack-Projekt von Grund auf erstellen
+- Tiefes Verständnis dafür entwickelt, wie man ein Full-Stack-Projekt von Grund auf erstellt
+- Gelernt, wie man eine Technologie verwendet, die mir völlig fremd war (socket.io), um etwas vollständig Funktionsfähiges zu erstellen
+- Den Dreh rausbekommen, ein Projekt vollständig zu deployen

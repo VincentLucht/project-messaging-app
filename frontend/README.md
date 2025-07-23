@@ -1,45 +1,45 @@
 [![en](https://img.shields.io/badge/lang-en-red.svg)](README.md)
 [![de](https://img.shields.io/badge/lang-de-blue.svg)](README.de.md)
 
-# Frontend - Real-Time Messaging App
-The Frontend for the [real-time messaging app](https://github.com/VincentLucht/project-messaging-app) built with React and TypeScript. Features real-time chats via Socket.IO and a responsive design down to 360px via Tailwind CSS.
+# Frontend - Echtzeit Messaging App
+Das Frontend für die [Echtzeit Messaging App](https://github.com/VincentLucht/project-messaging-app), entwickelt mit React und TypeScript. Bietet Echtzeit-Chats über Socket.IO und ein responsives Design bis zu 360px mithilfe von Tailwind CSS.
 
-## ✨ Key Features
-- Real-time messaging with Socket.IO
-- View and manage all chats
-- Uses Virtualization and pagination to optimize performance
-- Typing indicators and online status
-- Unread message notifications
-- Responsive design (down to 360px)
-- Persistent login and user authentication using JWTs in local storage
-- Message encryption/decryption via AES-256
+## ✨ Features
+- Echtzeit-Messaging mit Socket.IO
+- Anzeige und Verwaltung aller Chats
+- Verwendet Virtualisierung und Paginierung zur Leistungsoptimierung
+- Tipp-Indikatoren und Online Status
+- Benachrichtigungen für ungelesene Nachrichten
+- Responsives Design (bis zu 360px)
+- Dauerhafte Anmeldung und Benutzerauthentifizierung mit JWTs im lokalen Speicher
+- Nachrichtenverschlüsselung/-entschlüsselung via AES-256
 
-## 🧰 Installation & Setup
-### ‼️ Prerequisites
-You <u>need</u> 2 environment variables:
+## 🧰 Installation & Einrichtung
+### ‼️ Voraussetzungen
+Du <u>benötigst</u> 2 environment variables:
 
-`VITE_SECRET_KEY_ENC` (NEEDS TO MATCH WITH BACKEND)
+`VITE_SECRET_KEY_ENC` (MUSS MIT DEM BACKEND ÜBEREINSTIMMEN)
 
-`VITE_API_URL` (backend URL)
+`VITE_API_URL` (Backend URL)
 
 ### ⚙️ Installation
-Clone the Project:
+Klone das Projekt:
 ```bash
 git clone https://github.com/VincentLucht/project-messaging-app.git
 ```
 
-Go to the project directory and then into the frontend dir:
+Öffne das directory und gehe anschließend in den Frontend Ordner:
 ```bash
 cd project-messaging-app
 cd frontend
 ```
 
-Install dependencies:
+Installiere die dependencies:
 ```bash
 npm install
 ```
 
-Start the server:
+Starte den Server:
 ```bash
 npm run dev
 ```

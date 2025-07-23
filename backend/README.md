@@ -1,31 +1,31 @@
 [![en](https://img.shields.io/badge/lang-en-red.svg)](README.md)
 [![de](https://img.shields.io/badge/lang-de-blue.svg)](README.de.md)
 
-# Backend - Real-Time Messaging App
-The Backend for the [real-time messaging app](https://github.com/VincentLucht/project-messaging-app) built with Node.js, TypeScript, and Socket.IO. Features a REST API with real-time Socket.IO integration, JWT authentication, and PostgreSQL database with Prisma ORM.
+# Backend - Echtzeit Messaging App
+Das Backend für die [Echtzeit Messaging App](https://github.com/VincentLucht/project-messaging-app), entwickelt mit Node.js, TypeScript und Socket.IO. Bietet eine REST API mit Echtzeit Socket.IO Integration, JWT-Authentifizierung und PostgreSQL Datenbank mit Prisma ORM.
 
-## ✨ Architecture and key features
+## ✨ Architektur und Features
 ### HTTP + Socket.IO Integration
-- **REST API:** Traditional HTTP endpoints for user authentication, chat management, and message operations
-- **Socket.IO Server:** Real-time WebSocket connections for instant messaging, typing indicators, and live user presence
-- **Hybrid Approach:** Combines the reliability of REST with the real-time capabilities of WebSockets
+- **REST API:** Traditionelle HTTP-Endpunkte für Benutzerauthentifizierung, Chat-Verwaltung und Nachrichtenverwaltung
+- **Socket.IO Server:** Echtzeit-WebSocket-Verbindungen für sofortiges Messaging, Tipp-Indikatoren und Live User-Präsenz
+- **Hybrid-Ansatz:** Kombiniert die Zuverlässigkeit von REST mit den Echtzeit-Fähigkeiten von WebSockets
 
-### Security Features
-- **JWT Authentication:** Secure token-based user authentication
-- **Message Encryption:** AES-256 encryption for all messages
-- **Input Validation:** Request validation
-- **CORS Configuration:** CORS only allows requests from specified routes
-- **Real-time Security:** Socket event authentication and validation
+### Sicherheitsfeatures
+- **JWT-Authentifizierung:** Sichere Token-basierte Benutzerauthentifizierung
+- **Nachrichtenverschlüsselung:** AES-256-Verschlüsselung für alle Nachrichten
+- **Eingabevalidierung:** Request-Validierung
+- **CORS-Konfiguration:** CORS erlaubt nur Anfragen von spezifizierten Routen
+- **Echtzeit-Sicherheit:** Socket-Event-Authentifizierung und -Validierung
 
-## 🧰 Installation & Setup
-### ‼️ Prerequisites
-You <u>need</u> these environment variables:
+## 🧰 Installation & Einrichtung
+### ‼️ Voraussetzungen
+Du <u>benötigst</u> diese Environment Variablen:
 
 `DATABASE_URL_LOCAL`
 
-`SECRET_KEY` (JWT secret key)
+`SECRET_KEY` (JWT Secret Key)
 
-`SECRET_KEY_ENC` (NEEDS TO MATCH WITH FRONTEND)
+`SECRET_KEY_ENC` (MUSS MIT DEM FRONTEND ÜBEREINSTIMMEN)
 
 `FRONTEND_URL`
 
@@ -33,38 +33,38 @@ You <u>need</u> these environment variables:
 `Port` (optional)
 
 ### ⚙️ Installation
-Clone the Project:
+Klone das Projekt:
 ```bash
 git clone https://github.com/VincentLucht/project-messaging-app.git
 ```
 
-Go to the project directory and then into the backend dir:
+Öffne das directory und gehe anschließend in den Backend Ordner:
 ```bash
 cd project-messaging-app
 cd backend
 ```
 
-Install dependencies:
+Installiere die dependencies:
 ```bash
 npm install
 ```
 
-Set up the database:
+Richte die Datenbank ein:
 ```bash
 npx prisma generate
 ```
 
-Start the server:
+Starte den Server:
 ```bash
 npm run dev
 ```
 
-Run the seed script (optional):
+Führe das Seed Skript aus (optional):
 ```bash
 npm run db
 ```
 
-Run tests (optional):
+Tests ausführen (optional):
 ```bash
 npm test
 ```
